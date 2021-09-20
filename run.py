@@ -11,7 +11,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', type=str, default="BipedalWalkerHardcore-v3", help='environment ID')
     parser.add_argument('--algo', type=str, default="DQN", help='algo ID')
-    parser.add_argument('--steps', type=float, default=2e7, help='step size')
+    parser.add_argument('--steps', type=float, default=1e6, help='step size')
     parser.add_argument('--riskfactor', type=float, default=0, help='risk factor')
     parser.add_argument('--seed', type=int, default=0, help='random seed')
     parser.add_argument('--policy_delay', type=int, default=2, help='policy_delay')
