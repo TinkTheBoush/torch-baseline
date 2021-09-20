@@ -1,6 +1,6 @@
 from setuptools import setup
 setup(
-    name='torch_baseline',
+    name='torch_baselines',
     version='0.0.1',
     packages=['torch_baselines'],
     install_requires=[
