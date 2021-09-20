@@ -113,7 +113,7 @@ class DQN:
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~torch.from_numpy(data[4])).float()
         vals = self.model(obses).gather(-1,actions)
-        print(vals)
+        #print(vals)
         with torch.no_grad():
             next_vals = dones*torch.max(self.target_model(nxtobses),dim=-1)[0]
             targets = rewards + self.gamma*next_vals
@@ -155,7 +155,7 @@ class DQN:
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
         for steps in range(total_timesteps):
-            actions = self.actions(dec.obs,0.5)
+            actions = self.actions(dec.obs,0.1)
             action_tuple = ActionTuple(discrete=actions)
             self.env.set_actions(self.group_name, action_tuple)
             
