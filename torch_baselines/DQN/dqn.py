@@ -126,8 +126,6 @@ class DQN:
         nxtobses = [torch.from_numpy(o).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~torch.from_numpy(data[4])).float()
-        print(dones)
-        #self.model.train()
         self.model.eval()
         vals = self.model(obses).gather(1,actions)
         next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].detach()
@@ -140,6 +138,9 @@ class DQN:
         
         if step % self.target_network_update_freq == 0:
             self.target_model.load_state_dict(self.model.state_dict())
+            print("dones : " ,dones)
+            print("nv : " ,next_vals)
+            print("v : " ,vals)
         
         return loss.detach(), m_targets.detach()
 
