@@ -139,7 +139,7 @@ class DQN:
             self.model.eval()
             obs = [torch.from_numpy(o).float() for o in obs]
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
-            actions = np.expand_dims(self.model.get_action(obs).numpy(), axis=-1)
+            actions = self.model.get_action(obs).veiw(-1,1).numpy()
             print(actions)
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
@@ -227,7 +227,7 @@ class DQN:
             update_eps = self.exploration.value(steps)
             actions = self.actions([state],update_eps)
             next_state, reward, done, info = self.env.step(actions[0][0])
-            self.replay_buffer.add([state], actions, reward, [next_state], done)
+            self.replay_buffer.add([state], actions[0], reward, [next_state], done)
             self.scores[0] += reward
             if done:
                 self.scoreque.append(self.scores[0])
