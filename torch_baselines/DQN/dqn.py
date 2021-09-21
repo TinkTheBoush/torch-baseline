@@ -133,6 +133,8 @@ class DQN:
         
         if step % self.target_network_update_freq == 0:
             self.target_model.load_state_dict(self.model.state_dict())
+        
+        return loss.detach()
 
     
     def actions(self,obs,epsilon):
@@ -204,7 +206,7 @@ class DQN:
             
             can_sample = self.replay_buffer.can_sample(self.batch_size)
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
-                self._train_step(steps,self.learning_rate)
+                loss = self._train_step(steps,self.learning_rate)
                 
             
         
@@ -229,7 +231,9 @@ class DQN:
                 self.scoreque.append(self.scores[0])
             state = next_state
             can_sample = self.replay_buffer.can_sample(self.batch_size)
-            if steps % 1000 == 0 and len(self.scoreque) > 0:
-                print("score : ", np.mean(self.scoreque), ", epsion :", update_eps)
+
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
-                self._train_step(steps,self.learning_rate)
+                loss = self._train_step(steps,self.learning_rate)
+            
+            if steps % 1000 == 0 and len(self.scoreque) > 0:
+                print("score : ", np.mean(self.scoreque), ", epsion :", update_eps, ", loss : ", loss)
