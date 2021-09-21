@@ -2,7 +2,7 @@ import gym
 import torch
 import numpy as np
 
-from tqdm.auto import tqdm
+from tqdm.auto import trange
 from collections import deque
 
 from torch_baselines.DQN.network import Model
@@ -175,11 +175,13 @@ class DQN:
         dec, term = self.env.get_steps(self.group_name)
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
+        self.lossque = deque(maxlen=10)
         
         self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
                                             initial_p=self.exploration_initial_eps,
                                             final_p=self.exploration_final_eps)
-        for steps in range(total_timesteps):
+        pbar = trange(total_timesteps)
+        for steps in trange(total_timesteps):
             update_eps = self.exploration.value(steps)
             actions = self.actions(dec.obs,update_eps)
             
@@ -212,12 +214,16 @@ class DQN:
                 act = old_action[idx]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done)
                 self.scores[idx] += reward
-            if steps % 1000 == 0 and len(self.scoreque) > 0:
-                print(np.mean(self.scoreque))
+            if steps % 1000 == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
+                pbar.set_description("score : [.2f], epsilon : [.2f], loss : [.2f]".format(
+                                        np.mean(self.scoreque),update_eps,np.mean(self.lossque)
+                                        )
+                                     )
             
             can_sample = self.replay_buffer.can_sample(self.batch_size)
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 loss = self._train_step(steps,self.learning_rate)
+                self.lossque.append(loss)
                 
             
         
@@ -226,15 +232,14 @@ class DQN:
         state = self.env.reset()
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
-        self.scoreque.append(0)
         self.lossque = deque(maxlen=10)
-        self.lossque.append(0)
         t = 0
         
         self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
                                             initial_p=self.exploration_initial_eps,
                                             final_p=self.exploration_final_eps)
-        for steps in range(total_timesteps):
+        pbar = trange(total_timesteps)
+        for steps in pbar:
             update_eps = self.exploration.value(steps)
             actions = self.actions([state],update_eps)
             next_state, reward, done, info = self.env.step(actions[0][0])
@@ -252,5 +257,9 @@ class DQN:
                 loss,t = self._train_step(steps,self.learning_rate)
                 self.lossque.append(loss)
             
-            if steps % 1000 == 0 and len(self.scoreque) > 0:
-                print("score : ", np.mean(self.scoreque), ", epsion :", update_eps, ", loss : ", np.mean(self.lossque))
+            if steps % 1000 == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
+                pbar.set_description("score : [.2f], epsilon : [.2f], loss : [.2f]".format(
+                                        np.mean(self.scoreque),update_eps,np.mean(self.lossque)
+                                        )
+                                     )
+                #print("score : ", np.mean(self.scoreque), ", epsion :", update_eps, ", loss : ", np.mean(self.lossque))
