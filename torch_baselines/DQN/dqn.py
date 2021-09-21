@@ -214,6 +214,8 @@ class DQN:
                 self.replay_buffer.add(obs, act, reward, nxtobs, done)
                 self.scores[idx] += reward
                 self.scoreque.append(self.scores[idx])
+                if self.writer:
+                    self.writer.add_scalar("env/score", self.scores[idx], steps)
                 self.scores[idx] = 0
             for idx in dec.agent_id:
                 if idx in term.agent_id:
@@ -259,7 +261,7 @@ class DQN:
             if done:
                 self.scoreque.append(self.scores[0])
                 if self.writer:
-                    self.writer.add_scalar("env/reward", loss, steps)
+                    self.writer.add_scalar("env/score", self.scores[0], steps)
                 self.scores[0] = 0
                 state = self.env.reset()
                 #print("end")
