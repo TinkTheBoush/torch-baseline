@@ -62,7 +62,9 @@ class DQN:
             self.setup_model()
         
     def get_env_setup(self):
+        print("-------env-------")
         if isinstance(self.env,UnityEnvironment):
+            print("unity-ml agent environmet")
             self.env.reset()
             group_name = list(self.env.behavior_specs.keys())[0]
             group_spec = self.env.behavior_specs[group_name]
@@ -77,7 +79,7 @@ class DQN:
             self.env_type = "unity"
             
         elif isinstance(self.env,gym.Env):
-            from gym import spaces
+            print("openai gym environmet")
             action_space = self.env.action_space
             observation_space = self.env.observation_space
             self.observation_space = [list(observation_space.shape)]
@@ -89,7 +91,7 @@ class DQN:
             pass
         
         self.replay_buffer = ReplayBuffer(self.buffer_size)
-        print("-------env-------")
+        
         print("observation size : ", self.observation_space)
         print("action size : ", self.action_size)
         print("worker_size : ", self.worker_size)
