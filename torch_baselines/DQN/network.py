@@ -33,6 +33,8 @@ class Model(nn.Module):
         self.linear = nn.Sequential(
             nn.Linear(flatten_size,node),
             nn.ReLU(),
+            nn.Linear(node,node),
+            nn.ReLU(),
             nn.Linear(node, action_size[0])
         )
 
