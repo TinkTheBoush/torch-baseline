@@ -219,8 +219,8 @@ class DQN:
             update_eps = self.exploration.value(steps)
             actions = self.actions([state],update_eps)
             print(actions)
-            next_state, reward, done, info = self.env.step(actions[0])
-            self.memory.append(state, next_state, reward, done, actions[0])
+            next_state, reward, done, info = self.env.step(actions[0][0])
+            self.memory.append(state, next_state, reward, done, actions[0][0])
             self.scores[0] += reward
             state = next_state
             can_sample = self.replay_buffer.can_sample(self.batch_size)
