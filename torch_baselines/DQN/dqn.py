@@ -11,7 +11,7 @@ import torch
 
 
 class DQN:
-    def __init__(self, policy, env, gamma=0.9, learning_rate=1e-3, buffer_size=50000, exploration_fraction=0.1,
+    def __init__(self, policy, env, gamma=0.99, learning_rate=1e-3, buffer_size=50000, exploration_fraction=0.1,
                  exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32, double_q=True,
                  learning_starts=1000, target_network_update_freq=500, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_beta_iters=None,
@@ -121,13 +121,14 @@ class DQN:
         data = self.replay_buffer.sample(self.batch_size)
         obses = [torch.from_numpy(o).float() for o in data[0]]
         obses = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obses]
-        actions = torch.from_numpy(data[1])
+        actions = torch.from_numpy(data[1]).view(-1,1)
         rewards = torch.from_numpy(data[2]).float()
         nxtobses = [torch.from_numpy(o).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~torch.from_numpy(data[4])).float()
-        self.model.train()
-        vals = self.model(obses).gather(-1,actions.view(-1,1))
+        #self.model.train()
+        self.model.eval()
+        vals = self.model(obses).gather(1,actions)
         next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].detach()
         targets = (next_vals * self.gamma) + rewards
         loss = self.loss(vals,targets) #torch.nn.MSELoss(#torch.mean(torch.square(targets - vals))
