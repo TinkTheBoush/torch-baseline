@@ -139,7 +139,7 @@ class DQN:
             self.model.eval()
             obs = [torch.from_numpy(o).float() for o in obs]
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
-            actions = self.model.get_action(obs).veiw(-1,1).numpy()
+            actions = self.model.get_action(obs).view(-1,1).numpy()
             print(actions)
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
