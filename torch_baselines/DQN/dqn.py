@@ -163,6 +163,7 @@ class DQN:
         
     def learn(self, total_timesteps, callback=None, log_interval=100, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):
+        self.writer = SummaryWriter(log_dir=)
         if self.env_type == "unity":
             self.learn_unity(total_timesteps, callback, log_interval, tb_log_name,
               reset_num_timesteps, replay_wrapper)
