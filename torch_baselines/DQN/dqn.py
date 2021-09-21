@@ -134,7 +134,7 @@ class DQN:
             next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].detach()
             targets = (next_vals * self.gamma) + rewards
         loss = self.loss(vals,targets.unsqueeze(1))
-        m_targets = torch.mean(targets)
+        
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -142,7 +142,7 @@ class DQN:
         if step % self.target_network_update_freq == 0:
             self.target_model.load_state_dict(self.model.state_dict())
 
-        return loss.detach(), m_targets.detach()
+        return loss.detach()
 
     
     def actions(self,obs,epsilon):
@@ -250,4 +250,4 @@ class DQN:
                 self.lossque.append(loss)
             
             if steps % 1000 == 0 and len(self.scoreque) > 0:
-                print("score : ", np.mean(self.scoreque), ", epsion :", update_eps, ", loss : ", np.mean(self.lossque), 'target : ', t)
+                print("score : ", np.mean(self.scoreque), ", epsion :", update_eps, ", loss : ", np.mean(self.lossque))
