@@ -63,6 +63,9 @@ class DQN:
         
         self.get_env_setup()
         self.get_memory_setup()
+        self.get_summary_setup()
+        
+        
         
         if _init_setup_model:
             self.setup_model()
@@ -103,7 +106,10 @@ class DQN:
             pass
         else:
             self.replay_buffer = ReplayBuffer(self.buffer_size)
-
+            
+    def get_summary_setup(self):
+        if self.tensorboard_log:
+            self.writer = SummaryWriter(log_dir=self.tensorboard_log)
             
             
     def setup_model(self):
@@ -163,7 +169,6 @@ class DQN:
         
     def learn(self, total_timesteps, callback=None, log_interval=100, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):
-        self.writer = SummaryWriter(log_dir=)
         if self.env_type == "unity":
             self.learn_unity(total_timesteps, callback, log_interval, tb_log_name,
               reset_num_timesteps, replay_wrapper)
