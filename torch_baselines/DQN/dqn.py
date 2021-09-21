@@ -254,7 +254,7 @@ class DQN:
             can_sample = self.replay_buffer.can_sample(self.batch_size)
 
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
-                loss,t = self._train_step(steps,self.learning_rate)
+                loss = self._train_step(steps,self.learning_rate)
                 self.lossque.append(loss)
             
             if steps % 1000 == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
