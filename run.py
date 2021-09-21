@@ -9,19 +9,13 @@ from mlagents_envs.side_channel.environment_parameters_channel import Environmen
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, default="BipedalWalkerHardcore-v3", help='environment ID')
+    parser.add_argument('--env', type=str, default="Cartpole-v1", help='environment')
     parser.add_argument('--algo', type=str, default="DQN", help='algo ID')
+    parser.add_argument('--target_update', type=int, default=2000, help='target update intervals')
     parser.add_argument('--steps', type=float, default=1e6, help='step size')
-    parser.add_argument('--riskfactor', type=float, default=0, help='risk factor')
-    parser.add_argument('--seed', type=int, default=0, help='random seed')
-    parser.add_argument('--policy_delay', type=int, default=2, help='policy_delay')
     parser.add_argument('--verbose', type=int, default=0, help='verbose')
-    parser.add_argument('--n_support', type=int, default=32, help='number of quantile support')
-    parser.add_argument('--tau', type=float, default=5e-3, help='target update gain')
-    parser.add_argument('--train_freq', type=int, default=10, help='random seed')
-    parser.add_argument('--ent_coef', type=float, default=0.01, help='ent_coef')
     parser.add_argument('--logdir',type=str, default='log/',help='log file dir')
-    parser.add_argument('--act_fun',type=str, default='relu',help='activation function')
+    parser.add_argument('--seed', type=int, default=0, help='random seed')
     args = parser.parse_args() 
     env_name = args.env
     
@@ -36,5 +30,5 @@ if __name__ == "__main__":
         env = gym.make(env_name)
         pass
     
-    agent = DQN("asdf",env,tensorboard_log=args.logdir+env_name)
+    agent = DQN("asdf",env,target_network_update_freq=args.target_update,tensorboard_log=args.logdir+env_name)
     agent.learn(int(args.steps))
