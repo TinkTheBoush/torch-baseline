@@ -217,7 +217,7 @@ class DQN:
                                             final_p=self.exploration_final_eps)
         for steps in range(total_timesteps):
             update_eps = self.exploration.value(steps)
-            actions = self.actions([state].obs,update_eps)
+            actions = self.actions([state],update_eps)
             next_state, reward, done, info = self.env.step(actions[0])
             self.memory.append(state, next_state, reward, done, actions[0])
             self.scores[0] += reward
