@@ -5,6 +5,8 @@ import numpy as np
 from tqdm.auto import trange
 from collections import deque
 
+from torch.utils.tensorboard import SummaryWriter
+
 from torch_baselines.DQN.network import Model
 from torch_baselines.common.buffers import ReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
