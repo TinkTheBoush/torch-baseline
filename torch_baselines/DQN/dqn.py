@@ -229,6 +229,7 @@ class DQN:
             self.scores[0] += reward
             if done:
                 self.scoreque.append(self.scores[0])
+                self.env.reset()
             state = next_state
             can_sample = self.replay_buffer.can_sample(self.batch_size)
 
