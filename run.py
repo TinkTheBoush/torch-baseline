@@ -29,11 +29,11 @@ if __name__ == "__main__":
         engine_configuration_channel = EngineConfigurationChannel()
         channel = EnvironmentParametersChannel()
         
-        env = UnityEnvironment(file_name=env_name,no_graphics=False, side_channels=[engine_configuration_channel,channel])
-        agent = DQN("asdf",env)
+        env = UnityEnvironment(file_name=env_name,no_graphics=False, side_channels=[engine_configuration_channel,channel],timeout_wait=10000)
         
     else:
         
         pass
     
+    agent = DQN("asdf",env)
     agent.learn(int(args.steps))

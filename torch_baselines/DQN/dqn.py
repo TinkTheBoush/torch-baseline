@@ -1,5 +1,6 @@
 from torch_baselines.DQN.network import Model
 from torch_baselines.common.buffers import ReplayBuffer
+from torch_baselines.common.schedules import LinearSchedule
 import numpy as np
 from mlagents_envs.environment import UnityEnvironment,ActionTuple
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
@@ -154,8 +155,14 @@ class DQN:
         dec, term = self.env.get_steps(self.group_name)
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
+        
+        self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
+                                            initial_p=self.exploration_initial_eps,
+                                            final_p=self.exploration_final_eps)
         for steps in range(total_timesteps):
-            actions = self.actions(dec.obs,0.1)
+            update_eps = self.exploration.value(self.num_timesteps)
+            actions = self.actions(dec.obs,update_eps)
+            
             action_tuple = ActionTuple(discrete=actions)
             self.env.set_actions(self.group_name, action_tuple)
             
