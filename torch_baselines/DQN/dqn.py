@@ -241,7 +241,6 @@ class DQN:
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
-        t = 0
         
         self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
                                             initial_p=self.exploration_initial_eps,
