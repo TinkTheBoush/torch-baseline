@@ -128,9 +128,10 @@ class DQN:
         dones = (~torch.from_numpy(data[4])).float()
         self.model.eval()
         vals = self.model(obses).gather(1,actions)
-        next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].detach()
-        targets = (next_vals * self.gamma) + rewards
-        loss = self.loss(vals,targets.unsqueeze(1)) #torch.nn.MSELoss(#torch.mean(torch.square(targets - vals))
+        with torch.no_grad():
+            next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].detach()
+            targets = (next_vals * self.gamma) + rewards
+        loss = self.loss(vals,targets.unsqueeze(1))
         m_targets = torch.mean(targets)
         self.optimizer.zero_grad()
         loss.backward()
@@ -150,11 +151,7 @@ class DQN:
             self.model.eval()
             obs = [torch.from_numpy(o).float() for o in obs]
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
-            with torch.no_grad():
-                val = self.model(obs)
-                actions = val.max(-1)[1].view(-1,1).detach().numpy()
-                #print(val.detach().numpy())
-                #print(actions)
+            actions = self.model.get_action(obs).numpy()
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
         return actions
