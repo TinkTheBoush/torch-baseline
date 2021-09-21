@@ -108,7 +108,8 @@ class DQN:
         self.target_model.eval()
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
-        self.loss = torch.nn.MSELoss()
+        #self.loss = torch.nn.MSELoss()
+        self.loss = torch.nn.SmoothL1Loss()
         
         print("-------model-------")
         print(self.model)
