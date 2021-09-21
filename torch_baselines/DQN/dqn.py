@@ -68,7 +68,7 @@ class DQN:
             self.setup_model()
         
     def get_env_setup(self):
-        print("-------env-------")
+        print("-----------env-----------")
         if isinstance(self.env,UnityEnvironment):
             print("unity-ml agent environmet")
             self.env.reset()
@@ -96,7 +96,7 @@ class DQN:
         print("observation size : ", self.observation_space)
         print("action size : ", self.action_size)
         print("worker_size : ", self.worker_size)
-        print("-----------------")
+        print("-------------------------")
         
     def get_memory_setup(self):
         if self.prioritized_replay:
@@ -118,9 +118,9 @@ class DQN:
         self.loss = torch.nn.MSELoss()
         #self.loss = torch.nn.SmoothL1Loss()
         
-        print("-------model-------")
+        print("----------model----------")
         print(self.model)
-        print("-------------------")
+        print("-------------------------")
         
         
     def _train_step(self, step, learning_rate):
