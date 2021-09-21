@@ -111,8 +111,8 @@ class DQN:
         data = self.replay_buffer.sample(self.batch_size)
         obses = [torch.from_numpy(o).float() for o in data[0]]
         obses = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obses]
-        actions = torch.from_numpy(data[1])
-        rewards = torch.from_numpy(data[2])
+        actions = torch.from_numpy(data[1]).float()
+        rewards = torch.from_numpy(data[2]).float()
         nxtobses = [torch.from_numpy(o).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~torch.from_numpy(data[4])).float()
@@ -231,7 +231,7 @@ class DQN:
             if done:
                 self.scoreque.append(self.scores[0])
                 self.scores[0] = 0
-                self.env.reset()
+                state = self.env.reset()
             state = next_state
             can_sample = self.replay_buffer.can_sample(self.batch_size)
 
