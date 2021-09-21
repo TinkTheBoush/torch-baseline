@@ -122,7 +122,7 @@ class DQN:
             targets = rewards + self.gamma*next_vals
         loss = torch.mean(torch.square(targets - vals))
         m_targets = torch.mean(targets)
-        
+        self.model.train()a
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -134,13 +134,13 @@ class DQN:
 
     
     def actions(self,obs,epsilon):
-        if epsilon > np.random.uniform():
-            actions = np.random.choice(self.action_size[0], [self.worker_size])
-        else:
+        if epsilon <= np.random.uniform(0,1):
             self.model.eval()
             obs = [torch.from_numpy(o).float() for o in obs]
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             actions = np.expand_dims(self.model.get_action(obs).numpy(), axis=-1)
+        else:
+            actions = np.random.choice(self.action_size[0], [self.worker_size])
         return actions
         #pass
         
