@@ -152,7 +152,7 @@ class DQN:
             self.target_model.load_state_dict(self.model.state_dict())
             
         if self.summary:
-            self.summary.add_scalar("Loss/loss", loss, steps)
+            self.summary.add_scalar("loss/qloss", loss, steps)
 
         return loss.detach()
 
@@ -214,7 +214,7 @@ class DQN:
                 self.scores[idx] += reward
                 self.scoreque.append(self.scores[idx])
                 if self.summary:
-                    self.summary.add_scalar("env/score", self.scores[idx], steps)
+                    self.summary.add_scalar("episode_reward", self.scores[idx], steps)
                 self.scores[idx] = 0
             for idx in dec.agent_id:
                 if idx in term.agent_id:
@@ -260,7 +260,7 @@ class DQN:
             if done:
                 self.scoreque.append(self.scores[0])
                 if self.summary:
-                    self.summary.add_scalar("env/score", self.scores[0], steps)
+                    self.summary.add_scalar("episode_reward", self.scores[0], steps)
                 self.scores[0] = 0
                 state = self.env.reset()
                 #print("end")
