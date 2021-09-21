@@ -217,6 +217,9 @@ class DQN:
         state = self.env.reset()
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
+        self.scoreque.append(0)
+        self.lossque = deque(maxlen=10)
+        self.lossque.append(0)
         
         self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
                                             initial_p=self.exploration_initial_eps,
@@ -235,6 +238,7 @@ class DQN:
 
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 loss = self._train_step(steps,self.learning_rate)
+                self.lossque.append(loss)
             
             if steps % 1000 == 0 and len(self.scoreque) > 0:
-                print("score : ", np.mean(self.scoreque), ", epsion :", update_eps, ", loss : ", loss)
+                print("score : ", np.mean(self.scoreque), ", epsion :", update_eps, ", loss : ", np.mean(self.scoreque))
