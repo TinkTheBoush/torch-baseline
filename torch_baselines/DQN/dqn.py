@@ -126,7 +126,7 @@ class DQN:
         dones = (~torch.from_numpy(data[4])).float()
         self.model.eval()
         vals = self.model(obses).gather(-1,actions.view(-1,1))
-        next_vals = dones*torch.max(self.target_model(nxtobses),1)[0]
+        next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].detach()
         targets = rewards + self.gamma*next_vals
         loss = torch.mean(torch.square(targets - vals))
         m_targets = torch.mean(targets)
