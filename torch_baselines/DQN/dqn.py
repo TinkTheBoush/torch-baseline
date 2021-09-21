@@ -129,7 +129,7 @@ class DQN:
         print("-------------------------------------------------")
         
         
-    def _train_step(self, step, learning_rate):
+    def _train_step(self, steps, learning_rate):
         # Sample a batch from the replay buffer
         data = self.replay_buffer.sample(self.batch_size)
         obses = [torch.from_numpy(o).float() for o in data[0]]
@@ -150,11 +150,11 @@ class DQN:
         loss.backward()
         self.optimizer.step()
         
-        if step % self.target_network_update_freq == 0:
+        if steps % self.target_network_update_freq == 0:
             self.target_model.load_state_dict(self.model.state_dict())
             
         if self.writer:
-            self.writer.add_scalar("Loss/loss", loss, step)
+            self.writer.add_scalar("Loss/loss", loss, steps)
 
         return loss.detach()
 
@@ -258,6 +258,8 @@ class DQN:
             state = next_state
             if done:
                 self.scoreque.append(self.scores[0])
+                if self.writer:
+                    self.writer.add_scalar("env/reward", loss, steps)
                 self.scores[0] = 0
                 state = self.env.reset()
                 #print("end")
