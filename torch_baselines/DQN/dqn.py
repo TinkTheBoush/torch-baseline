@@ -105,6 +105,8 @@ class DQN:
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         
+        print(self.model)
+        
         
     def _train_step(self, step, learning_rate):
         # Sample a batch from the replay buffer
@@ -139,7 +141,6 @@ class DQN:
             obs = [torch.from_numpy(o).float() for o in obs]
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             actions = self.model.get_action(obs).view(-1,1).numpy()
-            #print(actions)
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
         return actions
@@ -209,8 +210,6 @@ class DQN:
         
     def learn_gym(self, total_timesteps, callback=None, log_interval=100, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):
-        
-        
         state = self.env.reset()
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
