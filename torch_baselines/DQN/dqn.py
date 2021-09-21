@@ -127,10 +127,10 @@ class DQN:
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~torch.from_numpy(data[4])).float()
         self.model.eval()
-        vals = self.model(obses).gather(1,actions).squeeze()
+        vals = self.model(obses).gather(1,actions)
         next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].detach()
         targets = (next_vals * self.gamma) + rewards
-        loss = self.loss(vals,targets) #torch.nn.MSELoss(#torch.mean(torch.square(targets - vals))
+        loss = self.loss(vals,targets.unsqueeze(1)) #torch.nn.MSELoss(#torch.mean(torch.square(targets - vals))
         m_targets = torch.mean(targets)
         self.optimizer.zero_grad()
         loss.backward()
