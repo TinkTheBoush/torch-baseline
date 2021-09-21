@@ -126,6 +126,7 @@ class DQN:
         nxtobses = [torch.from_numpy(o).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~torch.from_numpy(data[4])).float()
+        print(dones)
         #self.model.train()
         self.model.eval()
         vals = self.model(obses).gather(1,actions)
@@ -244,7 +245,7 @@ class DQN:
                 self.scoreque.append(self.scores[0])
                 self.scores[0] = 0
                 state = self.env.reset()
-                print("end")
+                #print("end")
             can_sample = self.replay_buffer.can_sample(self.batch_size)
 
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
