@@ -80,7 +80,7 @@ class DQN:
             from gym import spaces
             action_space = self.env.action_space
             observation_space = self.env.observation_space
-            self.observation_space = [observation_space.shape]
+            self.observation_space = [list(observation_space.shape)]
             self.action_size = [action_space.n]
             self.worker_size = 1
             self.env_type = "gym"
