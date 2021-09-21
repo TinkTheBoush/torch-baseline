@@ -152,6 +152,9 @@ class DQN:
         
         if step % self.target_network_update_freq == 0:
             self.target_model.load_state_dict(self.model.state_dict())
+            
+        if self.writer:
+            self.writer.add_scalar("Loss/loss", loss, step)
 
         return loss.detach()
 
