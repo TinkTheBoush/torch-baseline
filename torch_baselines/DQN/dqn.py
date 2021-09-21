@@ -116,7 +116,7 @@ class DQN:
         nxtobses = [torch.from_numpy(o).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~torch.from_numpy(data[4])).float()
-        
+        self.model.eval()
         vals = self.model(obses).gather(-1,actions.view(-1,1))
         next_vals = dones*torch.max(self.target_model(nxtobses),1)[0]
         targets = rewards + self.gamma*next_vals
