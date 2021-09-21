@@ -30,10 +30,11 @@ if __name__ == "__main__":
         channel = EnvironmentParametersChannel()
         
         env = UnityEnvironment(file_name=env_name,no_graphics=False, side_channels=[engine_configuration_channel,channel],timeout_wait=10000)
+        env_name = env_name.split('/')[-1].split('.')[0]
         
     else:
         env = gym.make(env_name)
         pass
     
-    agent = DQN("asdf",env)
+    agent = DQN("asdf",env,tensorboard_log=args.logdir+env_name)
     agent.learn(int(args.steps))
