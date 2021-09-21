@@ -2,6 +2,7 @@ import gym
 import torch
 import numpy as np
 
+from tqdm.auto import tqdm
 from collections import deque
 
 from torch_baselines.DQN.network import Model
@@ -11,8 +12,6 @@ from torch_baselines.common.schedules import LinearSchedule
 from mlagents_envs.environment import UnityEnvironment,ActionTuple
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
-
-
 
 class DQN:
     def __init__(self, policy, env, gamma=0.99, learning_rate=1e-3, buffer_size=50000, exploration_fraction=0.1,
