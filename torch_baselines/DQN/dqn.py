@@ -258,8 +258,8 @@ class DQN:
                 self.lossque.append(loss)
             
             if steps % 1000 == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
-                pbar.set_description("score : {.2f}, epsilon : {.2f}, loss : {.2f}".format(
-                                        np.asscalar(np.mean(self.scoreque)),update_eps,np.asscalar(np.mean(self.lossque))
+                pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f}".format(
+                                        np.mean(self.scoreque),update_eps,np.mean(self.lossque)
                                         )
                                      )
                 #print("score : ", np.mean(self.scoreque), ", epsion :", update_eps, ", loss : ", np.mean(self.lossque))
