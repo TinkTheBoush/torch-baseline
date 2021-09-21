@@ -232,6 +232,7 @@ class DQN:
             self.scores[0] += reward
             if done:
                 self.scoreque.append(self.scores[0])
+                self.scores[0] = 0
                 self.env.reset()
             state = next_state
             can_sample = self.replay_buffer.can_sample(self.batch_size)
@@ -241,4 +242,4 @@ class DQN:
                 self.lossque.append(loss)
             
             if steps % 1000 == 0 and len(self.scoreque) > 0:
-                print("score : ", np.mean(self.scoreque), ", epsion :", update_eps, ", loss : ", np.mean(self.scoreque))
+                print("score : ", np.mean(self.scoreque), ", epsion :", update_eps, ", loss : ", np.mean(self.loss))
