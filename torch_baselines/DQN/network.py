@@ -47,4 +47,4 @@ class Model(nn.Module):
     
     def get_action(self,xs):
         with torch.no_grad():
-            return torch.argmax(self(xs),dim=-1)
+            return self(xs).max(1)[1]
