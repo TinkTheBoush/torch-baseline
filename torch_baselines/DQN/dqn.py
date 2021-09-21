@@ -122,7 +122,7 @@ class DQN:
             targets = rewards + self.gamma*next_vals
         loss = torch.mean(torch.square(targets - vals))
         m_targets = torch.mean(targets)
-        self.model.train()a
+        self.model.train()
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
