@@ -116,7 +116,10 @@ class DQN:
         nxtobses = [torch.from_numpy(o).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~torch.from_numpy(data[4])).float()
-        vals = self.model(obses).gather(-1,actions)
+        vals = self.model(obses)
+        print(vals)
+        print(actions)
+        vals = vals.gather(-1,actions)
         #print(vals)
         with torch.no_grad():
             next_vals = dones*torch.max(self.target_model(nxtobses),dim=-1)[0]
