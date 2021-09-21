@@ -239,11 +239,11 @@ class DQN:
             next_state, reward, done, info = self.env.step(actions[0][0])
             self.replay_buffer.add([state], actions[0], reward, [next_state], done)
             self.scores[0] += reward
+            state = next_state
             if done:
                 self.scoreque.append(self.scores[0])
                 self.scores[0] = 0
                 state = self.env.reset()
-            state = next_state
             can_sample = self.replay_buffer.can_sample(self.batch_size)
 
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
