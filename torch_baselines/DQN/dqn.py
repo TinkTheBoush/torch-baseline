@@ -163,7 +163,7 @@ class DQN:
                                             initial_p=self.exploration_initial_eps,
                                             final_p=self.exploration_final_eps)
         for steps in range(total_timesteps):
-            update_eps = self.exploration.value(self.num_timesteps)
+            update_eps = self.exploration.value(steps)
             actions = self.actions(dec.obs,update_eps)
             
             action_tuple = ActionTuple(discrete=actions)
@@ -216,7 +216,7 @@ class DQN:
                                             initial_p=self.exploration_initial_eps,
                                             final_p=self.exploration_final_eps)
         for steps in range(total_timesteps):
-            update_eps = self.exploration.value(self.num_timesteps)
+            update_eps = self.exploration.value(steps)
             actions = self.actions([state].obs,update_eps)
             next_state, reward, done, info = self.env.step(actions[0])
             self.memory.append(state, next_state, reward, done, actions[0])
