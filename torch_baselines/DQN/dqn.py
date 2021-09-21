@@ -116,7 +116,7 @@ class DQN:
         nxtobses = [torch.from_numpy(o).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~torch.from_numpy(data[4])).float()
-        self.model.eval()
+        
         vals = self.model(obses).gather(-1,actions.view(-1,1))
         with torch.no_grad():
             next_vals = dones*torch.max(self.target_model(nxtobses),1)[0]
@@ -141,7 +141,7 @@ class DQN:
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             actions = np.expand_dims(self.model.get_action(obs).numpy(), axis=-1)
         else:
-            actions = np.random.choice(self.action_size[0], [self.worker_size,1])
+            actions = np.random.choice(self.action_size[0], [self.worker_size])
         return actions
         #pass
         
