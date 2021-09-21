@@ -105,9 +105,9 @@ class DQN:
             self.replay_buffer = ReplayBuffer(self.buffer_size)
             
     def get_summary_setup(self,tb_log_name):
-        if self.writer:
-            self.writer.close()
-        self.writer = SummaryWriter(log_dir=self.tensorboard_log+'/'+tb_log_name)
+        if self.summary:
+            self.summary.close()
+        self.summary = SummaryWriter(log_dir=self.tensorboard_log+'/'+tb_log_name)
             
             
     def setup_model(self):
@@ -151,8 +151,8 @@ class DQN:
         if steps % self.target_network_update_freq == 0:
             self.target_model.load_state_dict(self.model.state_dict())
             
-        if self.writer:
-            self.writer.add_scalar("Loss/loss", loss, steps)
+        if self.summary:
+            self.summary.add_scalar("Loss/loss", loss, steps)
 
         return loss.detach()
 
@@ -213,8 +213,8 @@ class DQN:
                 self.replay_buffer.add(obs, act, reward, nxtobs, done)
                 self.scores[idx] += reward
                 self.scoreque.append(self.scores[idx])
-                if self.writer:
-                    self.writer.add_scalar("env/score", self.scores[idx], steps)
+                if self.summary:
+                    self.summary.add_scalar("env/score", self.scores[idx], steps)
                 self.scores[idx] = 0
             for idx in dec.agent_id:
                 if idx in term.agent_id:
@@ -259,8 +259,8 @@ class DQN:
             state = next_state
             if done:
                 self.scoreque.append(self.scores[0])
-                if self.writer:
-                    self.writer.add_scalar("env/score", self.scores[0], steps)
+                if self.summary:
+                    self.summary.add_scalar("env/score", self.scores[0], steps)
                 self.scores[0] = 0
                 state = self.env.reset()
                 #print("end")
