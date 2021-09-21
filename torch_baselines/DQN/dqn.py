@@ -141,7 +141,7 @@ class DQN:
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             actions = np.expand_dims(self.model.get_action(obs).numpy(), axis=-1)
         else:
-            actions = np.random.choice(self.action_size[0], [self.worker_size])
+            actions = np.random.choice(self.action_size[0], [self.worker_size,1])
         return actions
         #pass
         
