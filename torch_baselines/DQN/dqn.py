@@ -138,9 +138,9 @@ class DQN:
         
         if step % self.target_network_update_freq == 0:
             self.target_model.load_state_dict(self.model.state_dict())
-            print("dones : " ,dones)
-            print("target : " ,targets)
-            print("q : " ,vals)
+            #print("dones : " ,dones)
+            #print("target : " ,targets)
+            #print("q : " ,vals)
         
         return loss.detach(), m_targets.detach()
 
