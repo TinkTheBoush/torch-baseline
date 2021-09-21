@@ -32,7 +32,7 @@ if __name__ == "__main__":
         env = UnityEnvironment(file_name=env_name,no_graphics=False, side_channels=[engine_configuration_channel,channel],timeout_wait=10000)
         
     else:
-        
+        env = gym.make(env_name)
         pass
     
     agent = DQN("asdf",env)

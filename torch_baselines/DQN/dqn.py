@@ -89,6 +89,9 @@ class DQN:
             pass
         
         self.replay_buffer = ReplayBuffer(self.buffer_size)
+        print("observation size : ", self.observation_space)
+        print("action size : ", self.action_size)
+        print("worker_size : ", self.worker_size)
 
             
             
@@ -203,4 +206,75 @@ class DQN:
         
     def learn_gym(self, total_timesteps, callback=None, log_interval=100, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):
-        pass
+        
+        
+        state = self.env.reset()
+        self.scores = np.zeros([self.worker_size])
+        self.scoreque = deque(maxlen=10)
+        
+        self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
+                                            initial_p=self.exploration_initial_eps,
+                                            final_p=self.exploration_final_eps)
+        for steps in range(total_timesteps):
+            update_eps = self.exploration.value(self.num_timesteps)
+            actions = self.actions([state].obs,update_eps)
+            next_state, reward, done, info = self.env.step(actions[0])
+            self.memory.append(state, next_state, reward, done, actions[0])
+            self.scores[0] += reward
+            state = next_state
+            can_sample = self.replay_buffer.can_sample(self.batch_size)
+            if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
+                self._train_step(steps,self.learning_rate)
+        '''
+        state = env.reset()
+        while True:
+            ep += 1
+            self.saver.save(self.sess, save_path=path + '/save')
+            if epsilon > 0.05:
+                epsilon = -0.1*ep * 2.0/end_ep + 0.1
+            for i in range(1000):
+                if ep > end_ep:
+                    env.render()
+                step += 1
+
+                if ep > train_start_ep:
+                    action = self.get_action([state], epsilon)
+                else:
+                    action = 2.0 * np.random.rand(self.worker_size, self.output_size) - 1.0
+                next_state, reward, done, info = env.step(action[0])
+
+                self.memory.append(state, next_state, reward, done, action[0])
+                score += reward
+                state = next_state
+
+                if ep > train_start_ep:
+                    if step % 2 == 0:
+                        v, p = self.update()
+                        vs.append(v)
+                        ps.append(p)
+                    else:
+                        v = self.value_update()
+                        vs.append(v)
+
+                if done:
+                    scores.append(score)
+                    score = 0
+                    state = env.reset()
+
+            print('episode :', ep, '| score : ',
+                  "{0:.2f}".format(np.mean(scores)),"[{0:.1f}]".format(np.std(scores)),
+                  '| epsilon :', "{0:.2f}".format(epsilon),
+                  " | v :", "{0:.2f}".format(np.mean(vs)),
+                  " | p :", "{0:.2f}".format(np.mean(ps)))
+            if ep < end_ep:
+                writer.add_scalar('data/reward', np.mean(scores), ep)
+                writer.add_scalar('data/reward_std',np.std(scores),ep)
+                writer.add_scalar('data/epsilon', epsilon, ep)
+                writer.add_scalar('data/memory_size', len(self.memory.memory), ep)
+                writer.add_scalar('loss/value',np.mean(vs),ep)
+                writer.add_scalar('loss/policy',np.mean(ps),ep)
+                vs.clear()
+                ps.clear()
+            else:
+                break
+        '''
