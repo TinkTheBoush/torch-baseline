@@ -124,7 +124,7 @@ class DQN:
         m_targets = torch.mean(targets)
         
         self.optimizer.zero_grad()
-        #loss.backward()
+        loss.backward()
         self.optimizer.step()
         
         if step % self.target_network_update_freq == 0:
