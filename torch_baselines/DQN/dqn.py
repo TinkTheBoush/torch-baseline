@@ -135,7 +135,7 @@ class DQN:
     
     def actions(self,obs,epsilon):
         if epsilon > np.random.uniform():
-            actions = np.random.choice(self.action_size[0], [self.worker_size])
+            actions = np.random.choice(self.action_size[0], [self.worker_size,1])
         else:
             self.model.eval()
             obs = [torch.from_numpy(o).float() for o in obs]
@@ -224,7 +224,7 @@ class DQN:
         for steps in range(total_timesteps):
             update_eps = self.exploration.value(steps)
             actions = self.actions([state],update_eps)
-            next_state, reward, done, info = self.env.step(actions[0])
+            next_state, reward, done, info = self.env.step(actions[0][0])
             self.replay_buffer.add([state], actions[0], reward, [next_state], done)
             self.scores[0] += reward
             if done:
