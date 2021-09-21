@@ -38,6 +38,7 @@ class Model(nn.Module):
 
     def forward(self, xs):
         flat = [pre(x) for pre,x in zip(self.preprocess,xs)]
+        print(flat)
         cated = torch.cat(flat,dim=-1)
         x = self.linear(cated)
         return x
