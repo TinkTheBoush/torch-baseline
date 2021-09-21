@@ -148,7 +148,7 @@ class DQN:
             obs = [torch.from_numpy(o).float() for o in obs]
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             with torch.no_grad():
-                actions = self(obs).max(-1)[1].view(-1,1).detach().numpy()
+                actions = self.model(obs).max(-1)[1].view(-1,1).detach().numpy()
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
         return actions
