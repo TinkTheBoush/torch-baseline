@@ -226,7 +226,7 @@ class DQN:
         for steps in range(total_timesteps):
             update_eps = self.exploration.value(steps)
             actions = self.actions([state],update_eps)
-            next_state, reward, done, info = self.env.step(actions[0])
+            next_state, reward, done, info = self.env.step(actions[0][0])
             self.replay_buffer.add([state], actions, reward, [next_state], done)
             self.scores[0] += reward
             if done:
