@@ -118,13 +118,13 @@ class DQN:
         dones = (~torch.from_numpy(data[4])).float()
         vals = self.model(obses).gather(-1,actions.view(-1,1))
         with torch.no_grad():
-            next_vals = dones*torch.max(self.model(nxtobses),dim=-1)[0]
+            next_vals = dones*torch.max(self.target_model(nxtobses),dim=-1)[0]
             targets = rewards + self.gamma*next_vals
         loss = torch.mean(torch.square(targets - vals))
         m_targets = torch.mean(targets)
         
         self.optimizer.zero_grad()
-        loss.backward()
+        #loss.backward()
         self.optimizer.step()
         
         if step % self.target_network_update_freq == 0:
