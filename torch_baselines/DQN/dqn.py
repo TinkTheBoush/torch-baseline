@@ -121,6 +121,7 @@ class DQN:
             next_vals = dones*torch.max(self.target_model(nxtobses),dim=-1)[0]
             targets = rewards + self.gamma*next_vals
         loss = torch.mean(torch.square(targets - vals))
+        m_targets = torch.mean(targets)
         
         self.optimizer.zero_grad()
         loss.backward()
@@ -129,7 +130,7 @@ class DQN:
         if step % self.target_network_update_freq == 0:
             self.target_model.load_state_dict(self.model.state_dict())
         
-        return loss.detach()
+        return loss.detach(), m_targets.detach()
 
     
     def actions(self,obs,epsilon):
@@ -215,6 +216,7 @@ class DQN:
         self.scoreque.append(0)
         self.lossque = deque(maxlen=10)
         self.lossque.append(0)
+        t = 0
         
         self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
                                             initial_p=self.exploration_initial_eps,
@@ -233,8 +235,8 @@ class DQN:
             can_sample = self.replay_buffer.can_sample(self.batch_size)
 
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
-                loss = self._train_step(steps,self.learning_rate)
+                loss,t = self._train_step(steps,self.learning_rate)
                 self.lossque.append(loss)
             
             if steps % 1000 == 0 and len(self.scoreque) > 0:
-                print("score : ", np.mean(self.scoreque), ", epsion :", update_eps, ", loss : ", np.mean(self.lossque))
+                print("score : ", np.mean(self.scoreque), ", epsion :", update_eps, ", loss : ", np.mean(self.lossque), 'target : ', t)
