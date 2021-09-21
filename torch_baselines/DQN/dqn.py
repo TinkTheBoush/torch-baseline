@@ -1,13 +1,17 @@
+import gym
+import torch
+import numpy as np
+
+from collections import deque
+
 from torch_baselines.DQN.network import Model
 from torch_baselines.common.buffers import ReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
-import numpy as np
+
 from mlagents_envs.environment import UnityEnvironment,ActionTuple
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
-import gym
-from collections import deque
-import torch
+
 
 
 class DQN:
