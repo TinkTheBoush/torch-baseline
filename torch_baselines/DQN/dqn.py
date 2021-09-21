@@ -89,9 +89,11 @@ class DQN:
             pass
         
         self.replay_buffer = ReplayBuffer(self.buffer_size)
+        print("-------env-------")
         print("observation size : ", self.observation_space)
         print("action size : ", self.action_size)
         print("worker_size : ", self.worker_size)
+        print("-----------------")
 
             
             
@@ -105,7 +107,9 @@ class DQN:
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         
+        print("-------model-------")
         print(self.model)
+        print("-------------------")
         
         
     def _train_step(self, step, learning_rate):
