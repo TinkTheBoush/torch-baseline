@@ -151,8 +151,8 @@ class DQN:
             with torch.no_grad():
                 val = self.model(obs)
                 actions = val.max(-1)[1].view(-1,1).detach().numpy()
-                print(val.detach().numpy())
-                print(actions)
+                #print(val.detach().numpy())
+                #print(actions)
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
         return actions
@@ -244,6 +244,7 @@ class DQN:
                 self.scoreque.append(self.scores[0])
                 self.scores[0] = 0
                 state = self.env.reset()
+                print("end")
             can_sample = self.replay_buffer.can_sample(self.batch_size)
 
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
