@@ -194,7 +194,7 @@ class DQN:
             self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
                                                 initial_p=self.exploration_initial_eps,
                                                 final_p=self.exploration_final_eps)
-            pbar = trange(total_timesteps)
+            pbar = trange(total_timesteps, miniters=int(total_timesteps/1000))
             if self.env_type == "unity":
                 self.learn_unity(pbar, callback, log_interval)
             if self.env_type == "gym":
