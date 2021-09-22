@@ -8,6 +8,7 @@ from collections import deque
 from torch.utils.tensorboard import SummaryWriter
 
 from torch_baselines.DQN.network import Model
+from torch_baselines.common.base_classes import TensorboardWriter
 from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
@@ -101,13 +102,6 @@ class DQN:
         else:
             self.replay_buffer = ReplayBuffer(self.buffer_size)
             
-    def get_summary_setup(self,tb_log_name):
-        if self.summary:
-            self.summary.close()
-        if self.prioritized_replay:
-            tb_log_name = tb_log_name + "+PER"
-        self.summary = SummaryWriter(log_dir=self.tensorboard_log+'/'+tb_log_name)
-            
             
     def setup_model(self):
         self.policy_kwargs = {} if self.policy_kwargs is None else self.policy_kwargs
@@ -187,13 +181,18 @@ class DQN:
         
     def learn(self, total_timesteps, callback=None, log_interval=100, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):
-        self.get_summary_setup(tb_log_name)
-        if self.env_type == "unity":
-            self.learn_unity(total_timesteps, callback, log_interval, tb_log_name,
-              reset_num_timesteps, replay_wrapper)
-        if self.env_type == "gym":
-            self.learn_gym(total_timesteps, callback, log_interval, tb_log_name,
-              reset_num_timesteps, replay_wrapper)
+        
+        if self.prioritized_replay:
+            tb_log_name = tb_log_name + "+PER"
+        
+        with TensorboardWriter(self.tensorboard_log, tb_log_name) as self.summary:
+            if self.env_type == "unity":
+                self.learn_unity(total_timesteps, callback, log_interval, tb_log_name,
+                reset_num_timesteps, replay_wrapper)
+            if self.env_type == "gym":
+                self.learn_gym(total_timesteps, callback, log_interval, tb_log_name,
+                reset_num_timesteps, replay_wrapper)
+
     
     def learn_unity(self, total_timesteps, callback=None, log_interval=100, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):
