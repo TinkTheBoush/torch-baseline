@@ -93,7 +93,7 @@ class Dualing_Model(nn.Module):
         cated = torch.cat(flat,dim=-1)
         a = self.advatage_linear(cated)
         v = self.value_linear(cated)
-        q = v.view(-1,1) + (a - a.mean(-1,keep_dims=True))
+        q = v.view(-1,1) + (a - a.mean(-1,True))
         return q
     
     def get_action(self,xs):
