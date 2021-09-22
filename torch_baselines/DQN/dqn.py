@@ -9,6 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from torch_baselines.DQN.network import Model
 from torch_baselines.common.base_classes import TensorboardWriter
+from torch_baselines.common.losses import weighted_mse_loss
 from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
@@ -113,10 +114,6 @@ class DQN:
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         if self.prioritized_replay:
-            def weighted_mse_loss(input, target, weight):
-                td_errors = input - target
-                return (weight * td_errors ** 2).mean(), td_errors.squeeze().detach().numpy()
-                #return torch.mean(td_errors ** 2), td_errors.squeeze().detach().numpy()
             self.loss = weighted_mse_loss
         else:
             self.loss = torch.nn.MSELoss()
