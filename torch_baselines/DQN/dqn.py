@@ -144,10 +144,7 @@ class DQN:
         with torch.no_grad():
             if self.double_q:
                 double_actions = torch.max(self.model(nxtobses),1)[1].view(-1,1)
-                print(actions.shape)
-                print(double_actions.shape)
                 next_vals = dones*self.target_model(nxtobses).gather(1,double_actions)
-                print(next_vals.shape)
             else:
                 next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].view(-1,1)
             targets = (next_vals * self.gamma) + rewards
