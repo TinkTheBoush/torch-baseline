@@ -135,7 +135,10 @@ class DQN:
         
     def _train_step(self, steps, learning_rate):
         # Sample a batch from the replay buffer
-        data = self.replay_buffer.sample(self.batch_size)
+        if self.prioritized_replay:
+            data = self.replay_buffer.sample(self.batch_size,self.prioritized_replay_beta0)
+        else:
+            data = self.replay_buffer.sample(self.batch_size)
         obses = [torch.from_numpy(o).float() for o in data[0]]
         obses = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obses]
         actions = torch.from_numpy(data[1]).view(-1,1)
