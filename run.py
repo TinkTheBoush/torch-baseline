@@ -35,7 +35,7 @@ if __name__ == "__main__":
         env = gym.make(env_name)
         pass
     
-    agent = DQN("asdf",env,target_network_update_freq=args.target_update,
+    agent = DQN(env,target_network_update_freq=args.target_update,
                 prioritized_replay=args.per,
                 tensorboard_log=args.logdir+env_name)
     agent.learn(int(args.steps))
