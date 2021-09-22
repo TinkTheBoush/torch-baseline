@@ -151,7 +151,7 @@ class DQN:
             targets = (next_vals * self.gamma) + rewards
             
         if self.prioritized_replay:
-            weights = torch.from_numpy(data[5])
+            weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
             loss,td_errors = self.loss(vals,targets,weights)
             new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
