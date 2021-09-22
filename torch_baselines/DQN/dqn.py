@@ -11,7 +11,7 @@ from torch_baselines.DQN.network import Model
 from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
-from mlagents_envs.environment import UnityEnvironment,action_tuple
+from mlagents_envs.environment import UnityEnvironment, ActionTuple
 
 class DQN:
     def __init__(self, policy, env, gamma=0.99, learning_rate=1e-3, buffer_size=50000, exploration_fraction=0.1,
