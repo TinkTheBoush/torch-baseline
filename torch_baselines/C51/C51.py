@@ -152,11 +152,11 @@ class C51:
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5])
             indexs = data[6]
-            loss,td_errors = self.loss(vals,targets,weights)
+            loss,td_errors = self.loss(distribution,next_distribution,self.model.categorial_bar,next_categorial_bar,weights)
             new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
         else:
-            loss = self.loss(vals,targets)
+            loss = self.loss(distribution,next_distribution,self.model.categorial_bar,next_categorial_bar)
         
         self.optimizer.zero_grad()
         loss.backward()
