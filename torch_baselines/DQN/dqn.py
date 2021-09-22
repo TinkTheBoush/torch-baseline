@@ -142,17 +142,21 @@ class DQN:
         self.model.eval()
         vals = self.model(obses).gather(1,actions)
         with torch.no_grad():
-            next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].detach()
+            if self.double_q:
+                double_actions = self.model.get_action(nxtobses)
+                next_vals = dones*self.target_model(nxtobses).gather(1,double_actions)
+            else:
+                next_vals = dones*torch.max(self.target_model(nxtobses),1)[0]
             targets = (next_vals * self.gamma) + rewards
             
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5])
             indexs = data[6]
-            loss,td_errors = self.loss(vals,targets.unsqueeze(1),weights)
+            loss,td_errors = self.loss(vals,targets.view(-1,1),weights)
             new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
         else:
-            loss = self.loss(vals,targets.unsqueeze(1))
+            loss = self.loss(vals,targets.view(-1,1))
         
         self.optimizer.zero_grad()
         loss.backward()
@@ -290,4 +294,3 @@ class DQN:
                                         np.mean(self.scoreque),update_eps,np.mean(self.lossque)
                                         )
                                      )
-                #print("score : ", np.mean(self.scoreque), ", epsion :", update_eps, ", loss : ", np.mean(self.lossque))
