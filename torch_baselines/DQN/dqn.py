@@ -105,6 +105,8 @@ class DQN:
     def get_summary_setup(self,tb_log_name):
         if self.summary:
             self.summary.close()
+        if self.prioritized_replay:
+            tb_log_name = tb_log_name + "+PER"
         self.summary = SummaryWriter(log_dir=self.tensorboard_log+'/'+tb_log_name)
             
             
