@@ -190,15 +190,19 @@ class DQN:
             tb_log_name = tb_log_name + "+PER"
         
         with TensorboardWriter(self.tensorboard_log, tb_log_name) as self.summary:
+            self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
+                                                initial_p=self.exploration_initial_eps,
+                                                final_p=self.exploration_final_eps)
+            pbar = trange(total_timesteps)
             if self.env_type == "unity":
-                self.learn_unity(total_timesteps, callback, log_interval, tb_log_name,
+                self.learn_unity(pbar, callback, log_interval, tb_log_name,
                 reset_num_timesteps, replay_wrapper)
             if self.env_type == "gym":
-                self.learn_gym(total_timesteps, callback, log_interval, tb_log_name,
+                self.learn_gym(pbar, callback, log_interval, tb_log_name,
                 reset_num_timesteps, replay_wrapper)
 
     
-    def learn_unity(self, total_timesteps, callback=None, log_interval=100, tb_log_name="DQN",
+    def learn_unity(self, pbar, callback=None, log_interval=100, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):
         self.env.reset()
         self.env.step()
@@ -207,11 +211,7 @@ class DQN:
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
         
-        self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
-                                            initial_p=self.exploration_initial_eps,
-                                            final_p=self.exploration_final_eps)
-        pbar = trange(total_timesteps)
-        for steps in trange(total_timesteps):
+        for steps in pbar:
             update_eps = self.exploration.value(steps)
             actions = self.actions(dec.obs,update_eps)
             
@@ -259,17 +259,13 @@ class DQN:
                 
             
         
-    def learn_gym(self, total_timesteps, callback=None, log_interval=100, tb_log_name="DQN",
+    def learn_gym(self, pbar, callback=None, log_interval=100, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):
         state = self.env.reset()
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
         
-        self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
-                                            initial_p=self.exploration_initial_eps,
-                                            final_p=self.exploration_final_eps)
-        pbar = trange(total_timesteps)
         for steps in pbar:
             update_eps = self.exploration.value(steps)
             actions = self.actions([state],update_eps)
