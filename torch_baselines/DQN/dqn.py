@@ -194,14 +194,15 @@ class DQN:
             self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
                                                 initial_p=self.exploration_initial_eps,
                                                 final_p=self.exploration_final_eps)
-            pbar = trange(total_timesteps, miniters=int(total_timesteps/1000))
+            interval = int(total_timesteps/1000)
+            pbar = trange(total_timesteps, miniters=interval)
             if self.env_type == "unity":
-                self.learn_unity(pbar, callback, log_interval)
+                self.learn_unity(pbar, callback, interval)
             if self.env_type == "gym":
-                self.learn_gym(pbar, callback, log_interval)
+                self.learn_gym(pbar, callback, interval)
 
     
-    def learn_unity(self, pbar, callback=None, log_interval=100):
+    def learn_unity(self, pbar, callback=None, interval=100):
         self.env.reset()
         self.env.step()
         dec, term = self.env.get_steps(self.group_name)
@@ -244,7 +245,7 @@ class DQN:
                 act = old_action[idx]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done)
                 self.scores[idx] += reward
-            if len(self.scoreque) > 0 and len(self.lossque) > 0:
+            if steps % interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
                                     np.mean(self.scoreque),update_eps,np.mean(self.lossque)
                                     )
@@ -257,7 +258,7 @@ class DQN:
                 
             
         
-    def learn_gym(self, pbar, callback=None, log_interval=100):
+    def learn_gym(self, pbar, callback=None, interval=100):
         state = self.env.reset()
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
@@ -282,7 +283,7 @@ class DQN:
                 loss = self._train_step(steps)
                 self.lossque.append(loss)
             
-            if len(self.scoreque) > 0 and len(self.lossque) > 0:
+            if steps % interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
                                     np.mean(self.scoreque),update_eps,np.mean(self.lossque)
                                     )
