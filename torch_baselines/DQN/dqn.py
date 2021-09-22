@@ -69,6 +69,10 @@ class DQN:
         
     def get_device_setup(self):
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") 
+        print("----------------------device---------------------")
+        print(self.device)
+        print("-------------------------------------------------")
+        
         
     def get_env_setup(self):
         print("----------------------env------------------------")
