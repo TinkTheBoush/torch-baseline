@@ -7,7 +7,7 @@ from collections import deque
 
 from torch.utils.tensorboard import SummaryWriter
 
-from torch_baselines.DQN.network import Model
+from torch_baselines.DQN.network import Model,Dualing_Model
 from torch_baselines.common.base_classes import TensorboardWriter
 from torch_baselines.common.losses import weighted_mse_loss
 from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
@@ -18,7 +18,7 @@ from mlagents_envs.environment import UnityEnvironment, ActionTuple
 class DQN:
     def __init__(self, env, gamma=0.99, learning_rate=1e-3, buffer_size=50000, exploration_fraction=0.3,
                  exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32, double_q=True,
-                 learning_starts=1000, target_network_update_freq=2000, prioritized_replay=False,
+                 dualing_model = False, learning_starts=1000, target_network_update_freq=2000, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
                  param_noise=False, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
@@ -46,6 +46,7 @@ class DQN:
         self.tensorboard_log = tensorboard_log
         self.full_tensorboard_log = full_tensorboard_log
         self.double_q = double_q
+        self.dualing_model = dualing_model
 
         self.graph = None
         self.sess = None
@@ -108,10 +109,14 @@ class DQN:
             
     def setup_model(self):
         self.policy_kwargs = {} if self.policy_kwargs is None else self.policy_kwargs
-        self.model = Model(self.observation_space,self.action_size,**self.policy_kwargs)
+        if self.dualing_model:
+            self.model = Dualing_Model(self.observation_space,self.action_size,**self.policy_kwargs)
+            self.target_model = Dualing_Model(self.observation_space,self.action_size,**self.policy_kwargs)
+        else:
+            self.model = Model(self.observation_space,self.action_size,**self.policy_kwargs)
+            self.target_model = Model(self.observation_space,self.action_size,**self.policy_kwargs)
         self.model.eval()
         self.model.to(self.device)
-        self.target_model = Model(self.observation_space,self.action_size,**self.policy_kwargs)
         self.target_model.load_state_dict(self.model.state_dict())
         self.target_model.eval()
         self.target_model.to(self.device)
