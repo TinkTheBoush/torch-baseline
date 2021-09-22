@@ -190,7 +190,7 @@ class DQN:
         return actions
         #pass
         
-    def learn(self, total_timesteps, callback=None, log_interval=100, tb_log_name="DQN",
+    def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):
         if self.dualing_model:
             tb_log_name = "Dualing_" + tb_log_name
@@ -203,12 +203,11 @@ class DQN:
             self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
                                                 initial_p=self.exploration_initial_eps,
                                                 final_p=self.exploration_final_eps)
-            interval = int(total_timesteps/1000)
-            pbar = trange(total_timesteps, miniters=interval)
+            pbar = trange(total_timesteps, miniters=log_interval)
             if self.env_type == "unity":
-                self.learn_unity(pbar, callback, interval)
+                self.learn_unity(pbar, callback, log_interval)
             if self.env_type == "gym":
-                self.learn_gym(pbar, callback, interval)
+                self.learn_gym(pbar, callback, log_interval)
 
     
     def learn_unity(self, pbar, callback=None, interval=100):
