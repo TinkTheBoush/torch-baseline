@@ -12,7 +12,11 @@ if __name__ == "__main__":
     parser.add_argument('--env', type=str, default="Cartpole-v1", help='environment')
     parser.add_argument('--algo', type=str, default="DQN", help='algo ID')
     parser.add_argument('--target_update', type=int, default=2000, help='target update intervals')
+    parser.add_argument('--double', action='store_true')
+    parser.add_argument('--dualing',action='store_true')
     parser.add_argument('--per', action='store_true')
+    parser.add_argument('--noisynet', action='store_true')
+    parser.add_argument('--n_step', action='store_true')
     parser.add_argument('--steps', type=float, default=1e6, help='step size')
     parser.add_argument('--verbose', type=int, default=0, help='verbose')
     parser.add_argument('--logdir',type=str, default='log/',help='log file dir')
@@ -31,5 +35,7 @@ if __name__ == "__main__":
         env = gym.make(env_name)
         pass
     
-    agent = DQN("asdf",env,target_network_update_freq=args.target_update,prioritized_replay=args.per,tensorboard_log=args.logdir+env_name)
+    agent = DQN("asdf",env,target_network_update_freq=args.target_update,
+                prioritized_replay=args.per,
+                tensorboard_log=args.logdir+env_name)
     agent.learn(int(args.steps))
