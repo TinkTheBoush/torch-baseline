@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=32,Conv_option=False):
+    def __init__(self,state_size,action_size,node=256,Conv_option=False):
         super(Model, self).__init__()
         self.preprocess = [
             nn.Sequential(
