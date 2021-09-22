@@ -19,7 +19,7 @@ import torch.nn as nn
 import torch.nn.functional as F        
     
 class TensorboardWriter:
-    def __init__(self, graph, tensorboard_log_path, tb_log_name, new_tb_log=True):
+    def __init__(self, tensorboard_log_path, tb_log_name, new_tb_log=True):
         """
         Create a Tensorboard writer for a code segment, and saves it to the log directory as its own run
 
@@ -28,7 +28,6 @@ class TensorboardWriter:
         :param tb_log_name: (str) the name of the run for tensorboard log
         :param new_tb_log: (bool) whether or not to create a new logging folder for tensorbaord
         """
-        self.graph = graph
         self.tensorboard_log_path = tensorboard_log_path
         self.tb_log_name = tb_log_name
         self.writer = None
