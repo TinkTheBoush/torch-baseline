@@ -59,12 +59,15 @@ class DQN:
         self.params = None
         self.summary = None
         
+        self.get_device_setup()
         self.get_env_setup()
         self.get_memory_setup()
-        self.get_train_setup()
         
         if _init_setup_model:
             self.setup_model()
+        
+    def get_device_setup(self):
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") 
         
     def get_env_setup(self):
         print("----------------------env------------------------")
@@ -101,16 +104,17 @@ class DQN:
         if self.prioritized_replay:
             self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,self.prioritized_replay_alpha)
         else:
-            self.replay_buffer = ReplayBuffer(self.buffer_size)
-            
+            self.replay_buffer = ReplayBuffer(self.buffer_size)   
             
     def setup_model(self):
         self.policy_kwargs = {} if self.policy_kwargs is None else self.policy_kwargs
         self.model = Model(self.observation_space,self.action_size,**self.policy_kwargs)
         self.model.eval()
+        self.model.to(self.device)
         self.target_model = Model(self.observation_space,self.action_size,**self.policy_kwargs)
         self.target_model.load_state_dict(self.model.state_dict())
         self.target_model.eval()
+        self.target_model.to(self.device)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         if self.prioritized_replay:
@@ -122,9 +126,6 @@ class DQN:
         print("----------------------model----------------------")
         print(self.model)
         print("-------------------------------------------------")
-        
-    def get_train_setup(self):
-        pass
     
     def _train_step(self, steps):
         # Sample a batch from the replay buffer
@@ -132,13 +133,13 @@ class DQN:
             data = self.replay_buffer.sample(self.batch_size,self.prioritized_replay_beta0)
         else:
             data = self.replay_buffer.sample(self.batch_size)
-        obses = [torch.from_numpy(o).float() for o in data[0]]
+        obses = [torch.from_numpy(o).to(self.device).float() for o in data[0]]
         obses = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obses]
-        actions = torch.from_numpy(data[1]).view(-1,1)
-        rewards = torch.from_numpy(data[2]).float().view(-1,1)
-        nxtobses = [torch.from_numpy(o).float() for o in data[3]]
+        actions = torch.from_numpy(data[1]).to(self.device).view(-1,1)
+        rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1)
+        nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
-        dones = (~torch.from_numpy(data[4])).float().view(-1,1)
+        dones = (~torch.from_numpy(data[4]).to(self.device)).float().view(-1,1)
         self.model.train()
         vals = self.model(obses).gather(1,actions)
         with torch.no_grad():
@@ -174,7 +175,7 @@ class DQN:
     def actions(self,obs,epsilon):
         if epsilon <= np.random.uniform(0,1):
             self.model.eval()
-            obs = [torch.from_numpy(o).float() for o in obs]
+            obs = [torch.from_numpy(o).to(self.device).float() for o in obs]
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             actions = self.model.get_action(obs).numpy()
         else:
