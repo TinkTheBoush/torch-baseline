@@ -145,6 +145,7 @@ class DQN:
             if self.double_q:
                 double_actions = self.model.get_action(nxtobses)
                 next_vals = dones*self.target_model(nxtobses).gather(1,double_actions)
+                print(next_vals.shape)
             else:
                 next_vals = dones*torch.max(self.target_model(nxtobses),1)[0]
             targets = (next_vals * self.gamma) + rewards
