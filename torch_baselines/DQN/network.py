@@ -50,7 +50,7 @@ class Model(nn.Module):
         
 class Dualing_Model(nn.Module):
     def __init__(self,state_size,action_size,node=64,Conv_option=False):
-        super(Model, self).__init__()
+        super(Dualing_Model, self).__init__()
         self.preprocess = [
             nn.Sequential(
                 nn.Conv2d(3,32,kernel_size=7,stride=3,padding=3,padding_mode='replicate'),
