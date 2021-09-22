@@ -7,7 +7,7 @@ setup(
         'requests',
         'mlagents_envs==0.27.0',
         'gym',
-        'gym[all]',
+        #'gym[all]',
         'box2d',
         'box2d-py',
         'torch',
