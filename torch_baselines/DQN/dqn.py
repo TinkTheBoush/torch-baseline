@@ -143,7 +143,7 @@ class DQN:
         vals = self.model(obses).gather(1,actions)
         with torch.no_grad():
             if self.double_q:
-                double_actions = self.model.get_action(nxtobses)
+                double_actions = self.model.get_action(nxtobses).view(-1,1)
                 next_vals = dones*self.target_model(nxtobses).gather(1,double_actions)
                 print(next_vals.shape)
             else:
