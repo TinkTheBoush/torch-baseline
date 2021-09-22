@@ -61,6 +61,7 @@ class DQN:
         
         self.get_env_setup()
         self.get_memory_setup()
+        self.get_train_setup()
         
         if _init_setup_model:
             self.setup_model()
@@ -122,8 +123,14 @@ class DQN:
         print(self.model)
         print("-------------------------------------------------")
         
-        
-    def _train_step(self, steps, learning_rate):
+    def get_train_setup(self):
+        if self.prioritized_replay:
+            self.sample_args = (self.batch_size,self.prioritized_replay_beta0)
+        else:
+            self.sample_args = self.batch_size
+        pass
+    
+    def _train_step(self, steps):
         # Sample a batch from the replay buffer
         if self.prioritized_replay:
             data = self.replay_buffer.sample(self.batch_size,self.prioritized_replay_beta0)
@@ -246,7 +253,7 @@ class DQN:
             
             can_sample = self.replay_buffer.can_sample(self.batch_size)
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
-                loss = self._train_step(steps,self.learning_rate)
+                loss = self._train_step(steps)
                 self.lossque.append(loss)
                 
             
