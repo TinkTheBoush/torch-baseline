@@ -8,12 +8,10 @@ from collections import deque
 from torch.utils.tensorboard import SummaryWriter
 
 from torch_baselines.DQN.network import Model
-from torch_baselines.common.buffers import ReplayBuffer
+from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
-from mlagents_envs.environment import UnityEnvironment,ActionTuple
-from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
-from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
+from mlagents_envs.environment import UnityEnvironment,action_tuple
 
 class DQN:
     def __init__(self, policy, env, gamma=0.99, learning_rate=1e-3, buffer_size=50000, exploration_fraction=0.1,
@@ -100,7 +98,7 @@ class DQN:
         
     def get_memory_setup(self):
         if self.prioritized_replay:
-            pass
+            self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,self.prioritized_replay_alpha)
         else:
             self.replay_buffer = ReplayBuffer(self.buffer_size)
             
@@ -119,7 +117,13 @@ class DQN:
         self.target_model.eval()
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
-        self.loss = torch.nn.MSELoss()
+        if self.prioritized_replay:
+            def weighted_mse_loss(input, target, weight):
+                td_errors = input - target
+                return torch.sum(weight * td_errors ** 2), td_errors
+            self.loss = weighted_mse_loss
+        else:
+            self.loss = torch.nn.MSELoss()
         #self.loss = torch.nn.SmoothL1Loss()
         
         print("----------------------model----------------------")
@@ -142,7 +146,15 @@ class DQN:
         with torch.no_grad():
             next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].detach()
             targets = (next_vals * self.gamma) + rewards
-        loss = self.loss(vals,targets.unsqueeze(1))
+            
+        if self.prioritized_replay:
+            weights = torch.from_numpy(data[5])
+            indexs = data[6]
+            loss,td_errors = self.loss(vals,targets.unsqueeze(1),weights)
+            new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
+            self.replay_buffer.update_priorities(indexs,new_priorities)
+        else:
+            loss = self.loss(vals,targets.unsqueeze(1))
         
         self.optimizer.zero_grad()
         loss.backward()
