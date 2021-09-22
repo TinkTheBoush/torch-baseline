@@ -135,10 +135,10 @@ class DQN:
         obses = [torch.from_numpy(o).float() for o in data[0]]
         obses = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obses]
         actions = torch.from_numpy(data[1]).view(-1,1)
-        rewards = torch.from_numpy(data[2]).float()
+        rewards = torch.from_numpy(data[2]).float().view(-1,1)
         nxtobses = [torch.from_numpy(o).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
-        dones = (~torch.from_numpy(data[4])).float()
+        dones = (~torch.from_numpy(data[4])).float().view(-1,1)
         self.model.eval()
         vals = self.model(obses).gather(1,actions)
         with torch.no_grad():
@@ -149,17 +149,17 @@ class DQN:
                 next_vals = dones*self.target_model(nxtobses).gather(1,double_actions)
                 print(next_vals.shape)
             else:
-                next_vals = dones*torch.max(self.target_model(nxtobses),1)[0]
+                next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].view(-1,1)
             targets = (next_vals * self.gamma) + rewards
             
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5])
             indexs = data[6]
-            loss,td_errors = self.loss(vals,targets.view(-1,1),weights)
+            loss,td_errors = self.loss(vals,targets,weights)
             new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
         else:
-            loss = self.loss(vals,targets.view(-1,1))
+            loss = self.loss(vals,targets)
         
         self.optimizer.zero_grad()
         loss.backward()
