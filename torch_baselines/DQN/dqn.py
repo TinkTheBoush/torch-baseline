@@ -196,15 +196,12 @@ class DQN:
                                                 final_p=self.exploration_final_eps)
             pbar = trange(total_timesteps)
             if self.env_type == "unity":
-                self.learn_unity(pbar, callback, log_interval, tb_log_name,
-                reset_num_timesteps, replay_wrapper)
+                self.learn_unity(pbar, callback, log_interval)
             if self.env_type == "gym":
-                self.learn_gym(pbar, callback, log_interval, tb_log_name,
-                reset_num_timesteps, replay_wrapper)
+                self.learn_gym(pbar, callback, log_interval)
 
     
-    def learn_unity(self, pbar, callback=None, log_interval=100, tb_log_name="DQN",
-              reset_num_timesteps=True, replay_wrapper=None):
+    def learn_unity(self, pbar, callback=None, log_interval=100):
         self.env.reset()
         self.env.step()
         dec, term = self.env.get_steps(self.group_name)
@@ -260,8 +257,7 @@ class DQN:
                 
             
         
-    def learn_gym(self, pbar, callback=None, log_interval=100, tb_log_name="DQN",
-              reset_num_timesteps=True, replay_wrapper=None):
+    def learn_gym(self, pbar, callback=None, log_interval=100):
         state = self.env.reset()
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
