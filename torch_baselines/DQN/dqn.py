@@ -184,7 +184,8 @@ class DQN:
         
     def learn(self, total_timesteps, callback=None, log_interval=100, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):
-        
+        if self.double_q:
+            tb_log_name = "Double_" + tb_log_name
         if self.prioritized_replay:
             tb_log_name = tb_log_name + "+PER"
         
