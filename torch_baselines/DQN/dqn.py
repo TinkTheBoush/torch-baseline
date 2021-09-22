@@ -210,7 +210,7 @@ class DQN:
                 self.learn_gym(pbar, callback, log_interval)
 
     
-    def learn_unity(self, pbar, callback=None, interval=100):
+    def learn_unity(self, pbar, callback=None, log_interval=100):
         self.env.reset()
         self.env.step()
         dec, term = self.env.get_steps(self.group_name)
@@ -266,7 +266,7 @@ class DQN:
                 
             
         
-    def learn_gym(self, pbar, callback=None, interval=100):
+    def learn_gym(self, pbar, callback=None, log_interval=100):
         state = self.env.reset()
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
