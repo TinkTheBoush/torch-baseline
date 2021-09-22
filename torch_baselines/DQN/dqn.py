@@ -121,7 +121,7 @@ class DQN:
         if self.prioritized_replay:
             def weighted_mse_loss(input, target, weight):
                 td_errors = input - target
-                return torch.mean(weight * td_errors ** 2), td_errors.squeeze().detach().numpy()
+                return (weight * td_errors ** 2).mean(), td_errors.squeeze().detach().numpy()
                 #return torch.mean(td_errors ** 2), td_errors.squeeze().detach().numpy()
             self.loss = weighted_mse_loss
         else:
