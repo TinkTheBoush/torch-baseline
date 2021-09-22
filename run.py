@@ -36,6 +36,6 @@ if __name__ == "__main__":
         pass
     
     agent = DQN(env,target_network_update_freq=args.target_update,
-                prioritized_replay=args.per,
+                prioritized_replay=args.per, double_q = args.double
                 tensorboard_log=args.logdir+env_name)
     agent.learn(int(args.steps))
