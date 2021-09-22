@@ -124,10 +124,6 @@ class DQN:
         print("-------------------------------------------------")
         
     def get_train_setup(self):
-        if self.prioritized_replay:
-            self.sample_args = (self.batch_size,self.prioritized_replay_beta0)
-        else:
-            self.sample_args = self.batch_size
         pass
     
     def _train_step(self, steps):
