@@ -46,4 +46,4 @@ class Model(nn.Module):
     
     def get_action(self,xs):
         with torch.no_grad():
-            return self(xs).max(1)[1].view(-1,1).detach()
+            return self(xs).max(-1)[1].view(-1,1).detach()
