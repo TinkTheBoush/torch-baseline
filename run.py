@@ -37,7 +37,7 @@ if __name__ == "__main__":
         env = gym.make(env_name)
         pass
     
-    agent = DQN(env,batch_size=args.batch,target_network_update_freq=args.target_update,
-                prioritized_replay=args.per, double_q = args.double,
+    agent = DQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
+                prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing, 
                 tensorboard_log=args.logdir+env_name)
     agent.learn(int(args.steps))
