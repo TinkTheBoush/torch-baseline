@@ -169,7 +169,7 @@ class DQN:
         if self.summary:
             self.summary.add_scalar("loss/qloss", loss, steps)
 
-        return loss.detach()
+        return loss.detach().cpu().clone().numpy()
 
     
     def actions(self,obs,epsilon):
