@@ -126,6 +126,8 @@ class DQN:
             self.loss = weighted_mse_loss
         else:
             self.loss = torch.nn.MSELoss()
+            
+        #self.update_target = torch.jit()
         #self.loss = torch.nn.SmoothL1Loss()
         
         print("----------------------model----------------------")
