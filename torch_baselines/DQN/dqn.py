@@ -247,11 +247,11 @@ class DQN:
                 act = old_action[idx]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done)
                 self.scores[idx] += reward
-            if steps % 1000 == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
-                pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
-                                        np.mean(self.scoreque),update_eps,np.mean(self.lossque)
-                                        )
-                                     )
+            #if steps % 1000 == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
+            pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
+                                    np.mean(self.scoreque),update_eps,np.mean(self.lossque)
+                                    )
+                                    )
             
             can_sample = self.replay_buffer.can_sample(self.batch_size)
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
@@ -287,8 +287,8 @@ class DQN:
                 loss = self._train_step(steps)
                 self.lossque.append(loss)
             
-            if steps % 1000 == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
-                pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
-                                        np.mean(self.scoreque),update_eps,np.mean(self.lossque)
-                                        )
-                                     )
+            #if steps % 1000 == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
+            pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
+                                    np.mean(self.scoreque),update_eps,np.mean(self.lossque)
+                                    )
+                                    )
