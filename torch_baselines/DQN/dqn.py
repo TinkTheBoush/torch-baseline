@@ -126,18 +126,18 @@ class DQN:
         self.target_model.to(self.device)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
-        '''
+
         if self.prioritized_replay:
             self.loss = WeightedMSELoss()
         else:
             self.loss = torch.nn.MSELoss()
-        '''
 
+        '''
         if self.prioritized_replay:
             self.loss = WeightedHuber()
         else:
             self.loss = torch.nn.SmoothL1Loss()
-        #self.update_target = torch.jit()
+        '''
         
         
         print("----------------------model----------------------")
