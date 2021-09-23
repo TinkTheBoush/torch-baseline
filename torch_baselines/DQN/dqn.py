@@ -170,10 +170,6 @@ class DQN:
 
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
-            indexs = data[6]
-            td_errors = (targets - vals).squeeze().detach().cpu().clone().numpy()
-            new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
-            self.replay_buffer.update_priorities(indexs,new_priorities)
             loss = self.loss(vals,targets,weights)
         else:
             loss = self.loss(vals,targets)
@@ -181,6 +177,13 @@ class DQN:
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+        
+        if self.prioritized_replay:
+            indexs = data[6]
+            vals = self.model(obses).gather(1,actions)
+            td_errors = (targets - vals).squeeze().detach().cpu().clone().numpy()
+            new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
+            self.replay_buffer.update_priorities(indexs,new_priorities)
         
         if steps % self.target_network_update_freq == 0:
             self.target_model.load_state_dict(self.model.state_dict())
