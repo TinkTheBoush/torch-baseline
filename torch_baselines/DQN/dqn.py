@@ -182,7 +182,7 @@ class DQN:
             self.target_model.load_state_dict(self.model.state_dict())
             
         if self.prioritized_replay:
-            vals = self.model(obses).gather(1,actions)
+            #vals = self.model(obses).gather(1,actions)
             indexs = data[6]
             td_errors = (targets - vals).squeeze().detach().cpu().clone().numpy()
             new_priorities = np.abs(td_errors) + self.prioritized_replay_eps

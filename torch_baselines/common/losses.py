@@ -13,7 +13,6 @@ class WeightedMSELoss(_Loss):
         super(WeightedMSELoss, self).__init__(size_average, reduce, reduction)
 
     def forward(self, input: Tensor, target: Tensor, weight : Tensor) -> Tensor:
-        
         return (weight * F.mse_loss(input, target, reduction='none').squeeze()).mean(-1)
 
 class WeightedHuber(_Loss):
