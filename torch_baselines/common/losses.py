@@ -15,11 +15,6 @@ class WeightedMSELoss(_Loss):
     def forward(self, input: Tensor, target: Tensor, weight : Tensor) -> Tensor:
         
         return (F.mse_loss(input, target, reduction=False) * weight).mean(-1)
-    
-def weighted_mse_loss(input, target, weight):
-    td_errors = input - target
-    return (td_errors ** 2).mean(), td_errors.squeeze().detach().cpu().clone().numpy()
-
 
 class WeightedHuber(_Loss):
     __constants__ = ['reduction']
