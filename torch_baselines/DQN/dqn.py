@@ -276,7 +276,6 @@ class DQN:
                 loss = self._train_step(steps)
                 self.lossque.append(loss)
                 
-            
         
     def learn_gym(self, pbar, callback=None, log_interval=100):
         state = self.env.reset()
