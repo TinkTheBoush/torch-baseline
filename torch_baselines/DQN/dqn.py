@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from torch_baselines.DQN.network import Model,Dualing_Model
 from torch_baselines.common.base_classes import TensorboardWriter
-from torch_baselines.common.losses import weighted_mse_loss
+from torch_baselines.common.losses import WeightedMSELoss, WeightedHuber
 from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
@@ -128,14 +128,17 @@ class DQN:
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         '''
         if self.prioritized_replay:
-            self.loss = weighted_mse_loss
+            self.loss = WeightedMSELoss()
         else:
             self.loss = torch.nn.MSELoss()
         '''
 
-            
+        if self.prioritized_replay:
+            self.loss = WeightedHuber()
+        else:
+            self.loss = torch.nn.SmoothL1Loss()
         #self.update_target = torch.jit()
-        self.loss = torch.nn.SmoothL1Loss()
+        
         
         print("----------------------model----------------------")
         print(self.model)
@@ -164,17 +167,14 @@ class DQN:
                 next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].view(-1,1)
             targets = (next_vals * self.gamma) + rewards
             
-        '''
+
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
-            indexs = data[6]
-            loss,td_errors = self.loss(vals,targets,weights)
-            new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
-            self.replay_buffer.update_priorities(indexs,new_priorities)
+            loss = self.loss(vals,targets,weights)
         else:
             loss = self.loss(vals,targets)
-        '''
-        loss = self.loss(vals,targets)
+
+        #loss = self.loss(vals,targets)
         
         self.optimizer.zero_grad()
         loss.backward()

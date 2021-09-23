@@ -1,9 +1,34 @@
 import torch
+from torch import functional as F
+from torch import _reduction as _Reduction
+from torch.nn.modules.loss import _Loss
 
+
+from torch import Tensor
+from typing import Callable, Optional
+
+class WeightedMSELoss(_Loss):
+    __constants__ = ['reduction']
+    def __init__(self, size_average=None, reduce=None, reduction: str = 'mean') -> None:
+        super(WeightedMSELoss, self).__init__(size_average, reduce, reduction)
+
+    def forward(self, input: Tensor, target: Tensor, weight : Tensor) -> Tensor:
+        
+        return (F.mse_loss(input, target, reduction=False) * weight).mean(-1)
+    
 def weighted_mse_loss(input, target, weight):
     td_errors = input - target
     return (td_errors ** 2).mean(), td_errors.squeeze().detach().cpu().clone().numpy()
 
+
+class WeightedHuber(_Loss):
+    __constants__ = ['reduction']
+    def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', beta: float = 1.0) -> None:
+        super(WeightedHuber, self).__init__(size_average, reduce, reduction)
+        self.beta = beta
+
+    def forward(self, input: Tensor, target: Tensor, weight : Tensor) -> Tensor:
+        return (F.smooth_l1_loss(input, target, reduction=False, beta=self.beta)* weight).mean(-1) 
 
 def categorial_loss(input_distribution,next_distribution,categorial_bar,next_categorial_bar):
     bar_start = categorial_bar[:-1]
