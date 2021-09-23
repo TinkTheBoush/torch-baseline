@@ -126,13 +126,16 @@ class DQN:
         self.target_model.to(self.device)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
+        '''
         if self.prioritized_replay:
             self.loss = weighted_mse_loss
         else:
             self.loss = torch.nn.MSELoss()
+        '''
+
             
         #self.update_target = torch.jit()
-        #self.loss = torch.nn.SmoothL1Loss()
+        self.loss = torch.nn.SmoothL1Loss()
         
         print("----------------------model----------------------")
         print(self.model)
@@ -161,6 +164,7 @@ class DQN:
                 next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].view(-1,1)
             targets = (next_vals * self.gamma) + rewards
             
+        '''
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
@@ -169,6 +173,8 @@ class DQN:
             self.replay_buffer.update_priorities(indexs,new_priorities)
         else:
             loss = self.loss(vals,targets)
+        '''
+        loss = self.loss(vals,targets)
         
         self.optimizer.zero_grad()
         loss.backward()
@@ -177,6 +183,13 @@ class DQN:
         if steps % self.target_network_update_freq == 0:
             self.target_model.load_state_dict(self.model.state_dict())
             
+        if self.prioritized_replay:
+            vals = self.model(obses).gather(1,actions)
+            indexs = data[6]
+            td_errors = (targets - vals).squeeze().detach().cpu().clone().numpy()
+            new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
+            self.replay_buffer.update_priorities(indexs,new_priorities)
+        
         if self.summary:
             self.summary.add_scalar("loss/qloss", loss, steps)
 
