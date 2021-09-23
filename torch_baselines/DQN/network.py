@@ -51,7 +51,7 @@ class Model(nn.Module):
 class Dualing_Model(nn.Module):
     def __init__(self,state_size,action_size,node=64,Conv_option=False):
         super(Dualing_Model, self).__init__()
-        self.preprocess = [
+        self.preprocess = nn.ModuleList([
             nn.Sequential(
                 nn.Conv2d(3,32,kernel_size=7,stride=3,padding=3,padding_mode='replicate'),
                 nn.ReLU(),
@@ -62,7 +62,7 @@ class Dualing_Model(nn.Module):
             )
             if len(st) == 3 else nn.Identity()
             for st in state_size 
-        ]
+        ])
         
         flatten_size = np.sum(
                        np.asarray(
