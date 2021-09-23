@@ -257,7 +257,7 @@ class DQN:
                 act = old_action[idx]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done)
                 self.scores[idx] += reward
-            if steps % interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
+            if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
                                     np.mean(self.scoreque),update_eps,np.mean(self.lossque)
                                     )
@@ -295,7 +295,7 @@ class DQN:
                 loss = self._train_step(steps)
                 self.lossque.append(loss)
             
-            if steps % interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
+            if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
                                     np.mean(self.scoreque),update_eps,np.mean(self.lossque)
                                     )
