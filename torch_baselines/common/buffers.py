@@ -161,8 +161,8 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         """
         idx = self._next_idx
         super().add(obs_t, action, reward, obs_tp1, done)
-        self._it_sum[idx] = self._max_priority
-        self._it_min[idx] = self._max_priority
+        self._it_sum[idx] = self._max_priority ** self._alpha
+        self._it_min[idx] = self._max_priority ** self._alpha
 
     def extend(self, obs_t, action, reward, obs_tp1, done):
         """
@@ -224,6 +224,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         p_sample = self._it_sum[idxes] / self._it_sum.sum()
         weights = np.array((p_sample * len(self._storage)) ** (-beta) / max_weight)
         encoded_sample = self._encode_sample(idxes)
+        print(weights)
         return encoded_sample + (weights, idxes)
 
     def update_priorities(self, idxes, priorities):
