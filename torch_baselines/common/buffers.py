@@ -222,7 +222,8 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         p_min = self._it_min.min() / self._it_sum.sum()
         max_weight = (p_min * len(self._storage)) ** (-beta)
         p_sample = self._it_sum[idxes] / self._it_sum.sum()
-        weights = np.array((p_sample * len(self._storage)) ** (-beta) / max_weight + 1.0) 
+        weights = np.array((p_sample * len(self._storage)) ** (-beta) / max_weight + 1.0)
+        #weights = weights/np.max(weights) + 0.5 
         encoded_sample = self._encode_sample(idxes)
         #print(weights)
         return encoded_sample + (weights, idxes)
