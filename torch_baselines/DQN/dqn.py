@@ -173,7 +173,8 @@ class DQN:
             loss = self.loss(vals,targets,weights)
         else:
             loss = self.loss(vals,targets)
-
+            
+        print(loss)
         #loss = self.loss(vals,targets)
         
         self.optimizer.zero_grad()
