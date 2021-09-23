@@ -11,7 +11,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.Categorial_n = Categorial_n
         self.action_size = action_size
-        self.preprocess = [
+        self.preprocess = nn.ModuleList([
             nn.Sequential(
                 nn.Conv2d(3,32,kernel_size=7,stride=3,padding=3,padding_mode='replicate'),
                 nn.ReLU(),
@@ -22,7 +22,7 @@ class Model(nn.Module):
             )
             if len(st) == 3 else nn.Identity()
             for st in state_size 
-        ]
+        ])
         
         flatten_size = np.sum(
                        np.asarray(
