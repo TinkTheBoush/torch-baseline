@@ -1,6 +1,6 @@
 import torch
-from torch import functional as F
-from torch import _reduction as _Reduction
+from torch.nn import functional as F
+from torch.nn import _reduction as _Reduction
 from torch.nn.modules.loss import _Loss
 
 
