@@ -14,7 +14,7 @@ class WeightedMSELoss(_Loss):
 
     def forward(self, input: Tensor, target: Tensor, weight : Tensor) -> Tensor:
         
-        return (F.mse_loss(input, target, reduction='none').squeeze() * weight).mean(-1)
+        return (weight * F.mse_loss(input, target, reduction='none').squeeze()).mean(-1)
 
 class WeightedHuber(_Loss):
     __constants__ = ['reduction']
@@ -23,7 +23,7 @@ class WeightedHuber(_Loss):
         self.beta = beta
 
     def forward(self, input: Tensor, target: Tensor, weight : Tensor) -> Tensor:
-        return (F.smooth_l1_loss(input, target, reduction='none', beta=self.beta).squeeze() * weight).mean(-1) 
+        return (weight * F.smooth_l1_loss(input, target, reduction='none', beta=self.beta).squeeze()).mean(-1) 
 
 def categorial_loss(input_distribution,next_distribution,categorial_bar,next_categorial_bar):
     bar_start = categorial_bar[:-1]
