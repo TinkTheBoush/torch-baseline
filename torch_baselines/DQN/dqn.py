@@ -169,7 +169,6 @@ class DQN:
             
 
         if self.prioritized_replay:
-            print(np.mean(data[5]))
             weights = torch.from_numpy(data[5]).to(self.device)
             loss = self.loss(vals,targets,weights)
         else:
