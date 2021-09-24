@@ -55,7 +55,8 @@ class Model(nn.Module):
     def samepl_noise(self):
         for idx,m in enumerate(self.modules()):
             if isinstance(m,NoisyLinear):
-                print(m)
+                m.sample_noise()
+                #print(m)
         
 class Dualing_Model(nn.Module):
     def __init__(self,state_size,action_size,node=64,Conv_option=False):
