@@ -44,7 +44,7 @@ class Model(nn.Module):
     def forward(self, xs):
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
         cated = torch.cat(flats,dim=-1)
-        x = self.q_linear(cated).view(-1,self.action_size,self.n_support)
+        x = self.q_linear(cated).view(-1,self.action_size[0],self.n_support)
         return x
     
     def get_action(self,xs):
@@ -96,7 +96,7 @@ class Dualing_Model(nn.Module):
     def forward(self, xs):
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
         cated = torch.cat(flats,dim=-1)
-        a = self.advatage_linear(cated).view(-1,self.action_size,self.n_support)
+        a = self.advatage_linear(cated).view(-1,self.action_size[0],self.n_support)
         v = self.value_linear(cated).view(-1,self.n_support)
         q = v + (a - a.mean(1,True))
         return q
