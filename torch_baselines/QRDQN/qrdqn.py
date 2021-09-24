@@ -138,10 +138,6 @@ class QRDQN:
         else:
             self.loss = torch.nn.SmoothL1Loss()
         '''
-        '''
-        self.qrtau = tf.tile(tf.reshape(tf.range(0.5 / self.n_support, 1, 1 / self.n_support),
-                            [1, self.n_support]),[tf.shape(self.processed_obs_ph)[0],1])
-        '''
         self.quantile = torch.range(0.5 / self.n_support,1, 1 / self.n_support)        
         
         print("----------------------model----------------------")
