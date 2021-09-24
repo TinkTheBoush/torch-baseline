@@ -112,16 +112,16 @@ class DQN:
             
     def setup_model(self):
         self.policy_kwargs = {} if self.policy_kwargs is None else self.policy_kwargs
-        if self.dualing_model:
-            self.model = Dualing_Model(self.observation_space,self.action_size,**self.policy_kwargs)
-            self.target_model = Dualing_Model(self.observation_space,self.action_size,**self.policy_kwargs)
-        else:
-            self.model = Model(self.observation_space,self.action_size,**self.policy_kwargs)
-            self.target_model = Model(self.observation_space,self.action_size,**self.policy_kwargs)
-        self.model.eval()
+        self.model = Model(self.observation_space,self.action_size,
+                           dualing=self.dualing_model,noisy=self.param_noise
+                           **self.policy_kwargs)
+        self.target_model = Model(self.observation_space,self.action_size,
+                                  dualing=self.dualing_model,noisy=self.param_noise
+                                  **self.policy_kwargs)
+        self.model.train()
         self.model.to(self.device)
         self.target_model.load_state_dict(self.model.state_dict())
-        self.target_model.eval()
+        self.target_model.train()
         self.target_model.to(self.device)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
@@ -178,10 +178,10 @@ class DQN:
 
     
     def actions(self,obs,epsilon):
-        if epsilon <= np.random.uniform(0,1):
-            self.model.eval()
+        if epsilon <= np.random.uniform(0,1) or self.param_noise:
             obs = [torch.from_numpy(o).to(self.device).float() for o in obs]
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
+            self.model.sample_noise()
             actions = self.model.get_action(obs).numpy()
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
