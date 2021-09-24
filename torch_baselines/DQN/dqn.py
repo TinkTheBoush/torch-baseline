@@ -7,7 +7,7 @@ from collections import deque
 
 from torch_baselines.DQN.network import Model,Dualing_Model
 from torch_baselines.common.base_classes import TensorboardWriter
-from torch_baselines.common.losses import WeightedMSELoss, WeightedHuber
+from torch_baselines.common.losses import WeightedMSELoss, WeightedHuberLoss
 from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
