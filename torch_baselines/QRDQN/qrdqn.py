@@ -5,7 +5,7 @@ import numpy as np
 from tqdm.auto import trange
 from collections import deque
 
-from torch_baselines.QRDQN.network import Model,Dualing_Model
+from torch_baselines.QRDQN.network import Model
 from torch_baselines.common.base_classes import TensorboardWriter
 from torch_baselines.common.losses import QRHuberLosses
 from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
@@ -112,16 +112,16 @@ class QRDQN:
             
     def setup_model(self):
         self.policy_kwargs = {} if self.policy_kwargs is None else self.policy_kwargs
-        if self.dualing_model:
-            self.model = Dualing_Model(self.observation_space,self.action_size,n_support=self.n_support, **self.policy_kwargs)
-            self.target_model = Dualing_Model(self.observation_space,self.action_size,n_support=self.n_support, **self.policy_kwargs)
-        else:
-            self.model = Model(self.observation_space,self.action_size,n_support=self.n_support,**self.policy_kwargs)
-            self.target_model = Model(self.observation_space,self.action_size,n_support=self.n_support,**self.policy_kwargs)
-        self.model.eval()
+        self.model = Model(self.observation_space,self.action_size,n_support=self.n_support,
+                           dualing=self.dualing_model,noisy=self.param_noise
+                           **self.policy_kwargs)
+        self.target_model = Model(self.observation_space,self.action_size,n_support=self.n_support,
+                                  dualing=self.dualing_model,noisy=self.param_noise
+                                  **self.policy_kwargs)
+        self.model.train()
         self.model.to(self.device)
         self.target_model.load_state_dict(self.model.state_dict())
-        self.target_model.eval()
+        self.target_model.train()
         self.target_model.to(self.device)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
