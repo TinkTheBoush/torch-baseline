@@ -113,10 +113,10 @@ class QRDQN:
     def setup_model(self):
         self.policy_kwargs = {} if self.policy_kwargs is None else self.policy_kwargs
         self.model = Model(self.observation_space,self.action_size,n_support=self.n_support,
-                           dualing=self.dualing_model,noisy=self.param_noise
+                           dualing=self.dualing_model,noisy=self.param_noise,
                            **self.policy_kwargs)
         self.target_model = Model(self.observation_space,self.action_size,n_support=self.n_support,
-                                  dualing=self.dualing_model,noisy=self.param_noise
+                                  dualing=self.dualing_model,noisy=self.param_noise,
                                   **self.policy_kwargs)
         self.model.train()
         self.model.to(self.device)
