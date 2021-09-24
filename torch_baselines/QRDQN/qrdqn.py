@@ -45,7 +45,7 @@ class QRDQN:
         self.full_tensorboard_log = full_tensorboard_log
         self.double_q = double_q
         self.dualing_model = dualing_model
-        self.support_size = n_support
+        self.n_support = n_support
 
         self.graph = None
         self.sess = None
