@@ -156,7 +156,7 @@ class QRDQN:
             data = self.replay_buffer.sample(self.batch_size)
         obses = [torch.from_numpy(o).to(self.device).float() for o in data[0]]
         obses = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obses]
-        actions = torch.from_numpy(data[1]).to(self.device).view(-1,1,1).tile(self.n_support)
+        actions = torch.from_numpy(data[1]).to(self.device).view(-1,1).repeat_interleave(self.n_support, dim=2)
         rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1,1)
         nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
