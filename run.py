@@ -2,7 +2,8 @@ import os
 import argparse
 import gym
 
-from torch_baselines.DQN.dqn import DQN 
+from torch_baselines.DQN.dqn import DQN
+from torch_baselines.QRDQN.qrdqn import QRDQN
 from mlagents_envs.environment import UnityEnvironment,ActionTuple
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
@@ -36,8 +37,13 @@ if __name__ == "__main__":
     else:
         env = gym.make(env_name)
         pass
-    
-    agent = DQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
-                prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing, 
-                tensorboard_log=args.logdir+env_name)
+    if args.algo == "DQN":
+        agent = DQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
+                    prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing, 
+                    tensorboard_log=args.logdir+env_name)
+    elif args.algo == "QRDQN":
+        agent = QRDQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
+                    prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing, 
+                    tensorboard_log=args.logdir+env_name)
+
     agent.learn(int(args.steps))
