@@ -168,14 +168,15 @@ class QRDQN:
         print(vals.shape)
         with torch.no_grad():
             if self.double_q:
-                action = self.model(nxtobses).mean(2).max(1)[1].view(-1,1,1)
+                action = self.model(nxtobses).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             else:
-                action = self.target_model(nxtobses).mean(2).max(1)[1].view(-1,1,1)
+                action = self.target_model(nxtobses).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             tt = self.target_model(nxtobses)
             print(tt.shape)
             next_vals = dones*self.target_model(nxtobses).gather(1,action)
             print(next_vals.shape)
             targets = (next_vals * self.gamma) + rewards
+            print(targets.shape)
         
         logit_valid_tile = targets.view(-1,self.n_support,1)
         theta_loss_tile = vals.view(-1,1,self.n_support)
