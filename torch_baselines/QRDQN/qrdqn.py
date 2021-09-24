@@ -113,11 +113,11 @@ class QRDQN:
     def setup_model(self):
         self.policy_kwargs = {} if self.policy_kwargs is None else self.policy_kwargs
         if self.dualing_model:
-            self.model = Dualing_Model(self.observation_space,self.action_size,quantile_n=self.support_size, **self.policy_kwargs)
-            self.target_model = Dualing_Model(self.observation_space,self.action_size,quantile_n=self.support_size, **self.policy_kwargs)
+            self.model = Dualing_Model(self.observation_space,self.action_size,quantile_n=self.n_support, **self.policy_kwargs)
+            self.target_model = Dualing_Model(self.observation_space,self.action_size,quantile_n=self.n_support, **self.policy_kwargs)
         else:
-            self.model = Model(self.observation_space,self.action_size,quantile_n=self.support_size,**self.policy_kwargs)
-            self.target_model = Model(self.observation_space,self.action_size,quantile_n=self.support_size,**self.policy_kwargs)
+            self.model = Model(self.observation_space,self.action_size,quantile_n=self.n_support,**self.policy_kwargs)
+            self.target_model = Model(self.observation_space,self.action_size,quantile_n=self.n_support,**self.policy_kwargs)
         self.model.eval()
         self.model.to(self.device)
         self.target_model.load_state_dict(self.model.state_dict())
