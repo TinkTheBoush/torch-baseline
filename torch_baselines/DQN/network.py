@@ -77,7 +77,7 @@ class Model(nn.Module):
         with torch.no_grad():
             return self(xs).max(-1)[1].view(-1,1).detach().cpu().clone()
         
-    def samepl_noise(self):
+    def sample_noise(self):
         if not self.noisy:
             return
         for idx,m in enumerate(self.modules()):
