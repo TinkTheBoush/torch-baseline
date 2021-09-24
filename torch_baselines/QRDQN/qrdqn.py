@@ -207,7 +207,7 @@ class QRDQN:
         return actions
         #pass
         
-    def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="DQN",
+    def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="QRDQN",
               reset_num_timesteps=True, replay_wrapper=None):
         if self.dualing_model:
             tb_log_name = "Dualing_" + tb_log_name
