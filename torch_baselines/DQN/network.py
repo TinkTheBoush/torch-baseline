@@ -1,4 +1,3 @@
-import torch_baselines.DQN.dqn
 import numpy as np
 import jax.numpy as jnp
 from torch_baselines.common.utils import get_flatten_size
