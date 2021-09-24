@@ -30,7 +30,7 @@ class Model(nn.Module):
                         ]
                         ))
         
-        self.linear = nn.Sequential(
+        self.q_linear = nn.Sequential(
             nn.Linear(flatten_size,node),
             nn.ReLU(),
             nn.Linear(node,node),
@@ -39,9 +39,9 @@ class Model(nn.Module):
         )
 
     def forward(self, xs):
-        flat = [pre(x) for pre,x in zip(self.preprocess,xs)]
-        cated = torch.cat(flat,dim=-1)
-        x = self.linear(cated)
+        flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
+        cated = torch.cat(flats,dim=-1)
+        x = self.q_linear(cated)
         return x
     
     def get_action(self,xs):
@@ -89,8 +89,8 @@ class Dualing_Model(nn.Module):
         )
 
     def forward(self, xs):
-        flat = [pre(x) for pre,x in zip(self.preprocess,xs)]
-        cated = torch.cat(flat,dim=-1)
+        flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
+        cated = torch.cat(flats,dim=-1)
         a = self.advatage_linear(cated)
         v = self.value_linear(cated)
         q = v.view(-1,1) + (a - a.mean(-1,True))

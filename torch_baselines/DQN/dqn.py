@@ -239,19 +239,16 @@ class DQN:
             
             action_tuple = ActionTuple(discrete=actions)
             self.env.set_actions(self.group_name, action_tuple)
-            
-            if len(dec.agent_id) > 0:
-                old_dec = dec
-                old_action = actions
-                
+            old_dec = dec
             self.env.step()
             dec, term = self.env.get_steps(self.group_name)
+            
             for idx in term.agent_id:
                 obs = old_dec[idx].obs
                 nxtobs = term[idx].obs
                 reward = term[idx].reward
                 done = not term[idx].interrupted
-                act = old_action[idx]
+                act = actions[idx]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done)
                 self.scores[idx] += reward
                 self.scoreque.append(self.scores[idx])
@@ -265,9 +262,10 @@ class DQN:
                 nxtobs = dec[idx].obs
                 reward = dec[idx].reward
                 done = False
-                act = old_action[idx]
+                act = actions[idx]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done)
                 self.scores[idx] += reward
+
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
                                     np.mean(self.scoreque),update_eps,np.mean(self.lossque)
