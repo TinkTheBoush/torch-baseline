@@ -7,9 +7,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=64,Conv_option=False,quantile_n = 32):
+    def __init__(self,state_size,action_size,node=64,Conv_option=False,n_support = 32):
         super(Model, self).__init__()
-        self.quantile_n = quantile_n
+        self.n_support = n_support
         self.action_size = action_size
         self.preprocess = nn.ModuleList([
             nn.Sequential(
@@ -37,14 +37,14 @@ class Model(nn.Module):
             nn.ReLU(),
             nn.Linear(node,node),
             nn.ReLU(),
-            nn.Linear(node, action_size[0]*quantile_n)
+            nn.Linear(node, action_size[0]*n_support)
         )
         
 
     def forward(self, xs):
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
         cated = torch.cat(flats,dim=-1)
-        x = self.q_linear(cated).view(-1,self.action_size,self.quantile_n)
+        x = self.q_linear(cated).view(-1,self.action_size,self.n_support)
         return x
     
     def get_action(self,xs):
@@ -52,9 +52,9 @@ class Model(nn.Module):
             return self(xs).mean(2).max(1)[1].view(-1,1).detach().cpu().clone()
         
 class Dualing_Model(nn.Module):
-    def __init__(self,state_size,action_size,node=64,Conv_option=False,quantile_n = 32):
+    def __init__(self,state_size,action_size,node=64,Conv_option=False,n_support = 32):
         super(Dualing_Model, self).__init__()
-        self.quantile_n = quantile_n
+        self.n_support = n_support
         self.action_size = action_size
         self.preprocess = nn.ModuleList([
             nn.Sequential(
@@ -82,7 +82,7 @@ class Dualing_Model(nn.Module):
             nn.ReLU(),
             nn.Linear(node,node),
             nn.ReLU(),
-            nn.Linear(node, action_size[0]*quantile_n)
+            nn.Linear(node, action_size[0]*n_support)
         )
         
         self.value_linear = nn.Sequential(
@@ -90,7 +90,7 @@ class Dualing_Model(nn.Module):
             nn.ReLU(),
             nn.Linear(node,node),
             nn.ReLU(),
-            nn.Linear(node, quantile_n)
+            nn.Linear(node, n_support)
         )
 
     def forward(self, xs):
