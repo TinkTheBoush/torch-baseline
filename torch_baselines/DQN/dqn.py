@@ -289,8 +289,10 @@ class DQN:
             actions = self.actions([state],update_eps)
             next_state, reward, done, info = self.env.step(actions[0][0])
             done_real = done
-            if info["TimeLimit.truncated"] == True:
-                done_real = False
+            if "TimeLimit.truncated" in info:
+                print("term key detected")
+                if info["TimeLimit.truncated"] == True:
+                    done_real = False
             self.replay_buffer.add([state], actions[0], reward, [next_state], done_real)
             self.scores[0] += reward
             state = next_state
