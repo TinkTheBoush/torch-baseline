@@ -7,7 +7,7 @@ from collections import deque
 
 from torch_baselines.DQN.network import Model,Dualing_Model
 from torch_baselines.common.base_classes import TensorboardWriter
-from torch_baselines.common.losses import WeightedMSELoss, WeightedHuberLoss
+from torch_baselines.common.losses import MSELosses, HuberLosses
 from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
@@ -130,7 +130,7 @@ class DQN:
         else:
             self.loss = torch.nn.MSELoss()
         '''
-        self.loss = torch.nn.MSELoss()
+        self.loss = MSELosses()
         '''
         if self.prioritized_replay:
             self.loss = WeightedHuber()
@@ -170,13 +170,12 @@ class DQN:
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
-            td_errors = (targets - vals).squeeze().detach().cpu().clone().numpy()
-            new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
+            losses = self.loss(vals,targets)
+            new_priorities = losses.detach().cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
-            loss = self.loss(vals,targets)
-            #loss = self.loss(vals,targets,weights)
+            loss = (weights * losses).mean(-1)
         else:
-            loss = self.loss(vals,targets)
+            loss = self.loss(vals,targets).mean(-1)
         
         self.optimizer.zero_grad()
         loss.backward()

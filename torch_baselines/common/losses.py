@@ -7,22 +7,22 @@ from torch.nn.modules.loss import _Loss
 from torch import Tensor
 from typing import Callable, Optional
 
-class WeightedMSELoss(_Loss):
+class MSELosses(_Loss):
     __constants__ = ['reduction']
     def __init__(self, size_average=None, reduce=None, reduction: str = 'mean') -> None:
-        super(WeightedMSELoss, self).__init__(size_average, reduce, reduction)
+        super(MSELosses, self).__init__(size_average, reduce, reduction)
 
     def forward(self, input: Tensor, target: Tensor, weight : Tensor) -> Tensor:
-        return (weight * F.mse_loss(input, target, reduction='none').squeeze()).mean(-1)
+        return F.mse_loss(input, target, reduction='none').squeeze()
 
-class WeightedHuberLoss(_Loss):
+class HuberLosses(_Loss):
     __constants__ = ['reduction']
     def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', beta: float = 1.0) -> None:
-        super(WeightedHuberLoss, self).__init__(size_average, reduce, reduction)
+        super(HuberLosses, self).__init__(size_average, reduce, reduction)
         self.beta = beta
 
     def forward(self, input: Tensor, target: Tensor, weight : Tensor) -> Tensor:
-        return (weight * F.smooth_l1_loss(input, target, reduction='none', beta=self.beta).squeeze()).mean(-1)
+        return F.smooth_l1_loss(input, target, reduction='none', beta=self.beta).squeeze() #.mean(-1)
     
 class Categorial51Loss(_Loss):
     __constants__ = ['reduction']
@@ -43,10 +43,10 @@ class Categorial51Loss(_Loss):
             target_distribution = next_distribution
         return F.binary_cross_entropy_with_logits(input_distribution,target_distribution)
 
-class QRHuberLoss(_Loss):
+class QRHuberLosses(_Loss):
     __constants__ = ['reduction']
     def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', beta: float = 1.0, support_size = 64) -> None:
-        super(QRHuberLoss, self).__init__(size_average, reduce, reduction)
+        super(QRHuberLosses, self).__init__(size_average, reduce, reduction)
         self.beta = beta
         self.support_size = support_size
 

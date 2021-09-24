@@ -7,7 +7,7 @@ from collections import deque
 
 from torch_baselines.QRDQN.network import Model,Dualing_Model
 from torch_baselines.common.base_classes import TensorboardWriter
-from torch_baselines.common.losses import QRHuberLoss
+from torch_baselines.common.losses import QRHuberLosses
 from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
@@ -131,7 +131,7 @@ class QRDQN:
         else:
             self.loss = torch.nn.MSELoss()
         '''
-        self.loss = QRHuberLoss(support_size=self.n_support)
+        self.loss = QRHuberLosses(support_size=self.n_support)
         '''
         if self.prioritized_replay:
             self.loss = WeightedHuber()
@@ -177,7 +177,7 @@ class QRDQN:
         if self.prioritized_replay:
             indexs = data[6]
             losses = self.loss(theta_loss_tile,logit_valid_tile,self.quantile)
-            new_priorities = np.abs(losses.detach().cpu().clone().numpy()) + self.prioritized_replay_eps
+            new_priorities = losses.detach().cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
             loss = losses.mean(-1)
         else:
