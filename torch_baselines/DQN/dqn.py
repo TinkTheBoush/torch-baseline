@@ -1,6 +1,7 @@
 import gym
 import torch
 import numpy as np
+import jax.numpy as jnp
 
 from tqdm.auto import trange
 from collections import deque
@@ -124,20 +125,7 @@ class DQN:
         self.target_model.to(self.device)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
-        '''
-        if self.prioritized_replay:
-            self.loss = WeightedMSELoss()
-        else:
-            self.loss = torch.nn.MSELoss()
-        '''
         self.loss = MSELosses()
-        '''
-        if self.prioritized_replay:
-            self.loss = WeightedHuber()
-        else:
-            self.loss = torch.nn.SmoothL1Loss()
-        '''
-        
         
         print("----------------------model----------------------")
         print(self.model)
@@ -170,10 +158,9 @@ class DQN:
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
-            losses = self.loss(vals,targets)
-            new_priorities = np.sqrt(losses.detach().cpu().clone().numpy()) + self.prioritized_replay_eps
+            new_priorities = np.abs((targets - vals).detach().cpu().clone().numpy()) + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
-            loss = (weights * losses).mean(-1)
+            loss = (weights*self.loss(vals,targets)).mean(-1)
         else:
             loss = self.loss(vals,targets).mean(-1)
         
