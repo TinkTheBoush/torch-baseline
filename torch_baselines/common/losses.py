@@ -12,7 +12,7 @@ class MSELosses(_Loss):
     def __init__(self, size_average=None, reduce=None, reduction: str = 'mean') -> None:
         super(MSELosses, self).__init__(size_average, reduce, reduction)
 
-    def forward(self, input: Tensor, target: Tensor, weight : Tensor) -> Tensor:
+    def forward(self, input: Tensor, target: Tensor) -> Tensor:
         return F.mse_loss(input, target, reduction='none').squeeze()
 
 class HuberLosses(_Loss):
@@ -21,7 +21,7 @@ class HuberLosses(_Loss):
         super(HuberLosses, self).__init__(size_average, reduce, reduction)
         self.beta = beta
 
-    def forward(self, input: Tensor, target: Tensor, weight : Tensor) -> Tensor:
+    def forward(self, input: Tensor, target: Tensor) -> Tensor:
         return F.smooth_l1_loss(input, target, reduction='none', beta=self.beta).squeeze() #.mean(-1)
     
 class Categorial51Loss(_Loss):
