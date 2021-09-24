@@ -170,7 +170,7 @@ class QRDQN:
                 action = self.target_model(nxtobses).mean(2).max(1)[1].view(-1,1,1)
             next_vals = dones*self.target_model(nxtobses).gather(1,action)
             targets = (next_vals * self.gamma) + rewards
-            
+        print(targets.shape)
         logit_valid_tile = targets.view(-1,self.n_support,1)
         theta_loss_tile = vals.view(-1,1,self.n_support)
         
