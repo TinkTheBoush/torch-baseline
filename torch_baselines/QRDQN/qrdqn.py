@@ -162,14 +162,12 @@ class QRDQN:
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~torch.from_numpy(data[4]).to(self.device)).float().view(-1,1,1)
         self.model.train()
-        mm = self.model(obses)
         vals = self.model(obses).gather(1,actions)
         with torch.no_grad():
             if self.double_q:
                 action = self.model(nxtobses).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             else:
                 action = self.target_model(nxtobses).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
-            tt = self.target_model(nxtobses)
             next_vals = dones*self.target_model(nxtobses).gather(1,action)
             targets = (next_vals * self.gamma) + rewards
         
