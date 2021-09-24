@@ -71,3 +71,7 @@ class NoisyLinear(nn.Module):
         else:
             return F.linear(x, self.weight_mu,
                                self.bias_mu)
+    def extra_repr(self) -> str:
+        return 'in_features={}, out_features={}, std_init={}'.format(
+            self.in_features, self.out_features, self.sigma_0 is not None
+        )
