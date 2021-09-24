@@ -6,7 +6,7 @@ import jax.numpy as jnp
 from tqdm.auto import trange
 from collections import deque
 
-from torch_baselines.DQN.network import Model,Dualing_Model
+from torch_baselines.DQN.network import Model
 from torch_baselines.common.base_classes import TensorboardWriter
 from torch_baselines.common.losses import MSELosses, HuberLosses
 from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer

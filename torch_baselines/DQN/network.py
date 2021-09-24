@@ -36,7 +36,7 @@ class Model(nn.Module):
                         ]
                         ))
         
-        if self.dualing:
+        if not self.dualing:
             self.q_linear = nn.Sequential(
                 lin(flatten_size,node),
                 nn.ReLU(),
@@ -46,31 +46,31 @@ class Model(nn.Module):
             )
         else:
             self.advatage_linear = nn.Sequential(
-                nn.Linear(flatten_size,node),
+                lin(flatten_size,node),
                 nn.ReLU(),
-                nn.Linear(node,node),
+                lin(node,node),
                 nn.ReLU(),
-                nn.Linear(node, action_size[0])
+                lin(node, action_size[0])
             )
             
             self.value_linear = nn.Sequential(
-                nn.Linear(flatten_size,node),
+                lin(flatten_size,node),
                 nn.ReLU(),
-                nn.Linear(node,node),
+                lin(node,node),
                 nn.ReLU(),
-                nn.Linear(node, 1)
+                lin(node, 1)
             )
 
     def forward(self, xs):
         
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
         cated = torch.cat(flats,dim=-1)
-        if self.dualing:
+        if not self.dualing:
+            q = self.q_linear(cated)
+        else:
             a = self.advatage_linear(cated)
             v = self.value_linear(cated)
             q = v.view(-1,1) + (a - a.mean(-1,True))
-        else:
-            q = self.q_linear(cated)
         return q
     
     def get_action(self,xs):
