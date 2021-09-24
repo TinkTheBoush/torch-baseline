@@ -1,13 +1,18 @@
 import numpy as np
 import jax.numpy as jnp
 from torch_baselines.common.utils import get_flatten_size
+from torch_baselines.common.layer import NoisyLinear
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=64,Conv_option=False):
+    def __init__(self,state_size,action_size,node=64,Conv_option=False,noisy=False):
         super(Model, self).__init__()
+        if noisy:
+            lin = NoisyLinear
+        else:
+            lin = nn.Linear
         self.preprocess = nn.ModuleList([
             nn.Sequential(
                 nn.Conv2d(st[1],32,kernel_size=7,stride=3,padding=3,padding_mode='replicate'),
@@ -30,11 +35,11 @@ class Model(nn.Module):
                         ))
         
         self.q_linear = nn.Sequential(
-            nn.Linear(flatten_size,node),
+            lin(flatten_size,node),
             nn.ReLU(),
-            nn.Linear(node,node),
+            lin(node,node),
             nn.ReLU(),
-            nn.Linear(node, action_size[0])
+            lin(node, action_size[0])
         )
 
     def forward(self, xs):
@@ -46,6 +51,11 @@ class Model(nn.Module):
     def get_action(self,xs):
         with torch.no_grad():
             return self(xs).max(-1)[1].view(-1,1).detach().cpu().clone()
+        
+    def samepl_noise(self):
+        for idx,m in enumerate(self.modules()):
+            if isinstance(m,NoisyLinear):
+                print(m)
         
 class Dualing_Model(nn.Module):
     def __init__(self,state_size,action_size,node=64,Conv_option=False):

@@ -45,6 +45,29 @@ class NoisyLinear(nn.Module):
         eps_in  = self.func_f(self.in_features)
         eps_out = self.func_f(self.out_features)
         # Take the outter product 
+        """
+            >>> v1 = torch.arange(1., 5.) [1, 2, 3, 4]
+            >>> v2 = torch.arange(1., 4.) [1, 2, 3]
+            >>> torch.ger(v1, v2)
+            tensor([[  1.,   2.,   3.],
+                    [  2.,   4.,   6.],
+                    [  3.,   6.,   9.],
+                    [  4.,   8.,  12.]])
+        """
         eps_ij = eps_out.ger(eps_in)
         self.weight_epsilon.copy_(eps_ij)
         self.bias_epsilon.copy_(eps_out)
+
+    def func_f(self, n): # size
+        # sign(x) * sqrt(|x|) as in paper
+        x = torch.rand(n)
+        return x.sign().mul_(x.abs().sqrt_())
+
+    def forward(self, x):
+        if self.training:
+            return F.linear(x, self.weight_mu + self.weight_sigma*self.weight_epsilon, 
+                               self.bias_mu   + self.bias_sigma  *self.bias_epsilon)
+
+        else:
+            return F.linear(x, self.weight_mu,
+                               self.bias_mu)
