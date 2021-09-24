@@ -5,8 +5,6 @@ import numpy as np
 from tqdm.auto import trange
 from collections import deque
 
-from torch.utils.tensorboard import SummaryWriter
-
 from torch_baselines.DQN.network import Model,Dualing_Model
 from torch_baselines.common.base_classes import TensorboardWriter
 from torch_baselines.common.losses import WeightedMSELoss, WeightedHuber

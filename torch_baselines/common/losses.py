@@ -15,10 +15,10 @@ class WeightedMSELoss(_Loss):
     def forward(self, input: Tensor, target: Tensor, weight : Tensor) -> Tensor:
         return (weight * F.mse_loss(input, target, reduction='none').squeeze()).mean(-1)
 
-class WeightedHuber(_Loss):
+class WeightedHuberLoss(_Loss):
     __constants__ = ['reduction']
     def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', beta: float = 1.0) -> None:
-        super(WeightedHuber, self).__init__(size_average, reduce, reduction)
+        super(WeightedHuberLoss, self).__init__(size_average, reduce, reduction)
         self.beta = beta
 
     def forward(self, input: Tensor, target: Tensor, weight : Tensor) -> Tensor:
@@ -43,10 +43,22 @@ class Categorial51Loss(_Loss):
             target_distribution = next_distribution
         return F.binary_cross_entropy_with_logits(input_distribution,target_distribution)
 
-def categorial_loss(input_distribution,next_distribution,categorial_bar,next_categorial_bar):
-    bar_start = categorial_bar[:-1]
-    bar_end = categorial_bar[1:]
-    target_distribution = next_distribution
-    x = target_distribution - input_distribution
-    loss = -(x*torch.log(x)).mean(1).mean(0)
-    return loss
+class QRHuberLoss(_Loss):
+    __constants__ = ['reduction']
+    def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', beta: float = 1.0, support_size = 64) -> None:
+        super(QRHuberLoss, self).__init__(size_average, reduce, reduction)
+        self.beta = beta
+        self.support_size = support_size
+
+    def forward(self, theta_loss_tile: Tensor, logit_valid_tile: Tensor, quantile: Tensor) -> Tensor:
+        '''
+        logit_valid_tile = tf.tile(tf.expand_dims(q_backup, axis=1), [1, self.n_support, 1])
+        theta_loss_tile = tf.tile(tf.expand_dims(qf1, axis=2), [1, 1, self.n_support])
+        '''
+        quantile = quantile.view(1,self.support_size,1)
+        huber = F.smooth_l1_loss(theta_loss_tile, logit_valid_tile, reduction='none', beta=self.beta)
+        with torch.no_grad():
+            bellman_errors = logit_valid_tile - theta_loss_tile
+            mul = torch.abs(quantile - (bellman_errors < 0).float())
+        
+        return (mul*huber).sum(1).mean(1).mean(-1)                              
