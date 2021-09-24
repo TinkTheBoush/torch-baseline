@@ -157,7 +157,6 @@ class QRDQN:
         nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~torch.from_numpy(data[4]).to(self.device)).float().view(-1,1,1)
-        self.model.train()
         vals = self.model(obses).gather(1,actions)
         with torch.no_grad():
             if self.double_q:
@@ -194,7 +193,6 @@ class QRDQN:
     
     def actions(self,obs,epsilon):
         if epsilon <= np.random.uniform(0,1):
-            self.model.eval()
             obs = [torch.from_numpy(o).to(self.device).float() for o in obs]
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             actions = self.model.get_action(obs).numpy()
