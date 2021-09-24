@@ -163,7 +163,7 @@ class QRDQN:
         dones = (~torch.from_numpy(data[4]).to(self.device)).float().view(-1,1,1)
         self.model.train()
         mm = self.model(obses)
-        print(mm)
+        print(mm.shape)
         vals = self.model(obses).gather(1,actions)
         print(vals.shape)
         with torch.no_grad():
@@ -172,7 +172,7 @@ class QRDQN:
             else:
                 action = self.target_model(nxtobses).mean(2).max(1)[1].view(-1,1,1)
             tt = self.target_model(nxtobses)
-            print(tt)
+            print(tt.shape)
             next_vals = dones*self.target_model(nxtobses).gather(1,action)
             print(next_vals.shape)
             targets = (next_vals * self.gamma) + rewards
