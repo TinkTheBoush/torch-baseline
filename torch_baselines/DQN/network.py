@@ -32,8 +32,6 @@ class Model(nn.Module):
         self.q_linear = nn.Sequential(
             nn.Linear(flatten_size,node),
             nn.ReLU(),
-            nn.Linear(node,node),
-            nn.ReLU(),
             nn.Linear(node, action_size[0])
         )
 
@@ -74,15 +72,11 @@ class Dualing_Model(nn.Module):
         self.advatage_linear = nn.Sequential(
             nn.Linear(flatten_size,node),
             nn.ReLU(),
-            nn.Linear(node,node),
-            nn.ReLU(),
             nn.Linear(node, action_size[0])
         )
         
         self.value_linear = nn.Sequential(
             nn.Linear(flatten_size,node),
-            nn.ReLU(),
-            nn.Linear(node,node),
             nn.ReLU(),
             nn.Linear(node, 1)
         )
