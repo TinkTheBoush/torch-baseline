@@ -289,8 +289,8 @@ class DQN:
             actions = self.actions([state],update_eps)
             next_state, reward, done, info = self.env.step(actions[0][0])
             done_real = done
-            if self.env.steps_beyond_done is not None:
-                done_real = False
+            #if self.env.steps_beyond_done is not None:
+            #    done_real = False
             self.replay_buffer.add([state], actions[0], reward, [next_state], done_real)
             self.scores[0] += reward
             state = next_state
