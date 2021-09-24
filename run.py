@@ -39,11 +39,13 @@ if __name__ == "__main__":
         pass
     if args.algo == "DQN":
         agent = DQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
-                    prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing, 
+                    prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
+                    param_noise = args.noisynet,
                     tensorboard_log=args.logdir+env_name)
     elif args.algo == "QRDQN":
         agent = QRDQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
-                    prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing, 
+                    prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
+                    param_noise = args.noisynet,
                     tensorboard_log=args.logdir+env_name)
 
     agent.learn(int(args.steps))
