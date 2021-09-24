@@ -138,7 +138,7 @@ class QRDQN:
         else:
             self.loss = torch.nn.SmoothL1Loss()
         '''
-        self.quantile = torch.range(0.5 / self.n_support,1, 1 / self.n_support)        
+        self.quantile = torch.range(0.5 / self.n_support,1, 1 / self.n_support).to(self.device)
         
         print("----------------------model----------------------")
         print(self.model)
