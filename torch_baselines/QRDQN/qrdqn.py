@@ -173,8 +173,8 @@ class QRDQN:
             next_vals = dones*self.target_model(nxtobses).gather(1,action)
             targets = (next_vals * self.gamma) + rewards
         
-        logit_valid_tile = targets.view(-1,self.n_support,1)
-        theta_loss_tile = vals.view(-1,1,self.n_support)
+        logit_valid_tile = targets.view(-1,self.n_support,1).repeat_interleave(self.n_support, dim=2)
+        theta_loss_tile = vals.view(-1,1,self.n_support).repeat_interleave(self.n_support, dim=1)
         
         if self.prioritized_replay:
             indexs = data[6]
