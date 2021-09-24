@@ -156,18 +156,18 @@ class QRDQN:
             data = self.replay_buffer.sample(self.batch_size)
         obses = [torch.from_numpy(o).to(self.device).float() for o in data[0]]
         obses = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obses]
-        actions = torch.from_numpy(data[1]).to(self.device).view(-1,1)
-        rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1)
+        actions = torch.from_numpy(data[1]).to(self.device).view(-1,1,1)
+        rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1,1)
         nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
-        dones = (~torch.from_numpy(data[4]).to(self.device)).float().view(-1,1)
+        dones = (~torch.from_numpy(data[4]).to(self.device)).float().view(-1,1,1)
         self.model.train()
         vals = self.model(obses).gather(1,actions)
         with torch.no_grad():
             if self.double_q:
-                action = self.model(nxtobses).mean(2).max(1)[1].view(-1,1)
+                action = self.model(nxtobses).mean(2).max(1)[1].view(-1,1,1)
             else:
-                action = self.target_model(nxtobses).mean(2).max(1)[1].view(-1,1)
+                action = self.target_model(nxtobses).mean(2).max(1)[1].view(-1,1,1)
             next_vals = dones*self.target_model(nxtobses).gather(1,action)
             targets = (next_vals * self.gamma) + rewards
             
