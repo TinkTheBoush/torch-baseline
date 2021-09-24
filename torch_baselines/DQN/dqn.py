@@ -91,7 +91,7 @@ class DQN:
             self.worker_size = len(dec.agent_id)
             self.env_type = "unity"
             
-        elif isinstance(self.env,gym.Env):
+        elif isinstance(self.env,gym.Env) or isinstance(self.env,gym.Wrapper):
             print("openai gym environmet")
             action_space = self.env.action_space
             observation_space = self.env.observation_space
@@ -289,8 +289,8 @@ class DQN:
             actions = self.actions([state],update_eps)
             next_state, reward, done, info = self.env.step(actions[0][0])
             done_real = done
-            #if self.env.steps_beyond_done is not None:
-            #    done_real = False
+            if info["TimeLimit.truncated"] == True:
+                done_real = False
             self.replay_buffer.add([state], actions[0], reward, [next_state], done_real)
             self.scores[0] += reward
             state = next_state
