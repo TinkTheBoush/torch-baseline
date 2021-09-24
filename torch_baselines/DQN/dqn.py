@@ -126,12 +126,13 @@ class DQN:
         self.target_model.to(self.device)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
-
+        '''
         if self.prioritized_replay:
             self.loss = WeightedMSELoss()
         else:
             self.loss = torch.nn.MSELoss()
-
+        '''
+        self.loss = torch.nn.MSELoss()
         '''
         if self.prioritized_replay:
             self.loss = WeightedHuber()
@@ -174,7 +175,8 @@ class DQN:
             td_errors = (targets - vals).squeeze().detach().cpu().clone().numpy()
             new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
-            loss = self.loss(vals,targets,weights)
+            loss = self.loss(vals,targets)
+            #loss = self.loss(vals,targets,weights)
         else:
             loss = self.loss(vals,targets)
         
