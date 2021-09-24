@@ -96,8 +96,8 @@ class Dualing_Model(nn.Module):
     def forward(self, xs):
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
         cated = torch.cat(flats,dim=-1)
-        a = self.advatage_linear(cated).view(-1,self.action_size,self.quantile_n)
-        v = self.value_linear(cated).view(-1,self.quantile_n)
+        a = self.advatage_linear(cated).view(-1,self.action_size,self.n_support)
+        v = self.value_linear(cated).view(-1,self.n_support)
         q = v + (a - a.mean(1,True))
         return q
     
