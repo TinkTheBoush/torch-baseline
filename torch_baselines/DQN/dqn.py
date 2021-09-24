@@ -191,6 +191,8 @@ class DQN:
         
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):
+        if self.param_noise:
+            tb_log_name = "Noisy" + tb_log_name
         if self.dualing_model:
             tb_log_name = "Dualing_" + tb_log_name
         if self.double_q:
