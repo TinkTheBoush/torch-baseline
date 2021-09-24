@@ -176,12 +176,12 @@ class QRDQN:
         
         if self.prioritized_replay:
             indexs = data[6]
-            td_errors = torch.abs(logit_valid_tile - theta_loss_tile).sum(1).mean(1)
-            new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
+            losses = self.loss(theta_loss_tile,logit_valid_tile,self.quantile)
+            new_priorities = np.abs(losses.detach().cpu().clone().numpy()) + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
-            loss = self.loss(theta_loss_tile,logit_valid_tile,self.quantile)
+            loss = losses.mean(-1)
         else:
-            loss = self.loss(theta_loss_tile,logit_valid_tile,self.quantile)
+            loss = self.loss(theta_loss_tile,logit_valid_tile,self.quantile).mean(-1)
         
         self.optimizer.zero_grad()
         loss.backward()

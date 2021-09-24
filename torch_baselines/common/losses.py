@@ -51,14 +51,9 @@ class QRHuberLoss(_Loss):
         self.support_size = support_size
 
     def forward(self, theta_loss_tile: Tensor, logit_valid_tile: Tensor, quantile: Tensor) -> Tensor:
-        '''
-        logit_valid_tile = tf.tile(tf.expand_dims(q_backup, axis=1), [1, self.n_support, 1])
-        theta_loss_tile = tf.tile(tf.expand_dims(qf1, axis=2), [1, 1, self.n_support])
-        '''
         quantile = quantile.view(1,1,self.support_size)
         huber = F.smooth_l1_loss(theta_loss_tile, logit_valid_tile, reduction='none', beta=self.beta)
         with torch.no_grad():
             bellman_errors = logit_valid_tile - theta_loss_tile
             mul = torch.abs(quantile - (bellman_errors < 0).float())
-        
-        return (mul*huber).sum(1).mean(1).mean(-1)                              
+        return (mul*huber).sum(1).mean(1) #.mean(-1)
