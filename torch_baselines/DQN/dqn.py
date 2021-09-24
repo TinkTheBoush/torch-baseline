@@ -144,7 +144,8 @@ class DQN:
         nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~torch.from_numpy(data[4]).to(self.device)).float().view(-1,1)
-        self.model.train()
+        self.model.sample_noise()
+        self.target_model.sample_noise()
         vals = self.model(obses).gather(1,actions)
         with torch.no_grad():
             if self.double_q:

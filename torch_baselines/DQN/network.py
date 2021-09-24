@@ -80,7 +80,6 @@ class Model(nn.Module):
     def samepl_noise(self):
         if not self.noisy:
             return
-        print("noisy")
         for idx,m in enumerate(self.modules()):
             if isinstance(m,NoisyLinear):
                 m.sample_noise()
