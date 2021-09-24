@@ -244,4 +244,4 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         self._it_sum[idxes] = priorities ** self._alpha
         self._it_min[idxes] = priorities ** self._alpha
 
-        self._max_priority = max(self._max_priority, np.max(priorities))
+        self._max_priority = max(self._max_priority, np.max(priorities))*0.95
