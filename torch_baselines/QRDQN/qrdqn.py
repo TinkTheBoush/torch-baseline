@@ -20,6 +20,8 @@ class QRDQN(Q_Network_Family):
                  param_noise, verbose, tensorboard_log, _init_setup_model, policy_kwargs, 
                  full_tensorboard_log, seed)
         
+        self.n_support = n_support
+        
         if _init_setup_model:
             self.setup_model()
             
