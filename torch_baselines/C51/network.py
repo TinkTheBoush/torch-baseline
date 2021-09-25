@@ -1,18 +1,23 @@
 import numpy as np
 import jax.numpy as jnp
 from torch_baselines.common.utils import get_flatten_size
+from torch_baselines.common.layer import NoisyLinear
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=256,Conv_option=False,Categorial_n=51,min=-200,max=200):
+    def __init__(self,state_size,action_size,node=64,noisy=False,dualing=False,ModelOptions=None,categorial_bar=51):
         super(Model, self).__init__()
-        self.Categorial_n = Categorial_n
-        self.action_size = action_size
+        self.dualing = dualing
+        self.noisy = noisy
+        if noisy:
+            lin = NoisyLinear
+        else:
+            lin = nn.Linear
         self.preprocess = nn.ModuleList([
             nn.Sequential(
-                nn.Conv2d(3,32,kernel_size=7,stride=3,padding=3,padding_mode='replicate'),
+                nn.Conv2d(st[1],32,kernel_size=7,stride=3,padding=3,padding_mode='replicate'),
                 nn.ReLU(),
                 nn.Conv2d(32,64,kernel_size=5,stride=2,padding=2,padding_mode='replicate'),
                 nn.ReLU(),
@@ -31,29 +36,50 @@ class Model(nn.Module):
                         ]
                         ))
         
-        self.linear = nn.Sequential(
-            nn.Linear(flatten_size,node),
-            nn.ReLU(),
-            nn.Linear(node,node),
-            nn.ReLU(),
-            nn.Linear(node, action_size[0]*Categorial_n)
-        )
-        self.softmax = nn.Softmax(2)
-        self.categorial_bar = torch.linspace(min,max,Categorial_n+1)
-        self.mean_bar = ((self.categorial_bar[:-1] + self.categorial_bar[1:])/2.0).view(1,1,self.Categorial_n)
-        print(self.categorial_bar)
-        print(self.categorial_bar.shape)
-        print(self.mean_bar)
-        print(self.mean_bar.shape)
+        if not self.dualing:
+            self.q_linear = nn.Sequential(
+                lin(flatten_size,node),
+                nn.ReLU(),
+                lin(node,node),
+                nn.ReLU(),
+                lin(node, action_size[0])
+            )
+        else:
+            self.advatage_linear = nn.Sequential(
+                lin(flatten_size,node),
+                nn.ReLU(),
+                lin(node,node),
+                nn.ReLU(),
+                lin(node, action_size[0])
+            )
+            
+            self.value_linear = nn.Sequential(
+                lin(flatten_size,node),
+                nn.ReLU(),
+                lin(node,node),
+                nn.ReLU(),
+                lin(node, 1)
+            )
 
     def forward(self, xs):
-        flat = [pre(x) for pre,x in zip(self.preprocess,xs)]
-        cated = torch.cat(flat,dim=-1)
-        x = self.linear(cated).view(-1,self.action_size,self.Categorial_n)
-        x = self.softmax(x)
-        return x
+        
+        flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
+        cated = torch.cat(flats,dim=-1)
+        if not self.dualing:
+            q = self.q_linear(cated)
+        else:
+            a = self.advatage_linear(cated)
+            v = self.value_linear(cated)
+            q = v.view(-1,1) + (a - a.mean(-1,True))
+        return q
     
     def get_action(self,xs):
         with torch.no_grad():
-            sm = self(xs)
-            return (sm*self.mean_bar).mean(2).max(1)[1].view(-1,1).detach()
+            return self(xs).max(-1)[1].view(-1,1).detach().cpu().clone()
+        
+    def sample_noise(self):
+        if not self.noisy:
+            return
+        for idx,m in enumerate(self.modules()):
+            if isinstance(m,NoisyLinear):
+                m.sample_noise()
