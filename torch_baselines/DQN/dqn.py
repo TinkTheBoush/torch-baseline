@@ -9,7 +9,7 @@ from collections import deque
 from torch_baselines.DQN.network import Model
 from torch_baselines.common.base_classes import TensorboardWriter
 from torch_baselines.common.losses import MSELosses, HuberLosses
-from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer, EpisodicReplayBuffer
+from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer, EpisodicReplayBuffer, PrioritizedEpisodicReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
@@ -108,7 +108,11 @@ class DQN:
         
     def get_memory_setup(self):
         if self.prioritized_replay:
-            self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,self.prioritized_replay_alpha)
+            if self.n_step_method:
+                self.replay_buffer = PrioritizedEpisodicReplayBuffer(self.buffer_size,self.worker_size,self.n_step,self.prioritized_replay_alpha)
+            else:
+                self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,self.prioritized_replay_alpha)
+            
         elif self.n_step_method:
             self.replay_buffer = EpisodicReplayBuffer(self.buffer_size,self.worker_size,self.n_step)
         else:
