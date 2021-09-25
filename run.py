@@ -43,11 +43,11 @@ if __name__ == "__main__":
         env_name = env_name.split('/')[-1].split('.')[0]
         
     else:
-        isminatar, env_name = is_minatar(env_name)
+        isminatar, env_name_ = is_minatar(env_name)
         if isminatar:
-            env = minatar.Environment(env_name)
+            env = minatar.Environment(env_name_)
         else:
-            env = gym.make(env_name)
+            env = gym.make(env_name_)
         
     if args.algo == "DQN":
         agent = DQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
