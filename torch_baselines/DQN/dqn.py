@@ -161,7 +161,8 @@ class DQN:
             indexs = data[6]
             new_priorities = np.abs((targets - vals).squeeze().detach().cpu().clone().numpy()) + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
-            loss = (weights*self.loss(vals,targets)).mean(-1)
+            loss = self.loss(vals,targets).mean(-1)
+            #loss = (weights*self.loss(vals,targets)).mean(-1)
         else:
             loss = self.loss(vals,targets).mean(-1)
         
@@ -200,11 +201,11 @@ class DQN:
         if self.prioritized_replay:
             tb_log_name = tb_log_name + "+PER"
         
-        with TensorboardWriter(self.tensorboard_log, tb_log_name) as self.summary:
-            self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
+        self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
                                                 initial_p=self.exploration_initial_eps,
                                                 final_p=self.exploration_final_eps)
-            pbar = trange(total_timesteps, miniters=log_interval)
+        pbar = trange(total_timesteps, miniters=log_interval)
+        with TensorboardWriter(self.tensorboard_log, tb_log_name) as self.summary:
             if self.env_type == "unity":
                 self.learn_unity(pbar, callback, log_interval)
             if self.env_type == "gym":
