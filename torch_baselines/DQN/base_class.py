@@ -269,9 +269,9 @@ class Q_Network_Family(object):
             reward, terminal = self.env.act(actions[0][0])
             next_state = np.expand_dims(self.env.state(), axis=0)
             if self.n_step_method:
-                self.replay_buffer.add([state], actions[0], reward, [next_state], terminal, 0, terminal)
+                self.replay_buffer.add(state, actions[0], reward, next_state, terminal, 0, terminal)
             else:
-                self.replay_buffer.add([state], actions[0], reward, [next_state], terminal)
+                self.replay_buffer.add(state, actions[0], reward, next_state, terminal)
             self.scores[0] += reward
             state = next_state
             if terminal:
