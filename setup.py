@@ -7,11 +7,11 @@ setup(
         'requests',
         'mlagents_envs==0.27.0',
         'gym',
-        #'gym[all]',
         'box2d',
         'box2d-py',
         'torch',
         'numpy',
         'importlib; python_version >= "3.5"',
+        'git+https://github.com/user/mypythonmodule.git'
     ],
 )
