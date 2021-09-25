@@ -7,6 +7,14 @@ from torch_baselines.QRDQN.qrdqn import QRDQN
 from mlagents_envs.environment import UnityEnvironment,ActionTuple
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
+import minatar
+
+def is_minatar(str):
+    spl = str.split("_")
+    if (spl[0] == "minatar"):
+        return True, spl[1]
+    else:
+        return False, str
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -35,8 +43,12 @@ if __name__ == "__main__":
         env_name = env_name.split('/')[-1].split('.')[0]
         
     else:
-        env = gym.make(env_name)
-        pass
+        isminatar, env_name = is_minatar(env_name)
+        if isminatar:
+            env = minatar.Environment(env_name)
+        else:
+            env = gym.make(env_name)
+        
     if args.algo == "DQN":
         agent = DQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
@@ -45,7 +57,7 @@ if __name__ == "__main__":
     elif args.algo == "QRDQN":
         agent = QRDQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
-                    param_noise = args.noisynet,
+                    param_noise = args.noisynet, n_step = args.n_step,
                     tensorboard_log=args.logdir+env_name)
 
     agent.learn(int(args.steps))
