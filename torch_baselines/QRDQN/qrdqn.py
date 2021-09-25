@@ -174,7 +174,7 @@ class QRDQN:
         if self.prioritized_replay:
             indexs = data[6]
             losses = self.loss(theta_loss_tile,logit_valid_tile,self.quantile)
-            new_priorities = np.sqrt(losses.detach().cpu().clone().numpy()) + self.prioritized_replay_eps
+            new_priorities = losses.detach().cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
             loss = losses.mean(-1)
         else:
