@@ -295,7 +295,7 @@ class EpisodicReplayBuffer(ReplayBuffer):
         return self._encode_sample(idxes)
     
 class PrioritizedEpisodicReplayBuffer(EpisodicReplayBuffer):
-    def __init__(self, size, worker_size, n_step, alpha):
+    def __init__(self, size, worker_size, n_step, gamma, alpha):
         """
         Create Prioritized Replay buffer.
 
