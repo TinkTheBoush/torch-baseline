@@ -11,6 +11,7 @@ from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
+import minatar
 
 class Q_Network_Family(object):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
@@ -83,6 +84,15 @@ class Q_Network_Family(object):
             self.action_size = [action_space.n]
             self.worker_size = 1
             self.env_type = "gym"
+            
+        elif isinstance(self.env,minatar.Environment):
+            print("minatar environmet")
+            action_space = len(self.env.action_map)
+            observation_space = (self.env.channels, 10, 10)
+            self.observation_space = [list(observation_space.shape)]
+            self.action_size = [action_space]
+            self.worker_size = 1
+            self.env_type = "minatar"
         
         print("observation size : ", self.observation_space)
         print("action size : ", self.action_size)
@@ -139,6 +149,8 @@ class Q_Network_Family(object):
             if self.env_type == "unity":
                 self.learn_unity(pbar, callback, log_interval)
             if self.env_type == "gym":
+                self.learn_gym(pbar, callback, log_interval)
+            if self.env_type == "minatar":
                 self.learn_gym(pbar, callback, log_interval)
 
     
@@ -220,6 +232,43 @@ class Q_Network_Family(object):
                 self.replay_buffer.add([state], actions[0], reward, [next_state], done, 0, terminal)
             else:
                 self.replay_buffer.add([state], actions[0], reward, [next_state], done)
+            self.scores[0] += reward
+            state = next_state
+            if terminal:
+                self.scoreque.append(self.scores[0])
+                if self.summary:
+                    self.summary.add_scalar("episode_reward", self.scores[0], steps)
+                self.scores[0] = 0
+                state = self.env.reset()
+                
+            can_sample = self.replay_buffer.can_sample(self.batch_size)
+            if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
+                loss = self._train_step(steps)
+                self.lossque.append(loss)
+            
+            if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
+                pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
+                                    np.mean(self.scoreque),update_eps,np.mean(self.lossque)
+                                    )
+                                    )
+                
+    def learn_minatar(self, pbar, callback=None, log_interval=100):
+        self.env.reset()
+        self.scores = np.zeros([self.worker_size])
+        self.scoreque = deque(maxlen=10)
+        self.lossque = deque(maxlen=10)
+        
+        state = self.env.state()
+        
+        for steps in pbar:
+            update_eps = self.exploration.value(steps)
+            actions = self.actions([state],update_eps)
+            reward, terminal = self.env.act(actions[0][0])
+            next_state = self.env.state()
+            if self.n_step_method:
+                self.replay_buffer.add([state], actions[0], reward, [next_state], terminal, 0, terminal)
+            else:
+                self.replay_buffer.add([state], actions[0], reward, [next_state], terminal)
             self.scores[0] += reward
             state = next_state
             if terminal:
