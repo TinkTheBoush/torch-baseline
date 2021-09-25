@@ -12,6 +12,6 @@ setup(
         'torch',
         'numpy',
         'importlib; python_version >= "3.5"',
-        'git+https://github.com/user/mypythonmodule.git'
+        'git+https://github.com/kenjyoung/MinAtar.git'
     ],
 )
