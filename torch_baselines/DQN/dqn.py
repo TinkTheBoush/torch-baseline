@@ -110,7 +110,7 @@ class DQN:
         if self.prioritized_replay:
             self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,self.prioritized_replay_alpha)
         elif self.n_step_method:
-            self.replay_buffer = EpisodicReplayBuffer(self.buffer_size,self.worker_size)
+            self.replay_buffer = EpisodicReplayBuffer(self.buffer_size,self.worker_size,self.n_step)
         else:
             self.replay_buffer = ReplayBuffer(self.buffer_size)   
             
