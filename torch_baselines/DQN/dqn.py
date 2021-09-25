@@ -9,7 +9,7 @@ from collections import deque
 from torch_baselines.DQN.network import Model
 from torch_baselines.common.base_classes import TensorboardWriter
 from torch_baselines.common.losses import MSELosses, HuberLosses
-from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
+from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer, EpisodicReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
@@ -17,7 +17,7 @@ from mlagents_envs.environment import UnityEnvironment, ActionTuple
 class DQN:
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
                  exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32, double_q=True,
-                 dualing_model = False, learning_starts=1000, target_network_update_freq=2000, prioritized_replay=False,
+                 dualing_model = False, n_step = 1, learning_starts=1000, target_network_update_freq=2000, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
                  param_noise=False, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
@@ -46,6 +46,8 @@ class DQN:
         self.full_tensorboard_log = full_tensorboard_log
         self.double_q = double_q
         self.dualing_model = dualing_model
+        self.n_step_method = (n_step > 1)
+        self.n_step = n_step
 
         self.graph = None
         self.sess = None
@@ -107,6 +109,8 @@ class DQN:
     def get_memory_setup(self):
         if self.prioritized_replay:
             self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,self.prioritized_replay_alpha)
+        elif self.n_step_method:
+            self.replay_buffer = EpisodicReplayBuffer(self.buffer_size,self.worker_size)
         else:
             self.replay_buffer = ReplayBuffer(self.buffer_size)   
             
@@ -235,8 +239,12 @@ class DQN:
                 nxtobs = term[idx].obs
                 reward = term[idx].reward
                 done = not term[idx].interrupted
+                terminal = True
                 act = actions[idx]
-                self.replay_buffer.add(obs, act, reward, nxtobs, done)
+                if self.n_step_method:
+                    self.replay_buffer.add(obs, act, reward, nxtobs, done, idx, terminal)
+                else:
+                    self.replay_buffer.add(obs, act, reward, nxtobs, done)
                 self.scores[idx] += reward
                 self.scoreque.append(self.scores[idx])
                 if self.summary:
@@ -249,8 +257,12 @@ class DQN:
                 nxtobs = dec[idx].obs
                 reward = dec[idx].reward
                 done = False
+                terminal = False
                 act = actions[idx]
-                self.replay_buffer.add(obs, act, reward, nxtobs, done)
+                if self.n_step_method:
+                    self.replay_buffer.add(obs, act, reward, nxtobs, done, idx, terminal)
+                else:
+                    self.replay_buffer.add(obs, act, reward, nxtobs, done)
                 self.scores[idx] += reward
 
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
@@ -274,14 +286,17 @@ class DQN:
         for steps in pbar:
             update_eps = self.exploration.value(steps)
             actions = self.actions([state],update_eps)
-            next_state, reward, done, info = self.env.step(actions[0][0])
-            done_real = done
+            next_state, reward, terminal, info = self.env.step(actions[0][0])
+            done = terminal
             if "TimeLimit.truncated" in info:
-                done_real = not info["TimeLimit.truncated"]
-            self.replay_buffer.add([state], actions[0], reward, [next_state], done_real)
+                done = not info["TimeLimit.truncated"]
+            if self.n_step_method:
+                self.replay_buffer.add([state], actions[0], reward, [next_state], done, 0, terminal)
+            else:
+                self.replay_buffer.add([state], actions[0], reward, [next_state], done)
             self.scores[0] += reward
             state = next_state
-            if done:
+            if terminal:
                 self.scoreque.append(self.scores[0])
                 if self.summary:
                     self.summary.add_scalar("episode_reward", self.scores[0], steps)

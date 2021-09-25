@@ -67,26 +67,6 @@ class ReplayBuffer(object):
             self._storage[self._next_idx] = data
         self._next_idx = (self._next_idx + 1) % self._maxsize
 
-    def extend(self, obs_t, action, reward, nxtobs_t, done):
-        """
-        add a new batch of transitions to the buffer
-
-        :param obs_t: (Union[Tuple[Union[np.ndarray, int]], np.ndarray]) the last batch of observations
-        :param action: (Union[Tuple[Union[np.ndarray, int]]], np.ndarray]) the batch of actions
-        :param reward: (Union[Tuple[float], np.ndarray]) the batch of the rewards of the transition
-        :param obs_tp1: (Union[Tuple[Union[np.ndarray, int]], np.ndarray]) the current batch of observations
-        :param done: (Union[Tuple[bool], np.ndarray]) terminal status of the batch
-
-        Note: uses the same names as .add to keep compatibility with named argument passing
-                but expects iterables and arrays with more than 1 dimensions
-        """
-        for data in zip(obs_t, action, reward, nxtobs_t, done):
-            if self._next_idx >= len(self._storage):
-                self._storage.append(data)
-            else:
-                self._storage[self._next_idx] = data
-            self._next_idx = (self._next_idx + 1) % self._maxsize
-
     def _encode_sample(self, idxes: Union[List[int], np.ndarray]):
         obses_t, actions, rewards, nxtobses_t, dones = [], [], [], [], []
         for i in idxes:
@@ -164,26 +144,6 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         self._it_sum[idx] = self._max_priority ** self._alpha
         self._it_min[idx] = self._max_priority ** self._alpha
 
-    def extend(self, obs_t, action, reward, obs_tp1, done):
-        """
-        add a new batch of transitions to the buffer
-
-        :param obs_t: (Union[Tuple[Union[np.ndarray, int]], np.ndarray]) the last batch of observations
-        :param action: (Union[Tuple[Union[np.ndarray, int]]], np.ndarray]) the batch of actions
-        :param reward: (Union[Tuple[float], np.ndarray]) the batch of the rewards of the transition
-        :param obs_tp1: (Union[Tuple[Union[np.ndarray, int]], np.ndarray]) the current batch of observations
-        :param done: (Union[Tuple[bool], np.ndarray]) terminal status of the batch
-
-        Note: uses the same names as .add to keep compatibility with named argument passing
-            but expects iterables and arrays with more than 1 dimensions
-        """
-        idx = self._next_idx
-        super().extend(obs_t, action, reward, obs_tp1, done)
-        while idx != self._next_idx:
-            self._it_sum[idx] = self._max_priority ** self._alpha
-            self._it_min[idx] = self._max_priority ** self._alpha
-            idx = (idx + 1) % self._maxsize
-
     def _sample_proportional(self, batch_size):
         mass = []
         total = self._it_sum.sum(0, len(self._storage) - 1)
@@ -245,3 +205,89 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         self._it_min[idxes] = priorities ** self._alpha
 
         self._max_priority = max(self._max_priority, np.max(priorities))*0.95
+        
+    
+class EpisodicReplayBuffer(ReplayBuffer):
+    def __init__(self, size, worker_size):
+        """
+        Create Episodic Replay buffer for n-step td
+
+        See Also ReplayBuffer.__init__
+
+        :param size: (int) Max number of transitions to store in the buffer. When the buffer overflows the old memories
+            are dropped.
+        :param alpha: (float) how much prioritization is used (0 - no prioritization, 1 - full prioritization)
+        """
+        super(EpisodicReplayBuffer, self).__init__(size)
+        self.episodes = {}
+        self.worker_ep = np.zeros(worker_size)
+        
+    def add(self, obs_t, action, reward, nxtobs_t, done, worker, terminal):
+        """
+        add a new transition to the buffer
+
+        :param obs_t: (Any) the last observation
+        :param action: ([float]) the action
+        :param reward: (float) the reward of the transition
+        :param obs_tp1: (Any) the current observation
+        :param done: (bool) is the episode done
+        """
+        episode_key = (worker,self.worker_ep[worker])
+        if episode_key not in self.episodes:
+            self.episodes[episode_key] = []
+        self.episodes[episode_key].append(self._next_idx)
+        data = (obs_t, action, reward, nxtobs_t, done, (episode_key,len(self.episodes[episode_key])), terminal)
+        if self._next_idx >= len(self._storage):
+            self._storage.append(data)
+        else:
+            if self._storage[self._next_idx][6]: #remove episode data when remove last episode from storage
+                del self.episodes[self._storage[self._next_idx][5][0]]
+            self._storage[self._next_idx] = data
+        self._next_idx = (self._next_idx + 1) % self._maxsize
+        if terminal:
+            self.worker_ep[worker] += 1
+
+    def _encode_sample(self, idxes: Union[List[int], np.ndarray], n_step: int):
+        obses_t, actions, rewards, nxtobses_t, dones = [], [], [], [], []
+        for i in idxes:
+            data = self._storage[i]
+            obs_t, action, reward, nxtobs_t, done, episode_key_and_idx, _ = data
+            episode_key, episode_index = episode_key_and_idx
+            nstep_idxs = self.episodes[episode_key][episode_index:(episode_index+n_step)]
+            for nidxes in nstep_idxs:
+                data = self._storage[nidxes]
+                _, _, r, nxtobs_t, done, _, _ = data
+                reward += r
+            obses_t.append(obs_t)
+            actions.append(action)
+            rewards.append(reward)
+            nxtobses_t.append(nxtobs_t)
+            dones.append(done)
+        obses_t = [np.array(o) for o in list(zip(*obses_t))]
+        actions = np.array(actions)
+        rewards = np.array(rewards)
+        nxtobses_t = [np.array(no) for no in list(zip(*nxtobses_t))]
+        dones = np.array(dones)
+        return (obses_t,
+                actions,
+                rewards,
+                nxtobses_t,
+                dones)
+
+    def sample(self, batch_size: int,n_step : int):
+        """
+        Sample a batch of experiences.
+
+        :param batch_size: (int) How many transitions to sample.
+        :param env: (Optional[VecNormalize]) associated gym VecEnv
+            to normalize the observations/rewards when sampling
+        :return:
+            - obs_batch: (np.ndarray) batch of observations
+            - act_batch: (numpy float) batch of actions executed given obs_batch
+            - rew_batch: (numpy float) rewards received as results of executing act_batch
+            - next_obs_batch: (np.ndarray) next set of observations seen after executing act_batch
+            - done_mask: (numpy bool) done_mask[i] = 1 if executing act_batch[i] resulted in the end of an episode
+                and 0 otherwise.
+        """
+        idxes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
+        return self._encode_sample(idxes, n_step)
