@@ -277,7 +277,8 @@ class Q_Network_Family(object):
                 if self.summary:
                     self.summary.add_scalar("episode_reward", self.scores[0], steps)
                 self.scores[0] = 0
-                state = self.env.reset()
+                self.env.reset()
+                state = self.env.state()
                 
             can_sample = self.replay_buffer.can_sample(self.batch_size)
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
