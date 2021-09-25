@@ -152,7 +152,7 @@ class Q_Network_Family(object):
             if self.env_type == "gym":
                 self.learn_gym(pbar, callback, log_interval)
             if self.env_type == "minatar":
-                self.learn_gym(pbar, callback, log_interval)
+                self.learn_minatar(pbar, callback, log_interval)
 
     
     def learn_unity(self, pbar, callback=None, log_interval=100):
