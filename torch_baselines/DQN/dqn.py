@@ -203,7 +203,7 @@ class DQN:
         if self.double_q:
             tb_log_name = "Double_" + tb_log_name
         if self.n_step_method:
-            tb_log_name = "{}_step".format(self.n_step) + tb_log_name
+            tb_log_name = "{}Step_".format(self.n_step) + tb_log_name
         if self.prioritized_replay:
             tb_log_name = tb_log_name + "+PER"
         
