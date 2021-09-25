@@ -106,3 +106,7 @@ class QRDQN(Q_Network_Family):
             self.summary.add_scalar("loss/qloss", loss, steps)
 
         return loss.detach().cpu().clone().numpy()
+    
+    def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="QRDQN",
+              reset_num_timesteps=True, replay_wrapper=None):
+        super().learn(total_timesteps, callback, log_interval, tb_log_name, reset_num_timesteps, replay_wrapper)
