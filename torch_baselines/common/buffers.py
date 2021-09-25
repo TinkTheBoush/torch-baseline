@@ -208,7 +208,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         
     
 class EpisodicReplayBuffer(ReplayBuffer):
-    def __init__(self, size, worker_size, n_step):
+    def __init__(self, size, worker_size, n_step, gamma):
         """
         Create Episodic Replay buffer for n-step td
 
@@ -222,6 +222,7 @@ class EpisodicReplayBuffer(ReplayBuffer):
         self.episodes = {}
         self.worker_ep = np.zeros(worker_size)
         self.n_step = n_step
+        self.gamma = gamma
         
     def add(self, obs_t, action, reward, nxtobs_t, done, worker, terminal):
         """
@@ -255,10 +256,10 @@ class EpisodicReplayBuffer(ReplayBuffer):
             obs_t, action, reward, nxtobs_t, done, episode_key_and_idx, _ = data
             episode_key, episode_index = episode_key_and_idx
             nstep_idxs = self.episodes[episode_key][episode_index:(episode_index+self.n_step)]
-            for nidxes in nstep_idxs:
+            for nn,nidxes in enumerate(nstep_idxs):
                 data = self._storage[nidxes]
                 _, _, r, nxtobs_t, done, _, _ = data
-                reward += r
+                reward += np.power(self.gamma,nn+1)*r
             obses_t.append(obs_t)
             actions.append(action)
             rewards.append(reward)
