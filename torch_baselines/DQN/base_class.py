@@ -264,8 +264,8 @@ class Q_Network_Family(object):
         
         for steps in pbar:
             update_eps = self.exploration.value(steps)
-            print(np.shape(state))
-            actions = self.actions([state],update_eps)
+            #print(np.shape(state))
+            actions = self.actions([[state]],update_eps)
             reward, terminal = self.env.act(actions[0][0])
             next_state = self.env.state()
             if self.n_step_method:
