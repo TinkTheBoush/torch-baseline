@@ -25,7 +25,7 @@ class HuberLosses(_Loss):
         return F.smooth_l1_loss(input, target, reduction='none', beta=self.beta).squeeze() #.mean(-1)
     
 '''
-class Categorial51Loss(_Loss):
+class CategorialLoss(_Loss):
     __constants__ = ['reduction']
     def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', categorial_bar = None) -> None:
         super(Categorial51Loss, self).__init__(size_average, reduce, reduction)
