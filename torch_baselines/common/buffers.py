@@ -208,7 +208,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         
     
 class EpisodicReplayBuffer(ReplayBuffer):
-    def __init__(self, size, worker_size):
+    def __init__(self, size, worker_size, n_step):
         """
         Create Episodic Replay buffer for n-step td
 
@@ -221,6 +221,7 @@ class EpisodicReplayBuffer(ReplayBuffer):
         super(EpisodicReplayBuffer, self).__init__(size)
         self.episodes = {}
         self.worker_ep = np.zeros(worker_size)
+        self.n_step = n_step
         
     def add(self, obs_t, action, reward, nxtobs_t, done, worker, terminal):
         """
@@ -247,13 +248,13 @@ class EpisodicReplayBuffer(ReplayBuffer):
         if terminal:
             self.worker_ep[worker] += 1
 
-    def _encode_sample(self, idxes: Union[List[int], np.ndarray], n_step: int):
+    def _encode_sample(self, idxes: Union[List[int], np.ndarray]):
         obses_t, actions, rewards, nxtobses_t, dones = [], [], [], [], []
         for i in idxes:
             data = self._storage[i]
             obs_t, action, reward, nxtobs_t, done, episode_key_and_idx, _ = data
             episode_key, episode_index = episode_key_and_idx
-            nstep_idxs = self.episodes[episode_key][episode_index:(episode_index+n_step)]
+            nstep_idxs = self.episodes[episode_key][episode_index:(episode_index+self.n_step)]
             for nidxes in nstep_idxs:
                 data = self._storage[nidxes]
                 _, _, r, nxtobs_t, done, _, _ = data
@@ -274,7 +275,7 @@ class EpisodicReplayBuffer(ReplayBuffer):
                 nxtobses_t,
                 dones)
 
-    def sample(self, batch_size: int,n_step : int):
+    def sample(self, batch_size: int):
         """
         Sample a batch of experiences.
 
@@ -290,4 +291,4 @@ class EpisodicReplayBuffer(ReplayBuffer):
                 and 0 otherwise.
         """
         idxes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
-        return self._encode_sample(idxes, n_step)
+        return self._encode_sample(idxes)
