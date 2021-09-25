@@ -24,6 +24,7 @@ class HuberLosses(_Loss):
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
         return F.smooth_l1_loss(input, target, reduction='none', beta=self.beta).squeeze() #.mean(-1)
     
+'''
 class Categorial51Loss(_Loss):
     __constants__ = ['reduction']
     def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', categorial_bar = None) -> None:
@@ -42,6 +43,7 @@ class Categorial51Loss(_Loss):
             C51_U[ (C51_L < (C51_atoms - 1)) * (C51_L == C51_U)] += 1
             target_distribution = next_distribution
         return F.binary_cross_entropy_with_logits(input_distribution,target_distribution)
+'''
 
 class QRHuberLosses(_Loss):
     __constants__ = ['reduction']
