@@ -260,14 +260,14 @@ class Q_Network_Family(object):
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
         
-        state = self.env.state()
+        state = np.expand_dims(self.env.state(), axis=0)
         
         for steps in pbar:
             update_eps = self.exploration.value(steps)
             #print(np.shape(state))
-            actions = self.actions([[state]],update_eps)
+            actions = self.actions([state],update_eps)
             reward, terminal = self.env.act(actions[0][0])
-            next_state = self.env.state()
+            next_state = np.expand_dims(self.env.state(), axis=0)
             if self.n_step_method:
                 self.replay_buffer.add([state], actions[0], reward, [next_state], terminal, 0, terminal)
             else:
@@ -280,7 +280,7 @@ class Q_Network_Family(object):
                     self.summary.add_scalar("episode_reward", self.scores[0], steps)
                 self.scores[0] = 0
                 self.env.reset()
-                state = self.env.state()
+                state = np.expand_dims(self.env.state(), axis=0)
                 
             can_sample = self.replay_buffer.can_sample(self.batch_size)
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
