@@ -256,10 +256,12 @@ class EpisodicReplayBuffer(ReplayBuffer):
             obs_t, action, reward, nxtobs_t, done, episode_key_and_idx, _ = data
             episode_key, episode_index = episode_key_and_idx
             nstep_idxs = self.episodes[episode_key][episode_index:(episode_index+self.n_step)]
+            gamma = self.gamma
             for nn,nidxes in enumerate(nstep_idxs):
                 data = self._storage[nidxes]
                 _, _, r, nxtobs_t, done, _, _ = data
-                reward += np.power(self.gamma,nn+1)*r
+                reward += gamma*r
+                gamma = gamma*self.gamma
             obses_t.append(obs_t)
             actions.append(action)
             rewards.append(reward)
