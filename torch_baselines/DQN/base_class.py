@@ -87,9 +87,10 @@ class Q_Network_Family(object):
             
         elif isinstance(self.env,minatar.Environment):
             print("minatar environmet")
-            action_space = len(self.env.action_map)
-            observation_space = (self.env.channels, 10, 10)
-            self.observation_space = [list(observation_space.shape)]
+            action_space = self.env.num_actions()
+            observation_space = self.env.state_shape()
+            observation_space = [observation_space[2],observation_space[0],observation_space[1]]
+            self.observation_space = [observation_space]
             self.action_size = [action_space]
             self.worker_size = 1
             self.env_type = "minatar"
