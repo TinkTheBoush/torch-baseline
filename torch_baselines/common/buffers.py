@@ -7,106 +7,6 @@ from torch_baselines.common.segment_tree import SumSegmentTree, MinSegmentTree
 
 
 class ReplayBuffer(object):
-    def __init__(self, size: int):
-        """
-        Implements a ring buffer (FIFO).
-
-        :param size: (int)  Max number of transitions to store in the buffer. When the buffer overflows the old
-            memories are dropped.
-        """
-        self._storage = []
-        self._maxsize = size
-        self._next_idx = 0
-
-    def __len__(self) -> int:
-        return len(self._storage)
-
-    @property
-    def storage(self):
-        """[(Union[np.ndarray, int], Union[np.ndarray, int], float, Union[np.ndarray, int], bool)]: content of the replay buffer"""
-        return self._storage
-
-    @property
-    def buffer_size(self) -> int:
-        """float: Max capacity of the buffer"""
-        return self._maxsize
-
-    def can_sample(self, n_samples: int) -> bool:
-        """
-        Check if n_samples samples can be sampled
-        from the buffer.
-
-        :param n_samples: (int)
-        :return: (bool)
-        """
-        return len(self) >= n_samples
-
-    def is_full(self) -> int:
-        """
-        Check whether the replay buffer is full or not.
-
-        :return: (bool)
-        """
-        return len(self) == self.buffer_size
-
-    def add(self, obs_t, action, reward, nxtobs_t, done):
-        """
-        add a new transition to the buffer
-
-        :param obs_t: (Union[np.ndarray, int]) the last observation
-        :param action: (Union[np.ndarray, int]) the action
-        :param reward: (float) the reward of the transition
-        :param obs_tp1: (Union[np.ndarray, int]) the current observation
-        :param done: (bool) is the episode done
-        """
-        data = (obs_t, action, reward, nxtobs_t, done)
-
-        if self._next_idx >= len(self._storage):
-            self._storage.append(data)
-        else:
-            self._storage[self._next_idx] = data
-        self._next_idx = (self._next_idx + 1) % self._maxsize
-
-    def _encode_sample(self, idxes: Union[List[int], np.ndarray]):
-        obses_t, actions, rewards, nxtobses_t, dones = [], [], [], [], []
-        for i in idxes:
-            data = self._storage[i]
-            obs_t, action, reward, nxtobs_t, done = data
-            obses_t.append(obs_t)
-            actions.append(action)
-            rewards.append(reward)
-            nxtobses_t.append(nxtobs_t)
-            dones.append(done)
-        obses_t = [np.array(o) for o in list(zip(*obses_t))]
-        actions = np.array(actions)
-        rewards = np.array(rewards)
-        nxtobses_t = [np.array(no) for no in list(zip(*nxtobses_t))]
-        dones = np.array(dones)
-        return (obses_t,
-                actions,
-                rewards,
-                nxtobses_t,
-                dones)
-
-    def sample(self, batch_size: int):
-        """
-        Sample a batch of experiences.
-
-        :param batch_size: (int) How many transitions to sample.
-        :param env: (Optional[VecNormalize]) associated gym VecEnv
-            to normalize the observations/rewards when sampling
-        :return:
-            - obs_batch: (np.ndarray) batch of observations
-            - act_batch: (numpy float) batch of actions executed given obs_batch
-            - rew_batch: (numpy float) rewards received as results of executing act_batch
-            - next_obs_batch: (np.ndarray) next set of observations seen after executing act_batch
-            - done_mask: (numpy bool) done_mask[i] = 1 if executing act_batch[i] resulted in the end of an episode
-                and 0 otherwise.
-        """
-        idxes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
-        return self._encode_sample(idxes)
-
-class EfficentReplayBuffer(object):
     def __init__(self, size: int, observation_space: list):
         """
         Implements a ring buffer (FIFO).
@@ -200,6 +100,8 @@ class EfficentReplayBuffer(object):
         """
         idxes = np.random.randint(0,self.storage_size - 1,size=batch_size) #[random.randint(0, self.storage_size - 1) for _ in range(batch_size)]
         return self._encode_sample(idxes)
+
+
 
 class PrioritizedReplayBuffer(ReplayBuffer):
     def __init__(self, size, alpha):
