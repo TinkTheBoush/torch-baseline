@@ -319,7 +319,7 @@ class PrioritizedEpisodicReplayBuffer(EpisodicReplayBuffer):
         self._it_min = MinSegmentTree(it_capacity)
         self._max_priority = 1.0
 
-    def add(self, obs_t, action, reward, obs_tp1, done):
+    def add(self, obs_t, action, reward, nxtobs_t, done, worker, terminal):
         """
         add a new transition to the buffer
 
@@ -330,7 +330,7 @@ class PrioritizedEpisodicReplayBuffer(EpisodicReplayBuffer):
         :param done: (bool) is the episode done
         """
         idx = self._next_idx
-        super().add(obs_t, action, reward, obs_tp1, done)
+        super().add(obs_t, action, reward, nxtobs_t, done, worker, terminal)
         self._it_sum[idx] = self._max_priority ** self._alpha
         self._it_min[idx] = self._max_priority ** self._alpha
 
