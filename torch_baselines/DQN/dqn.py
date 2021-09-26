@@ -74,8 +74,8 @@ class DQN(Q_Network_Family):
             indexs = data[6]
             new_priorities = np.abs((targets - vals).squeeze().detach().cpu().clone().numpy()) + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
-            loss = self.loss(vals,targets).mean(-1)
-            #loss = (weights*self.loss(vals,targets)).mean(-1)
+            #loss = self.loss(vals,targets).mean(-1)
+            loss = (weights*self.loss(vals,targets)).mean(-1)
         else:
             loss = self.loss(vals,targets).mean(-1)
         
