@@ -172,8 +172,8 @@ class EfficentReplayBuffer(object):
         obses_t = []
         nxtobses_t = []
         for ob in np.arange(self.obs_num):
-            obses_t.append = self.observation_storage[ob][idxes]
-            nxtobses_t.append = self.next_observation_storage[ob][idxes]
+            obses_t.append(self.observation_storage[ob][idxes])
+            nxtobses_t.append(self.next_observation_storage[ob][idxes])
         actions = self.action_storage[idxes]
         rewards = self.reward_storage[idxes]
         dones = self.done_storage[idxes]
