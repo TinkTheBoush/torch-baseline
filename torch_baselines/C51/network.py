@@ -11,6 +11,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.dualing = dualing
         self.noisy = noisy
+        self.categorial_bar = categorial_bar
         if noisy:
             lin = NoisyLinear
         else:
@@ -42,7 +43,7 @@ class Model(nn.Module):
                 nn.ReLU(),
                 lin(node,node),
                 nn.ReLU(),
-                lin(node, action_size[0])
+                lin(node, action_size[0]*categorial_bar)
             )
         else:
             self.advatage_linear = nn.Sequential(
@@ -50,7 +51,7 @@ class Model(nn.Module):
                 nn.ReLU(),
                 lin(node,node),
                 nn.ReLU(),
-                lin(node, action_size[0])
+                lin(node, action_size[0]*categorial_bar)
             )
             
             self.value_linear = nn.Sequential(
@@ -58,8 +59,10 @@ class Model(nn.Module):
                 nn.ReLU(),
                 lin(node,node),
                 nn.ReLU(),
-                lin(node, 1)
+                lin(node, self.categorial_bar)
             )
+            
+        self.softmax = nn.Softmax(dim=2)
 
     def forward(self, xs):
         
@@ -70,8 +73,8 @@ class Model(nn.Module):
         else:
             a = self.advatage_linear(cated)
             v = self.value_linear(cated)
-            q = v.view(-1,1) + (a - a.mean(-1,True))
-        return q
+            q = v.view(-1,1,self.categorial_bar) + (a - a.mean(1,True))
+        return self.softmax(q)
     
     def get_action(self,xs):
         with torch.no_grad():
