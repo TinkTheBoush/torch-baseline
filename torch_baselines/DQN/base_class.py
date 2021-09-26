@@ -123,7 +123,7 @@ class Q_Network_Family(object):
     def actions(self,obs,epsilon,befor_train):
         if (epsilon <= np.random.uniform(0,1) or self.param_noise) and not befor_train:
             obs = [torch.from_numpy(o).to(self.device).float() for o in obs]
-            obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
+            #obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             self.model.sample_noise()
             actions = self.model.get_action(obs).numpy()
         else:
