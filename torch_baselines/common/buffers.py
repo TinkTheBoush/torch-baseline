@@ -114,7 +114,7 @@ class EfficentReplayBuffer(object):
         :param size: (int)  Max number of transitions to store in the buffer. When the buffer overflows the old
             memories are dropped.
         """
-        self.observation_space = observation_space
+        self.observation_space = [[o[1],o[2],o[0]] if len(o) == 3 else o for o in observation_space]
         self.obs_num = len(observation_space)
         self.observation_storage = [np.zeros([size]+obspace) for obspace in observation_space]
         self.next_observation_storage = [np.zeros([size]+obspace) for obspace in observation_space]
