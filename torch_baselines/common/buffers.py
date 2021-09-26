@@ -120,7 +120,7 @@ class EfficentReplayBuffer(object):
         self.next_observation_storage = [np.zeros([size]+obspace) for obspace in self.observation_space]
         self.action_storage = np.zeros([size])
         self.reward_storage = np.zeros([size])
-        self.done_storage = np.zeros([size])
+        self.done_storage = np.zeros([size],dtype=bool)
         self._maxsize = size
         self._next_idx = 0
         self.storage_size = 0
