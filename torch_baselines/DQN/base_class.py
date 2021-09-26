@@ -8,6 +8,7 @@ from collections import deque
 
 from torch_baselines.common.base_classes import TensorboardWriter
 from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer, EpisodicReplayBuffer, PrioritizedEpisodicReplayBuffer
+from torch_baselines.common.buffers import EfficentReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
@@ -111,7 +112,7 @@ class Q_Network_Family(object):
         elif self.n_step_method:
             self.replay_buffer = EpisodicReplayBuffer(self.buffer_size,self.worker_size,self.n_step,self.gamma)
         else:
-            self.replay_buffer = ReplayBuffer(self.buffer_size)   
+            self.replay_buffer = EfficentReplayBuffer(self.buffer_size,self.observation_space)   
     
     def setup_model(self):
         pass

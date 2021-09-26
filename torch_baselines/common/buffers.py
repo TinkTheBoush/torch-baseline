@@ -105,7 +105,102 @@ class ReplayBuffer(object):
         """
         idxes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
         return self._encode_sample(idxes)
-    
+
+class EfficentReplayBuffer(object):
+    def __init__(self, size: int, observation_space: list):
+        """
+        Implements a ring buffer (FIFO).
+
+        :param size: (int)  Max number of transitions to store in the buffer. When the buffer overflows the old
+            memories are dropped.
+        """
+        self.observation_space = observation_space
+        self.obs_num = len(observation_space)
+        self.observation_storage = [np.zeros([size]+obspace) for obspace in observation_space]
+        self.next_observation_storage = [np.zeros([size]+obspace) for obspace in observation_space]
+        self.action_storage = np.zeros([size])
+        self.reward_storage = np.zeros([size])
+        self.done_storage = np.zeros([size])
+        self._maxsize = size
+        self._next_idx = 0
+        self.storage_size = 0
+
+    def __len__(self) -> int:
+        return self.storage_size
+
+    @property
+    def storage(self):
+        """[(Union[np.ndarray, int], Union[np.ndarray, int], float, Union[np.ndarray, int], bool)]: content of the replay buffer"""
+        return (self.observation_storage,self.action_storage,self.reward_storage,self.next_observation_storage,self.done_storage)
+
+    @property
+    def buffer_size(self) -> int:
+        """float: Max capacity of the buffer"""
+        return self._maxsize
+
+    def can_sample(self, n_samples: int) -> bool:
+        """
+        Check if n_samples samples can be sampled
+        from the buffer.
+
+        :param n_samples: (int)
+        :return: (bool)
+        """
+        return len(self) >= n_samples
+
+    def add(self, obs_t, action, reward, nxtobs_t, done):
+        """
+        add a new transition to the buffer
+
+        :param obs_t: (Union[np.ndarray, int]) the last observation
+        :param action: (Union[np.ndarray, int]) the action
+        :param reward: (float) the reward of the transition
+        :param obs_tp1: (Union[np.ndarray, int]) the current observation
+        :param done: (bool) is the episode done
+        """
+        for ob in np.arange(self.obs_num):
+            self.observation_storage[ob][self._next_idx] = obs_t[ob]
+            self.next_observation_storage[ob][self._next_idx] = nxtobs_t[ob]
+        self.action_storage[self._next_idx] = action
+        self.reward_storage[self._next_idx] = reward
+        self.done_storage[self._next_idx] = done
+        self._next_idx = (self._next_idx + 1) % self._maxsize
+        if self.storage_size < self._maxsize:
+            self.storage_size += 1
+
+    def _encode_sample(self, idxes: Union[List[int], np.ndarray]):
+        obses_t = []
+        nxtobses_t = []
+        for ob in np.arange(self.obs_num):
+            obses_t.append = self.observation_storage[ob][idxes]
+            nxtobses_t.append = self.next_observation_storage[ob][idxes]
+        actions = self.action_storage[idxes]
+        rewards = self.reward_storage[idxes]
+        dones = self.done_storage[idxes]
+        return (obses_t,
+                actions,
+                rewards,
+                nxtobses_t,
+                dones)
+
+    def sample(self, batch_size: int):
+        """
+        Sample a batch of experiences.
+
+        :param batch_size: (int) How many transitions to sample.
+        :param env: (Optional[VecNormalize]) associated gym VecEnv
+            to normalize the observations/rewards when sampling
+        :return:
+            - obs_batch: (np.ndarray) batch of observations
+            - act_batch: (numpy float) batch of actions executed given obs_batch
+            - rew_batch: (numpy float) rewards received as results of executing act_batch
+            - next_obs_batch: (np.ndarray) next set of observations seen after executing act_batch
+            - done_mask: (numpy bool) done_mask[i] = 1 if executing act_batch[i] resulted in the end of an episode
+                and 0 otherwise.
+        """
+        idxes = np.random.randint(0,self.storage_size - 1,size=batch_size) #[random.randint(0, self.storage_size - 1) for _ in range(batch_size)]
+        return self._encode_sample(idxes)
+
 class PrioritizedReplayBuffer(ReplayBuffer):
     def __init__(self, size, alpha):
         """
@@ -206,7 +301,6 @@ class PrioritizedReplayBuffer(ReplayBuffer):
 
         self._max_priority = max(self._max_priority, np.max(priorities))*0.95
         
-    
 class EpisodicReplayBuffer(ReplayBuffer):
     def __init__(self, size, worker_size, n_step, gamma):
         """
