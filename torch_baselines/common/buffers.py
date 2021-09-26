@@ -307,7 +307,7 @@ class PrioritizedEpisodicReplayBuffer(EpisodicReplayBuffer):
             are dropped.
         :param alpha: (float) how much prioritization is used (0 - no prioritization, 1 - full prioritization)
         """
-        super(PrioritizedEpisodicReplayBuffer, self).__init__(size, worker_size, n_step)
+        super(PrioritizedEpisodicReplayBuffer, self).__init__(size, worker_size, n_step, gamma)
         assert alpha >= 0
         self._alpha = alpha
 
