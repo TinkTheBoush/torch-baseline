@@ -58,7 +58,7 @@ class Model(nn.Module):
                 nn.ReLU(),
                 lin(node,node),
                 nn.ReLU(),
-                lin(node, n_support)
+                lin(node, 1)
             )
         
 
@@ -69,8 +69,8 @@ class Model(nn.Module):
             q = self.q_linear(cated).view(-1,self.action_size[0],self.n_support)
         else:
             a = self.advatage_linear(cated).view(-1,self.action_size[0],self.n_support)
-            v = self.value_linear(cated).view(-1,self.n_support)
-            q = v + (a - a.mean(1,True))
+            v = self.value_linear(cated).view(-1,1,1)
+            q = v + (a - a.mean(2,True).mean(1,True))
         return q
     
     def get_action(self,xs):
