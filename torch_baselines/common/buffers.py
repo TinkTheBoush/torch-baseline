@@ -115,9 +115,9 @@ class EfficentReplayBuffer(object):
             memories are dropped.
         """
         self.observation_space = [[o[1],o[2],o[0]] if len(o) == 3 else o for o in observation_space]
-        self.obs_num = len(observation_space)
-        self.observation_storage = [np.zeros([size]+obspace) for obspace in observation_space]
-        self.next_observation_storage = [np.zeros([size]+obspace) for obspace in observation_space]
+        self.obs_num = len(self.observation_space)
+        self.observation_storage = [np.zeros([size]+obspace) for obspace in self.observation_space]
+        self.next_observation_storage = [np.zeros([size]+obspace) for obspace in self.observation_space]
         self.action_storage = np.zeros([size])
         self.reward_storage = np.zeros([size])
         self.done_storage = np.zeros([size])
