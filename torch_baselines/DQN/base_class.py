@@ -8,7 +8,6 @@ from collections import deque
 
 from torch_baselines.common.base_classes import TensorboardWriter
 from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer, EpisodicReplayBuffer, PrioritizedEpisodicReplayBuffer
-#from torch_baselines.common.buffers import EfficentReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
@@ -112,7 +111,7 @@ class Q_Network_Family(object):
         elif self.n_step_method:
             self.replay_buffer = EpisodicReplayBuffer(self.buffer_size,self.worker_size,self.n_step,self.gamma)
         else:
-            self.replay_buffer = ReplayBuffer(self.buffer_size,self.observation_space)   
+            self.replay_buffer = ReplayBuffer(self.buffer_size)   
     
     def setup_model(self):
         pass
@@ -123,7 +122,7 @@ class Q_Network_Family(object):
     def actions(self,obs,epsilon,befor_train):
         if (epsilon <= np.random.uniform(0,1) or self.param_noise) and not befor_train:
             obs = [torch.from_numpy(o).to(self.device).float() for o in obs]
-            #obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
+            obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             self.model.sample_noise()
             actions = self.model.get_action(obs).numpy()
         else:
@@ -257,7 +256,7 @@ class Q_Network_Family(object):
                 
     def learn_minatar(self, pbar, callback=None, log_interval=100):
         self.env.reset()
-        state = np.expand_dims(np.transpose(self.env.state(),(2,0,1)), axis=0)
+        state = np.expand_dims(self.env.state(), axis=0)
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
@@ -266,7 +265,7 @@ class Q_Network_Family(object):
             update_eps = self.exploration.value(steps)
             actions = self.actions([state],update_eps,befor_train)
             reward, terminal = self.env.act(actions[0][0])
-            next_state = np.expand_dims(np.transpose(self.env.state(),(2,0,1)), axis=0)
+            next_state = np.expand_dims(self.env.state(), axis=0)
             if self.n_step_method:
                 self.replay_buffer.add(state, actions[0], reward, next_state, terminal, 0, terminal)
             else:
@@ -279,7 +278,7 @@ class Q_Network_Family(object):
                     self.summary.add_scalar("episode_reward", self.scores[0], steps)
                 self.scores[0] = 0
                 self.env.reset()
-                state = np.expand_dims(np.transpose(self.env.state(),(2,0,1)), axis=0)
+                state = np.expand_dims(self.env.state(), axis=0)
                 
             can_sample = self.replay_buffer.can_sample(self.batch_size)
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:

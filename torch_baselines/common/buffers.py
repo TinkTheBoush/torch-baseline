@@ -7,31 +7,24 @@ from torch_baselines.common.segment_tree import SumSegmentTree, MinSegmentTree
 
 
 class ReplayBuffer(object):
-    def __init__(self, size: int, observation_space: list):
+    def __init__(self, size: int):
         """
         Implements a ring buffer (FIFO).
 
         :param size: (int)  Max number of transitions to store in the buffer. When the buffer overflows the old
             memories are dropped.
         """
-        self.observation_space = observation_space #[[o[1],o[2],o[0]] if len(o) == 3 else o for o in observation_space]
-        self.obs_num = len(self.observation_space)
-        self.observation_storage = [np.zeros([size]+obspace) for obspace in self.observation_space]
-        self.next_observation_storage = [np.zeros([size]+obspace) for obspace in self.observation_space]
-        self.action_storage = np.zeros([size],dtype=np.int64)
-        self.reward_storage = np.zeros([size])
-        self.done_storage = np.zeros([size],dtype=bool)
+        self._storage = []
         self._maxsize = size
         self._next_idx = 0
-        self.storage_size = 0
 
     def __len__(self) -> int:
-        return self.storage_size
+        return len(self._storage)
 
     @property
     def storage(self):
         """[(Union[np.ndarray, int], Union[np.ndarray, int], float, Union[np.ndarray, int], bool)]: content of the replay buffer"""
-        return (self.observation_storage,self.action_storage,self.reward_storage,self.next_observation_storage,self.done_storage)
+        return self._storage
 
     @property
     def buffer_size(self) -> int:
@@ -48,6 +41,14 @@ class ReplayBuffer(object):
         """
         return len(self) >= n_samples
 
+    def is_full(self) -> int:
+        """
+        Check whether the replay buffer is full or not.
+
+        :return: (bool)
+        """
+        return len(self) == self.buffer_size
+
     def add(self, obs_t, action, reward, nxtobs_t, done):
         """
         add a new transition to the buffer
@@ -58,25 +59,29 @@ class ReplayBuffer(object):
         :param obs_tp1: (Union[np.ndarray, int]) the current observation
         :param done: (bool) is the episode done
         """
-        for ob in np.arange(self.obs_num):
-            self.observation_storage[ob][self._next_idx] = obs_t[ob]
-            self.next_observation_storage[ob][self._next_idx] = nxtobs_t[ob]
-        self.action_storage[self._next_idx] = action
-        self.reward_storage[self._next_idx] = reward
-        self.done_storage[self._next_idx] = done
+        data = (obs_t, action, reward, nxtobs_t, done)
+
+        if self._next_idx >= len(self._storage):
+            self._storage.append(data)
+        else:
+            self._storage[self._next_idx] = data
         self._next_idx = (self._next_idx + 1) % self._maxsize
-        if self.storage_size < self._maxsize:
-            self.storage_size += 1
 
     def _encode_sample(self, idxes: Union[List[int], np.ndarray]):
-        obses_t = []
-        nxtobses_t = []
-        for ob in np.arange(self.obs_num):
-            obses_t.append(self.observation_storage[ob][idxes])
-            nxtobses_t.append(self.next_observation_storage[ob][idxes])
-        actions = self.action_storage[idxes]
-        rewards = self.reward_storage[idxes]
-        dones = self.done_storage[idxes]
+        obses_t, actions, rewards, nxtobses_t, dones = [], [], [], [], []
+        for i in idxes:
+            data = self._storage[i]
+            obs_t, action, reward, nxtobs_t, done = data
+            obses_t.append(obs_t)
+            actions.append(action)
+            rewards.append(reward)
+            nxtobses_t.append(nxtobs_t)
+            dones.append(done)
+        obses_t = [np.array(o) for o in list(zip(*obses_t))]
+        actions = np.array(actions)
+        rewards = np.array(rewards)
+        nxtobses_t = [np.array(no) for no in list(zip(*nxtobses_t))]
+        dones = np.array(dones)
         return (obses_t,
                 actions,
                 rewards,
@@ -98,11 +103,9 @@ class ReplayBuffer(object):
             - done_mask: (numpy bool) done_mask[i] = 1 if executing act_batch[i] resulted in the end of an episode
                 and 0 otherwise.
         """
-        idxes = np.random.randint(0,self.storage_size - 1,size=batch_size) #[random.randint(0, self.storage_size - 1) for _ in range(batch_size)]
+        idxes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
         return self._encode_sample(idxes)
-
-
-
+    
 class PrioritizedReplayBuffer(ReplayBuffer):
     def __init__(self, size, alpha):
         """
@@ -203,6 +206,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
 
         self._max_priority = max(self._max_priority, np.max(priorities))*0.95
         
+    
 class EpisodicReplayBuffer(ReplayBuffer):
     def __init__(self, size, worker_size, n_step, gamma):
         """
@@ -303,7 +307,7 @@ class PrioritizedEpisodicReplayBuffer(EpisodicReplayBuffer):
             are dropped.
         :param alpha: (float) how much prioritization is used (0 - no prioritization, 1 - full prioritization)
         """
-        super(PrioritizedEpisodicReplayBuffer, self).__init__(size, worker_size, n_step, gamma)
+        super(PrioritizedEpisodicReplayBuffer, self).__init__(size, worker_size, n_step)
         assert alpha >= 0
         self._alpha = alpha
 
@@ -315,7 +319,7 @@ class PrioritizedEpisodicReplayBuffer(EpisodicReplayBuffer):
         self._it_min = MinSegmentTree(it_capacity)
         self._max_priority = 1.0
 
-    def add(self, obs_t, action, reward, nxtobs_t, done, worker, terminal):
+    def add(self, obs_t, action, reward, obs_tp1, done):
         """
         add a new transition to the buffer
 
@@ -326,7 +330,7 @@ class PrioritizedEpisodicReplayBuffer(EpisodicReplayBuffer):
         :param done: (bool) is the episode done
         """
         idx = self._next_idx
-        super().add(obs_t, action, reward, nxtobs_t, done, worker, terminal)
+        super().add(obs_t, action, reward, obs_tp1, done)
         self._it_sum[idx] = self._max_priority ** self._alpha
         self._it_min[idx] = self._max_priority ** self._alpha
 
