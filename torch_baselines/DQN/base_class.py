@@ -119,8 +119,8 @@ class Q_Network_Family(object):
     def _train_step(self, steps):
         pass
     
-    def actions(self,obs,epsilon):
-        if epsilon <= np.random.uniform(0,1) or self.param_noise:
+    def actions(self,obs,epsilon,befor_train):
+        if epsilon <= np.random.uniform(0,1) or (self.param_noise and not befor_train):
             obs = [torch.from_numpy(o).to(self.device).float() for o in obs]
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             self.model.sample_noise()
@@ -162,10 +162,10 @@ class Q_Network_Family(object):
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
-        
+        befor_train = True
         for steps in pbar:
             update_eps = self.exploration.value(steps)
-            actions = self.actions(dec.obs,update_eps)
+            actions = self.actions(dec.obs,update_eps,befor_train)
             
             action_tuple = ActionTuple(discrete=actions)
             self.env.set_actions(self.group_name, action_tuple)
@@ -212,6 +212,7 @@ class Q_Network_Family(object):
             
             can_sample = self.replay_buffer.can_sample(self.batch_size)
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
+                befor_train = False
                 loss = self._train_step(steps)
                 self.lossque.append(loss)
                 
@@ -221,10 +222,10 @@ class Q_Network_Family(object):
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
-        
+        befor_train = True
         for steps in pbar:
             update_eps = self.exploration.value(steps)
-            actions = self.actions([state],update_eps)
+            actions = self.actions([state],update_eps,befor_train)
             next_state, reward, terminal, info = self.env.step(actions[0][0])
             done = terminal
             if "TimeLimit.truncated" in info:
@@ -255,15 +256,14 @@ class Q_Network_Family(object):
                 
     def learn_minatar(self, pbar, callback=None, log_interval=100):
         self.env.reset()
+        state = np.expand_dims(self.env.state(), axis=0)
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
-        
-        state = np.expand_dims(self.env.state(), axis=0)
-        
+        befor_train = True
         for steps in pbar:
             update_eps = self.exploration.value(steps)
-            actions = self.actions([state],update_eps)
+            actions = self.actions([state],update_eps,befor_train)
             reward, terminal = self.env.act(actions[0][0])
             next_state = np.expand_dims(self.env.state(), axis=0)
             if self.n_step_method:
@@ -282,6 +282,7 @@ class Q_Network_Family(object):
                 
             can_sample = self.replay_buffer.can_sample(self.batch_size)
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
+                befor_train = False
                 loss = self._train_step(steps)
                 self.lossque.append(loss)
             
