@@ -41,7 +41,7 @@ class C51(Q_Network_Family):
                            **self.policy_kwargs)
         self.target_model = Model(self.observation_space,self.action_size,
                                   dualing=self.dualing_model,noisy=self.param_noise,
-                                  categorial_bar=self._categorial_bar,_categorial_bar_n=self.categorial_bar_n,
+                                  categorial_bar=self._categorial_bar,categorial_bar_n=self.categorial_bar_n,
                                   **self.policy_kwargs)
         self.model.train()
         self.model.to(self.device)
@@ -51,7 +51,7 @@ class C51(Q_Network_Family):
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         self.loss = CategorialDistributionLoss(batch_size=self.batch_size,categorial_bar=self.categorial_bar,
-                                               categorial_bar_n= self.categorial_bar_n,delta=self.delta_bar)
+                                               categorial_bar_n= self._categorial_bar_n,delta=self.delta_bar)
         
         print("----------------------model----------------------")
         print(self.model)
