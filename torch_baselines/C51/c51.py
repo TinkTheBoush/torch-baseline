@@ -21,6 +21,7 @@ class C51(Q_Network_Family):
                  full_tensorboard_log, seed)
         
         self.categorial_bar_n = categorial_bar_n
+        self._categorial_bar_n = categorial_bar_n - 1
         self.categorial_min = -200
         self.categorial_max = 200
         
@@ -32,16 +33,16 @@ class C51(Q_Network_Family):
         
         self.categorial_bar = torch.linspace(self.categorial_min,self.categorial_max,self.categorial_bar_n).view(1,self.categorial_bar_n).to(self.device)
         self._categorial_bar = self.categorial_bar.view(1,1,self.categorial_bar_n)
-        #self.bar_mean = ((self.categorial_bar[0][1:] + self.categorial_bar[0][:-1])/2.0).view(1,1,self._categorial_bar_n)
+        self.bar_mean = ((self.categorial_bar[0][1:] + self.categorial_bar[0][:-1])/2.0).view(1,1,self._categorial_bar_n)
         self.delta_bar = torch.tensor((self.categorial_max - self.categorial_min)/(self.categorial_bar_n)).to(self.device)
         
         self.model = Model(self.observation_space,self.action_size,
                            dualing=self.dualing_model,noisy=self.param_noise,
-                           categorial_bar=self._categorial_bar,categorial_bar_n=self.categorial_bar_n - 1,
+                           categorial_bar=self.bar_mean,categorial_bar_n=self._categorial_bar_n,
                            **self.policy_kwargs)
         self.target_model = Model(self.observation_space,self.action_size,
                                   dualing=self.dualing_model,noisy=self.param_noise,
-                                  categorial_bar=self._categorial_bar,categorial_bar_n=self.categorial_bar_n - 1,
+                                  categorial_bar=self.bar_mean,categorial_bar_n=self._categorial_bar_n,
                                   **self.policy_kwargs)
         self.model.train()
         self.model.to(self.device)
