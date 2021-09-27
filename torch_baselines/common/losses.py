@@ -33,7 +33,7 @@ class CategorialDistributionLoss(_Loss):
         self.min = categorial_bar[0][0]
         self.max = categorial_bar[0][-1]
         self.delta = delta
-        self.categorial_bar_n = categorial_bar_n - 1
+        self.categorial_bar_n = categorial_bar_n
         self.batch_size = batch_size
         offset = torch.linspace(0, (self.batch_size - 1) * categorial_bar_n, self.batch_size)
         offset = offset.unsqueeze(dim=1) 
