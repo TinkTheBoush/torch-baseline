@@ -12,7 +12,7 @@ import minatar
 def is_minatar(str):
     spl = str.split("_")
     if (spl[0] == "minatar"):
-        return True, spl[1]
+        return True, "_".join(spl[1:])
     else:
         return False, str
 
