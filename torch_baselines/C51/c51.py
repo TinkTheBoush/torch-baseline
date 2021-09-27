@@ -75,16 +75,12 @@ class C51(Q_Network_Family):
         with torch.no_grad():
             
             if self.double_q:
-                next_actions = (self.model(nxtobses)*self._categorial_bar).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
+                next_actions = (self.model(nxtobses)*self._categorial_bar).sum(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
             else:
-                next_actions = (self.target_model(nxtobses)*self._categorial_bar).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
+                next_actions = (self.target_model(nxtobses)*self._categorial_bar).sum(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
             next_distribution = self.target_model(nxtobses).gather(1,next_actions).squeeze()
             targets_categorial_bar = (dones * self.categorial_bar * self._gamma) + rewards
             doneidx = dones.min(0)[1][0]
-            if not dones[doneidx]:
-                print(dones[doneidx])
-                print(doneidx)
-                print(targets_categorial_bar[doneidx])
             
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
@@ -94,7 +90,7 @@ class C51(Q_Network_Family):
             self.replay_buffer.update_priorities(indexs,new_priorities)
             loss = (weights*losses).mean(-1)
         else:
-            loss = self.loss(vals,next_distribution,targets_categorial_bar,doneidx,not dones[doneidx]).mean(-1)
+            loss = self.loss(vals,next_distribution,targets_categorial_bar).mean(-1)
         
         self.optimizer.zero_grad()
         loss.backward()

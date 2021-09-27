@@ -80,7 +80,7 @@ class Model(nn.Module):
     
     def get_action(self,xs):
         with torch.no_grad():
-            return (self(xs)*self.categorial_bar).mean(2).max(1)[1].view(-1,1).detach().cpu().clone()
+            return (self(xs)*self.categorial_bar).sum(2).max(1)[1].view(-1,1).detach().cpu().clone()
         
     def sample_noise(self):
         if not self.noisy:
