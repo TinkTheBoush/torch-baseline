@@ -75,8 +75,8 @@ class C51(Q_Network_Family):
                 next_actions = (self.model(nxtobses)*self.model.bar_mean).mean(2),max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             else:
                 next_actions = (self.target_model(nxtobses)*self.model.bar_mean).mean(2),max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
-            next_distribution = dones*self.target_model(nxtobses).gather(1,next_actions)
-            targets_categorial_bar = (self.categorial_bar * self.gamma) + rewards
+            next_distribution = self.target_model(nxtobses).gather(1,next_actions)
+            targets_categorial_bar = (dones * self.categorial_bar * self._gamma) + rewards
             
         '''
         if self.prioritized_replay:

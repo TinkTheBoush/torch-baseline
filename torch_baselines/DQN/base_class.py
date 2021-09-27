@@ -41,6 +41,7 @@ class Q_Network_Family(object):
         self.buffer_size = buffer_size
         self.learning_rate = learning_rate
         self.gamma = gamma
+        self._gamma = self.gamma**n_step #n_step gamma
         self.tensorboard_log = tensorboard_log
         self.full_tensorboard_log = full_tensorboard_log
         self.double_q = double_q
@@ -112,8 +113,6 @@ class Q_Network_Family(object):
             self.replay_buffer = EpisodicReplayBuffer(self.buffer_size,self.worker_size,self.n_step,self.gamma)
         else:
             self.replay_buffer = ReplayBuffer(self.buffer_size)
-        
-        self._gamma = self.gamma**self.n_step #n_step gamma
     
     def setup_model(self):
         pass
