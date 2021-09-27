@@ -91,9 +91,6 @@ class C51(Q_Network_Family):
             loss = (weights*losses).mean(-1)
         else:
             loss = self.loss(vals,next_distribution,targets_categorial_bar).mean(-1)
-            
-        loss = self.loss()
-
         
         self.optimizer.zero_grad()
         loss.backward()
