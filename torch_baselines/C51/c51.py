@@ -21,9 +21,8 @@ class C51(Q_Network_Family):
                  full_tensorboard_log, seed)
         
         self.categorial_bar_n = categorial_bar_n
-        self._categorial_bar_n = self.categorial_bar_n + 1
-        self.categorial_min = -100
-        self.categorial_max = 100
+        self.categorial_min = -300
+        self.categorial_max = 300
         
         if _init_setup_model:
             self.setup_model() 
@@ -31,9 +30,9 @@ class C51(Q_Network_Family):
     def setup_model(self):
         self.policy_kwargs = {} if self.policy_kwargs is None else self.policy_kwargs
         
-        self.categorial_bar = torch.linspace(self.categorial_min,self.categorial_max,self._categorial_bar_n).view(1,self._categorial_bar_n).to(self.device)
-        self._categorial_bar = ((self.categorial_bar[0][1:] + self.categorial_bar[0][:-1])/2.0).view(1,1,self.categorial_bar_n)
-        self.delta_bar = torch.tensor((self.categorial_max - self.categorial_min)/(self.categorial_bar_n)).to(self.device)
+        self.categorial_bar = torch.linspace(self.categorial_min,self.categorial_max,self.categorial_bar_n).view(1,self.categorial_bar_n).to(self.device)
+        self._categorial_bar = self.categorial_bar.view(1,1,self.categorial_bar_n)
+        self.delta_bar = torch.tensor((self.categorial_max - self.categorial_min)/(self.categorial_bar_n - 1)).to(self.device)
         
         self.model = Model(self.observation_space,self.action_size,
                            dualing=self.dualing_model,noisy=self.param_noise,
@@ -51,7 +50,7 @@ class C51(Q_Network_Family):
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         self.loss = CategorialDistributionLoss(batch_size=self.batch_size,categorial_bar=self.categorial_bar,
-                                               categorial_bar_n= self._categorial_bar_n,delta=self.delta_bar)
+                                               categorial_bar_n= self.categorial_bar_n,delta=self.delta_bar)
         
         print("----------------------model----------------------")
         print(self.model)
