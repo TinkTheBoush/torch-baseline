@@ -35,7 +35,7 @@ class CategorialDistributionLoss(_Loss):
         self.delta = delta
         self.categorial_bar_n = categorial_bar_n
         self.batch_size = batch_size
-        offset = torch.linspace(0, (self.batch_size - 1) * categorial_bar_n, self.batch_size)
+        offset = torch.linspace(-1, (self.batch_size - 1) * categorial_bar_n - 1, self.batch_size)
         offset = offset.unsqueeze(dim=1) 
         self.offset = offset.expand(self.batch_size, categorial_bar_n) # I believe this is to(device)
 
