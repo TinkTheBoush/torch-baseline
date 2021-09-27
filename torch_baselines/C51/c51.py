@@ -79,7 +79,7 @@ class C51(Q_Network_Family):
             if self.double_q:
                 next_actions = (self.model(nxtobses)*self._categorial_bar).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self._categorial_bar_n, dim=2)
             else:
-                next_actions = (self.target_model(nxtobses)*self._categorial_bar).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self._categorial_bar_n, dim=2)
+                next_actions = (self.target_model(nxtobses)*self.bar_mean).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self._categorial_bar_n, dim=2)
             next_distribution = self.target_model(nxtobses).gather(1,next_actions).squeeze()
             targets_categorial_bar = (dones * self.categorial_bar * self._gamma) + rewards
             
