@@ -67,7 +67,7 @@ class DQN(Q_Network_Family):
             else:
                 next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].view(-1,1)
             if self.n_step_method:
-                targets = (next_vals * self.gamma*self.n_step) + rewards
+                targets = (next_vals * (self.gamma**self.n_step)) + rewards
             else:
                 targets = (next_vals * self.gamma) + rewards
             
