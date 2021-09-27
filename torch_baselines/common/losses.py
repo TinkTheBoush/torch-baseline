@@ -37,7 +37,7 @@ class CategorialDistributionLoss(_Loss):
         self.batch_size = batch_size
         offset = torch.linspace(0, (self.batch_size - 1) * categorial_bar_n, self.batch_size)
         offset = offset.unsqueeze(dim=1) 
-        self.offset = offset.expand(self.batch_size, categorial_bar_n).to(torch.int64) # I believe this is to(device)
+        self.offset = offset.expand(self.batch_size, categorial_bar_n).int() # I believe this is to(device)
 
 
     def forward(self, input_distribution: Tensor, next_distribution: Tensor, next_categorial_bar: Tensor) -> Tensor:
@@ -45,8 +45,8 @@ class CategorialDistributionLoss(_Loss):
             Tz = next_categorial_bar.clamp(self.categorial_bar[0], self.categorial_bar[-1])
             Tz = Tz.clamp(self.min, self.max)
             C51_b = (Tz - self.min) / self.delta
-            C51_L = C51_b.floor().to(torch.int64)
-            C51_U = C51_b.ceil().to(torch.int64)
+            C51_L = C51_b.floor().int()
+            C51_U = C51_b.ceil().int()
             C51_L[ (C51_U > 0) * (C51_L == C51_U)] -= 1
             C51_U[ (C51_L < (self.categorial_bar_n - 1)) * (C51_L == C51_U)] += 1
             self.offset = self.offset.to(next_distribution)
