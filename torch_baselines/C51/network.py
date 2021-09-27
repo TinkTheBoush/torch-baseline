@@ -72,8 +72,8 @@ class Model(nn.Module):
             q = self.q_linear(cated).view(-1,self.action_size[0],self.n_support)
         else:
             a = self.advatage_linear(cated).view(-1,self.action_size[0],self.n_support)
-            v = self.value_linear(cated).view(-1,self.action_size[0],self.n_support)
-            q = v.view(-1,1,self.categorial_bar) + (a - a.mean(1,True))
+            v = self.value_linear(cated).view(-1,1,self.n_support)
+            q = v + (a - a.mean(1,True))
         return self.softmax(q)
     
     def get_action(self,xs):
