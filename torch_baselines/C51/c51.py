@@ -21,8 +21,8 @@ class C51(Q_Network_Family):
                  full_tensorboard_log, seed)
         
         self.categorial_bar_n = categorial_bar_n
-        self.categorial_min = -210
-        self.categorial_max = 210
+        self.categorial_min = -200
+        self.categorial_max = 200
         
         if _init_setup_model:
             self.setup_model() 
@@ -75,9 +75,9 @@ class C51(Q_Network_Family):
         with torch.no_grad():
             
             if self.double_q:
-                next_actions = (self.model(nxtobses)*self._categorial_bar).sum(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
+                next_actions = (self.model(nxtobses)*self._categorial_bar).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
             else:
-                next_actions = (self.target_model(nxtobses)*self._categorial_bar).sum(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
+                next_actions = (self.target_model(nxtobses)*self._categorial_bar).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
             next_distribution = self.target_model(nxtobses).gather(1,next_actions).squeeze()
             targets_categorial_bar = (dones * self.categorial_bar * self._gamma) + rewards
             
