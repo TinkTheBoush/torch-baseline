@@ -29,7 +29,7 @@ class C51(Q_Network_Family):
             
     def setup_model(self):
         self.policy_kwargs = {} if self.policy_kwargs is None else self.policy_kwargs
-        self.categorial_bar = torch.linspace(self.categorial_min,self.categorial_max,self.categorial_bar_n).to(self.device)
+        self.categorial_bar = torch.linspace(self.categorial_min,self.categorial_max,self.categorial_bar_n).view(1,self.categorial_bar_n).to(self.device)
         self.bar_mean = ((self.categorial_bar[1:] + self.categorial_bar[:-1])/2.0).view(1,1,self.categorial_bar_n-1)
         self.delta_bar = torch.tensor((self.categorial_max - self.categorial_min)/(self.categorial_bar_n-1)).to(self.device)
         self.model = Model(self.observation_space,self.action_size,
@@ -62,10 +62,10 @@ class C51(Q_Network_Family):
         obses = [torch.from_numpy(o).to(self.device).float() for o in data[0]]
         obses = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obses]
         actions = torch.from_numpy(data[1]).to(self.device).view(-1,1,1).repeat_interleave(self.n_support, dim=2)
-        rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1,1)
+        rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1)
         nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
-        dones = (~(torch.from_numpy(data[4]).to(self.device))).float().view(-1,1,1)
+        dones = (~(torch.from_numpy(data[4]).to(self.device))).float().view(-1,1)
         self.model.sample_noise()
         self.target_model.sample_noise()
         vals = self.model(obses).gather(1,actions)
