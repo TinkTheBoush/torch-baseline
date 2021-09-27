@@ -3,6 +3,7 @@ import argparse
 import gym
 
 from torch_baselines.DQN.dqn import DQN
+from torch_baselines.C51.c51 import C51
 from torch_baselines.QRDQN.qrdqn import QRDQN
 from mlagents_envs.environment import UnityEnvironment,ActionTuple
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
@@ -51,6 +52,11 @@ if __name__ == "__main__":
         
     if args.algo == "DQN":
         agent = DQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
+                    prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
+                    param_noise = args.noisynet, n_step = args.n_step,
+                    tensorboard_log=args.logdir+env_name)
+    elif args.algo == "C51":
+        agent = C51(env,batch_size = args.batch, target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step,
                     tensorboard_log=args.logdir+env_name)
