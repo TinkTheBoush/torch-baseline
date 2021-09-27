@@ -94,7 +94,7 @@ class C51(Q_Network_Family):
             self.replay_buffer.update_priorities(indexs,new_priorities)
             loss = (weights*losses).mean(-1)
         else:
-            loss = self.loss(vals,next_distribution,targets_categorial_bar).mean(-1)
+            loss = self.loss(vals,next_distribution,targets_categorial_bar,doneidx,not dones[doneidx]).mean(-1)
         
         self.optimizer.zero_grad()
         loss.backward()
