@@ -47,7 +47,8 @@ class C51(Q_Network_Family):
         self.target_model.to(self.device)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
-        self.loss = CategorialDistributionLoss(categorial_bar=self.categorial_bar)
+        self.loss = CategorialDistributionLoss(batch_size=self.batch_size,categorial_bar=self.categorial_bar,
+                                               categorial_bar_n= self.categorial_bar_n,delta=self.delta_bar)
         
         print("----------------------model----------------------")
         print(self.model)
@@ -68,27 +69,26 @@ class C51(Q_Network_Family):
         dones = (~(torch.from_numpy(data[4]).to(self.device))).float().view(-1,1)
         self.model.sample_noise()
         self.target_model.sample_noise()
-        vals = self.model(obses).gather(1,actions)
+        vals = self.model(obses).gather(1,actions).squeeze()
         with torch.no_grad():
             
             if self.double_q:
                 next_actions = (self.model(nxtobses)*self.model.bar_mean).mean(2),max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             else:
                 next_actions = (self.target_model(nxtobses)*self.model.bar_mean).mean(2),max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
-            next_distribution = self.target_model(nxtobses).gather(1,next_actions)
+            next_distribution = self.target_model(nxtobses).gather(1,next_actions).squeeze()
             targets_categorial_bar = (dones * self.categorial_bar * self._gamma) + rewards
             
-        '''
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
-            new_priorities = np.abs((targets - vals).squeeze().detach().cpu().clone().numpy()) + self.prioritized_replay_eps
+            losses = self.loss(vals,next_distribution,targets_categorial_bar)
+            new_priorities = losses.detach().cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
-            loss = self.loss(vals,targets).mean(-1)
-            #loss = (weights*self.loss(vals,targets)).mean(-1)
+            loss = (weights*losses).mean(-1)
         else:
-            loss = self.loss(vals,targets).mean(-1)
-        '''
+            loss = self.loss(vals,next_distribution,targets_categorial_bar).mean(-1)
+            
         loss = self.loss()
 
         

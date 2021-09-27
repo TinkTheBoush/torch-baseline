@@ -27,15 +27,33 @@ class HuberLosses(_Loss):
 
 class CategorialDistributionLoss(_Loss):
     __constants__ = ['reduction']
-    def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', categorial_bar = None) -> None:
+    def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', batch_size = None, categorial_bar = None, categorial_bar_n = 51, delta = None) -> None:
         super(CategorialDistributionLoss, self).__init__(size_average, reduce, reduction)
         self.categorial_bar = categorial_bar
+        self.min = categorial_bar[0][0]
+        self.max = categorial_bar[0][-1]
+        self.delta = delta
+        self.categorial_bar_n = categorial_bar_n - 1
+        self.batch_size = batch_size
+
 
     def forward(self, input_distribution: Tensor, next_distribution: Tensor, next_categorial_bar: Tensor) -> Tensor:
         with torch.no_grad():
             Tz = next_categorial_bar.clamp(self.categorial_bar[0], self.categorial_bar[-1])
-            target_distribution = next_distribution
-        return F.binary_cross_entropy_with_logits(input_distribution,target_distribution)
+            Tz = Tz.clamp(self.min, self.max)
+            C51_b = (Tz - self.min) / self.delta
+            C51_L = C51_b.floor().to(torch.int64)
+            C51_U = C51_b.ceil().to(torch.int64)
+            C51_L[ (C51_U > 0) * (C51_L == C51_U)] -= 1
+            C51_U[ (C51_L < (self.categorial_bar_n - 1)) * (C51_L == C51_U)] += 1
+            offset = torch.linspace(0, (self.batch_size - 1) * self.categorial_bar_n, self.batch_size)
+            offset = offset.unsqueeze(dim=1) 
+            offset = offset.expand(self.batch_size, self.categorial_bar_n).to(next_distribution) # I believe this is to(device)
+            target_distribution = input_distribution.new_zeros(self.batch_size, self.categorial_bar_n) # Returns a Tensor of size size filled with 0. same dtype
+            target_distribution.view(-1).index_add_(0, (C51_L + offset).view(-1), (next_distribution * (C51_U.float() - C51_b)).view(-1))
+            target_distribution.view(-1).index_add_(0, (C51_U + offset).view(-1), (next_distribution * (C51_b - C51_L.float())).view(-1))
+            #target_distribution = next_distribution
+        return F.binary_cross_entropy_with_logits(input_distribution,target_distribution, reduction='none')
 '''
 def project_distribution(batch_state, batch_action, non_final_next_states, batch_reward, non_final_mask):
     """
