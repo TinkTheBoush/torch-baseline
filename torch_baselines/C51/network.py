@@ -7,11 +7,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=64,noisy=False,dualing=False,ModelOptions=None,bar_mean=None,categorial_bar_n=51):
+    def __init__(self,state_size,action_size,node=64,noisy=False,dualing=False,ModelOptions=None,categorial_bar=None,categorial_bar_n=51):
         super(Model, self).__init__()
         self.dualing = dualing
         self.noisy = noisy
-        self.bar_mean = bar_mean
+        self.categorial_bar = categorial_bar
         self.categorial_bar_n = categorial_bar_n
         self.action_size = action_size
         if noisy:
@@ -80,7 +80,7 @@ class Model(nn.Module):
     
     def get_action(self,xs):
         with torch.no_grad():
-            return (self(xs)*self.bar_mean).mean(2).max(1)[1].view(-1,1).detach().cpu().clone()
+            return (self(xs)*self.categorial_bar).mean(2).max(1)[1].view(-1,1).detach().cpu().clone()
         
     def sample_noise(self):
         if not self.noisy:
