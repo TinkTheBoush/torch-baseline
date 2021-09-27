@@ -45,6 +45,7 @@ class CategorialDistributionLoss(_Loss):
             Tz = next_categorial_bar.clamp(self.categorial_bar[0], self.categorial_bar[-1])
             Tz = Tz.clamp(self.min, self.max)
             C51_b = (Tz - self.min) / self.delta
+            print(C51_b.shape)
             C51_L = C51_b.floor().int()
             C51_U = C51_b.ceil().int()
             C51_L[ (C51_U > 0) * (C51_L == C51_U)] -= 1
