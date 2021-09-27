@@ -55,40 +55,6 @@ class CategorialDistributionLoss(_Loss):
         return -(target_distribution * input_distribution.log()).sum(-1)
         #F.binary_cross_entropy_with_logits(input_distribution,target_distribution, reduction='none').sum(-1)
         #-(target_distribution * input_distribution.log()).sum(-1)
-'''
-def project_distribution(batch_state, batch_action, non_final_next_states, batch_reward, non_final_mask):
-    """
-    This is for orignal C51, with KL-divergence.
-    """
-
-    with torch.no_grad():
-        max_next_dist = torch.zeros((BATCH_SIZE, 1, C51_atoms), device=device, dtype=torch.float)
-        max_next_dist += 1.0 / C51_atoms
-        #
-        max_next_action               = get_action_argmax_next_Q_sa(non_final_next_states)
-        if USE_NOISY_NET:
-            target_net.sample_noise()
-        max_next_dist[non_final_mask] = target_net(non_final_next_states).gather(1, max_next_action)
-        max_next_dist = max_next_dist.squeeze()
-        #
-        # Mapping
-        Tz = batch_reward.view(-1, 1) + (GAMMA**NUM_LOOKAHEAD) * C51_support.view(1, -1) * non_final_mask.to(torch.float).view(-1, 1)
-        Tz = Tz.clamp(C51_vmin, C51_vmax)
-        C51_b = (Tz - C51_vmin) / C51_delta
-        C51_L = C51_b.floor().to(torch.int64)
-        C51_U = C51_b.ceil().to(torch.int64)
-        C51_L[ (C51_U > 0)               * (C51_L == C51_U)] -= 1
-        C51_U[ (C51_L < (C51_atoms - 1)) * (C51_L == C51_U)] += 1
-        offset = torch.linspace(0, (BATCH_SIZE - 1) * C51_atoms, BATCH_SIZE)
-        offset = offset.unsqueeze(dim=1) 
-        offset = offset.expand(BATCH_SIZE, C51_atoms).to(batch_action) # I believe this is to(device)
-
-        # I believe this is analogous to torch.zeros(), but "new_zeros" keeps the type as the original tensor?
-        m = batch_state.new_zeros(BATCH_SIZE, C51_atoms) # Returns a Tensor of size size filled with 0. same dtype
-        m.view(-1).index_add_(0, (C51_L + offset).view(-1), (max_next_dist * (C51_U.float() - C51_b)).view(-1))
-        m.view(-1).index_add_(0, (C51_U + offset).view(-1), (max_next_dist * (C51_b - C51_L.float())).view(-1))
-    return m
-'''
 
 class QRHuberLosses(_Loss):
     __constants__ = ['reduction']
