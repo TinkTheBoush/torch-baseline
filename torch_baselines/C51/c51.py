@@ -34,11 +34,11 @@ class C51(Q_Network_Family):
         self.delta_bar = torch.tensor((self.categorial_max - self.categorial_min)/(self.categorial_bar_n-1)).to(self.device)
         self.model = Model(self.observation_space,self.action_size,
                            dualing=self.dualing_model,noisy=self.param_noise,
-                           bar_mean=self.bar_mean,
+                           bar_mean=self.bar_mean,categorial_bar_n=self.categorial_bar_n-1,
                            **self.policy_kwargs)
         self.target_model = Model(self.observation_space,self.action_size,
                                   dualing=self.dualing_model,noisy=self.param_noise,
-                                  bar_mean=self.bar_mean,
+                                  bar_mean=self.bar_mean,categorial_bar_n=self.categorial_bar_n-1,
                                   **self.policy_kwargs)
         self.model.train()
         self.model.to(self.device)

@@ -7,11 +7,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=64,noisy=False,dualing=False,ModelOptions=None,bar_mean=None):
+    def __init__(self,state_size,action_size,node=64,noisy=False,dualing=False,ModelOptions=None,bar_mean=None,categorial_bar_n=51):
         super(Model, self).__init__()
         self.dualing = dualing
         self.noisy = noisy
-        self.categorial_bar_n = bar_mean.shape[3]
+        self.categorial_bar_n = categorial_bar_n
         if noisy:
             lin = NoisyLinear
         else:
