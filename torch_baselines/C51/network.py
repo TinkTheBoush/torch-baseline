@@ -11,6 +11,7 @@ class Model(nn.Module):
         super(Model, self).__init__()
         self.dualing = dualing
         self.noisy = noisy
+        self.bar_mean = bar_mean
         self.categorial_bar_n = categorial_bar_n
         self.action_size = action_size
         if noisy:

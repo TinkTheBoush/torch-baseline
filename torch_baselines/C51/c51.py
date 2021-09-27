@@ -30,9 +30,11 @@ class C51(Q_Network_Family):
             
     def setup_model(self):
         self.policy_kwargs = {} if self.policy_kwargs is None else self.policy_kwargs
+        
         self.categorial_bar = torch.linspace(self.categorial_min,self.categorial_max,self.categorial_bar_n).view(1,self.categorial_bar_n).to(self.device)
         self.bar_mean = ((self.categorial_bar[0][1:] + self.categorial_bar[0][:-1])/2.0).view(1,1,self._categorial_bar_n)
         self.delta_bar = torch.tensor((self.categorial_max - self.categorial_min)/(self._categorial_bar_n)).to(self.device)
+        
         self.model = Model(self.observation_space,self.action_size,
                            dualing=self.dualing_model,noisy=self.param_noise,
                            bar_mean=self.bar_mean,categorial_bar_n=self._categorial_bar_n,
@@ -74,9 +76,9 @@ class C51(Q_Network_Family):
         with torch.no_grad():
             
             if self.double_q:
-                next_actions = (self.model(nxtobses)*self.model.bar_mean).mean(2),max(1)[1].view(-1,1,1).repeat_interleave(self._categorial_bar_n, dim=2)
+                next_actions = (self.model(nxtobses)*self.bar_mean).mean(2),max(1)[1].view(-1,1,1).repeat_interleave(self._categorial_bar_n, dim=2)
             else:
-                next_actions = (self.target_model(nxtobses)*self.model.bar_mean).mean(2),max(1)[1].view(-1,1,1).repeat_interleave(self._categorial_bar_n, dim=2)
+                next_actions = (self.target_model(nxtobses)*self.bar_mean).mean(2),max(1)[1].view(-1,1,1).repeat_interleave(self._categorial_bar_n, dim=2)
             next_distribution = self.target_model(nxtobses).gather(1,next_actions).squeeze()
             targets_categorial_bar = (dones * self.categorial_bar * self._gamma) + rewards
             
