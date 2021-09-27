@@ -82,7 +82,7 @@ class QRDQN(Q_Network_Family):
                 action = self.target_model(nxtobses).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             next_vals = dones*self.target_model(nxtobses).gather(1,action)
             if self.n_step_method:
-                targets = (next_vals * self.gamma*self.n_step) + rewards
+                targets = (next_vals * (self.gamma**self.n_step)) + rewards
             else:
                 targets = (next_vals * self.gamma) + rewards
         
