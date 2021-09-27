@@ -53,7 +53,7 @@ class QRDQN(Q_Network_Family):
         else:
             self.loss = torch.nn.SmoothL1Loss()
         '''
-        self.quantile = torch.arange(0.5 / self.n_support,1, 1 / self.n_support).to(self.device).view(1,1,self.support_size)
+        self.quantile = torch.arange(0.5 / self.n_support,1, 1 / self.n_support).to(self.device).view(1,1,self.n_support)
         
         print("----------------------model----------------------")
         print(self.model)
