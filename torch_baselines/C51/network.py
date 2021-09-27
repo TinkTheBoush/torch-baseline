@@ -12,6 +12,7 @@ class Model(nn.Module):
         self.dualing = dualing
         self.noisy = noisy
         self.categorial_bar_n = categorial_bar_n
+        self.action_size = action_size
         if noisy:
             lin = NoisyLinear
         else:
