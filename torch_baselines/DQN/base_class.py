@@ -113,7 +113,7 @@ class Q_Network_Family(object):
         else:
             self.replay_buffer = ReplayBuffer(self.buffer_size)
         
-        self._gamma = self.gamma**self.n_step
+        self._gamma = self.gamma**self.n_step #n_step gamma
     
     def setup_model(self):
         pass
