@@ -84,7 +84,7 @@ class C51(Q_Network_Family):
             if dones[doneidx]:
                 print(dones[doneidx])
                 print(doneidx)
-                print(targets_categorial_bar[0])
+                print(targets_categorial_bar[doneidx])
             
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
