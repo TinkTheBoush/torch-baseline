@@ -51,7 +51,7 @@ class C51(Q_Network_Family):
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         self.loss = CategorialDistributionLoss(batch_size=self.batch_size,categorial_bar=self.categorial_bar,
-                                               categorial_bar_n= self.categorial_bar_n,delta=self.delta_bar)
+                                               categorial_bar_n= self._categorial_bar_n,delta=self.delta_bar)
         
         print("----------------------model----------------------")
         print(self.model)
