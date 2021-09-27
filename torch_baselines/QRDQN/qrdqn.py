@@ -40,19 +40,7 @@ class QRDQN(Q_Network_Family):
         self.target_model.to(self.device)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
-        '''
-        if self.prioritized_replay:
-            self.loss = WeightedMSELoss()
-        else:
-            self.loss = torch.nn.MSELoss()
-        '''
         self.loss = QRHuberLosses(support_size=self.n_support)
-        '''
-        if self.prioritized_replay:
-            self.loss = WeightedHuber()
-        else:
-            self.loss = torch.nn.SmoothL1Loss()
-        '''
         self.quantile = torch.arange(0.5 / self.n_support,1, 1 / self.n_support).to(self.device).view(1,1,self.n_support)
         
         print("----------------------model----------------------")
