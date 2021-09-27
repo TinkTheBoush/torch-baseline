@@ -35,9 +35,9 @@ class CategorialDistributionLoss(_Loss):
         self.delta = delta
         self.categorial_bar_n = categorial_bar_n - 1
         self.batch_size = batch_size
-        offset = torch.linspace(0, (self.batch_size - 1) * self.categorial_bar_n-1, self.batch_size)
+        offset = torch.linspace(0, (self.batch_size - 1) * categorial_bar_n, self.batch_size)
         offset = offset.unsqueeze(dim=1) 
-        self.offset = offset.expand(self.batch_size, self.categorial_bar_n - 1) # I believe this is to(device)
+        self.offset = offset.expand(self.batch_size, categorial_bar_n) # I believe this is to(device)
 
 
     def forward(self, input_distribution: Tensor, next_distribution: Tensor, next_categorial_bar: Tensor) -> Tensor:
