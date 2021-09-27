@@ -70,10 +70,10 @@ class Model(nn.Module):
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
         cated = torch.cat(flats,dim=-1)
         if not self.dualing:
-            q = self.q_linear(cated).view(-1,self.action_size[0],self.n_support)
+            q = self.q_linear(cated).view(-1,self.action_size[0],self.categorial_bar_n)
         else:
-            a = self.advatage_linear(cated).view(-1,self.action_size[0],self.n_support)
-            v = self.value_linear(cated).view(-1,1,self.n_support)
+            a = self.advatage_linear(cated).view(-1,self.action_size[0],self.categorial_bar_n)
+            v = self.value_linear(cated).view(-1,1,self.categorial_bar_n)
             q = v + (a - a.mean(1,True))
         return self.softmax(q)
     
