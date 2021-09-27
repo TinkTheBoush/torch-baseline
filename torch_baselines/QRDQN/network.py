@@ -60,7 +60,7 @@ class Model(nn.Module):
                 nn.ReLU(),
                 lin(node,node),
                 nn.ReLU(),
-                lin(node, 1)
+                lin(node, n_support)
             )
         
 
@@ -71,7 +71,7 @@ class Model(nn.Module):
             q = self.q_linear(cated).view(-1,self.action_size[0],self.n_support)
         else:
             a = self.advatage_linear(cated).view(-1,self.action_size[0],self.n_support)
-            v = self.value_linear(cated).view(-1,1,1)
+            v = self.value_linear(cated).view(-1,1,self.n_support)
             q = v + a - a.mean(1, keepdim=True)
         return q
     
