@@ -81,10 +81,7 @@ class QRDQN(Q_Network_Family):
             else:
                 action = self.target_model(nxtobses).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             next_vals = dones*self.target_model(nxtobses).gather(1,action)
-            if self.n_step_method:
-                targets = (next_vals * (self.gamma**self.n_step)) + rewards
-            else:
-                targets = (next_vals * self.gamma) + rewards
+            targets = (next_vals * self._gamma) + rewards
         
         logit_valid_tile = targets.view(-1,self.n_support,1).repeat_interleave(self.n_support, dim=2)
         theta_loss_tile = vals.view(-1,1,self.n_support).repeat_interleave(self.n_support, dim=1)
