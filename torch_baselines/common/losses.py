@@ -48,7 +48,7 @@ class CategorialDistributionLoss(_Loss):
             C51_L = C51_b.floor().int()
             C51_U = C51_b.ceil().int()
             C51_L[ (C51_U > 0) * (C51_L == C51_U)] -= 1
-            C51_U[ (C51_L < (self.categorial_bar_n - 2)) * (C51_L == C51_U)] += 1
+            C51_U[ (C51_L < (self.categorial_bar_n - 1)) * (C51_L == C51_U)] += 1
             print(C51_L[-1])
             print(C51_U[-1])
             self.offset = self.offset.to(next_distribution).int()
