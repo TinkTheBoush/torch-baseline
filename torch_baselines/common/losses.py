@@ -52,7 +52,7 @@ class CategorialDistributionLoss(_Loss):
             print(C51_L[-1])
             print(C51_U[-1])
             self.offset = self.offset.to(next_distribution).int()
-            target_distribution = input_distribution.new_zeros(self.batch_size, self.categorial_bar_n) # Returns a Tensor of size size filled with 0. same dtype
+            target_distribution = input_distribution.new_zeros(self.batch_size, self.categorial_bar_n + 1) # Returns a Tensor of size size filled with 0. same dtype
             print((C51_U + self.offset).view(-1).max())
             print((C51_U + self.offset).view(-1).min())
             print(target_distribution.view(-1).shape)
