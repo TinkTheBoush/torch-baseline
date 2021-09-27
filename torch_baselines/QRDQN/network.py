@@ -19,9 +19,11 @@ class Model(nn.Module):
             lin = nn.Linear
         self.preprocess = nn.ModuleList([
             nn.Sequential(
-                nn.Conv2d(st[0],32,kernel_size=3,stride=1,padding=1,padding_mode='replicate'),
+                nn.Conv2d(st[0],32,kernel_size=7,stride=3,padding=3,padding_mode='replicate'),
                 nn.ReLU(),
-                nn.Conv2d(32,64,kernel_size=3,stride=1,padding=1,padding_mode='replicate'),
+                nn.Conv2d(32,64,kernel_size=5,stride=2,padding=2,padding_mode='replicate'),
+                nn.ReLU(),
+                nn.Conv2d(64,64,kernel_size=3,stride=1,padding=1,padding_mode='replicate'),
                 nn.Flatten()
             )
             if len(st) == 3 else nn.Identity()

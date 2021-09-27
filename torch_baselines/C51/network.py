@@ -43,7 +43,7 @@ class Model(nn.Module):
                 nn.ReLU(),
                 lin(node,node),
                 nn.ReLU(),
-                lin(node, action_size[0]*categorial_bar)
+                lin(node, action_size[0]*self.categorial_bar_n)
             )
         else:
             self.advatage_linear = nn.Sequential(
@@ -51,7 +51,7 @@ class Model(nn.Module):
                 nn.ReLU(),
                 lin(node,node),
                 nn.ReLU(),
-                lin(node, action_size[0]*categorial_bar)
+                lin(node, action_size[0]*self.categorial_bar_n)
             )
             
             self.value_linear = nn.Sequential(
@@ -59,7 +59,7 @@ class Model(nn.Module):
                 nn.ReLU(),
                 lin(node,node),
                 nn.ReLU(),
-                lin(node, self.categorial_bar)
+                lin(node, self.categorial_bar_n)
             )
             
         self.softmax = nn.Softmax(dim=2)
