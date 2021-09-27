@@ -53,7 +53,7 @@ class QRDQN(Q_Network_Family):
         else:
             self.loss = torch.nn.SmoothL1Loss()
         '''
-        self.quantile = torch.range(0.5 / self.n_support,1, 1 / self.n_support).to(self.device)
+        self.quantile = torch.arange(0.5 / self.n_support,1, 1 / self.n_support).to(self.device).view(1,1,self.support_size)
         
         print("----------------------model----------------------")
         print(self.model)
@@ -71,7 +71,7 @@ class QRDQN(Q_Network_Family):
         rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1,1)
         nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
-        dones = (~torch.from_numpy(data[4]).to(self.device)).float().view(-1,1,1)
+        dones = (~(torch.from_numpy(data[4]).to(self.device))).float().view(-1,1,1)
         self.model.sample_noise()
         self.target_model.sample_noise()
         vals = self.model(obses).gather(1,actions)

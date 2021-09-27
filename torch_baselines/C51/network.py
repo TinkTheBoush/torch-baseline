@@ -7,22 +7,20 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=64,noisy=False,dualing=False,ModelOptions=None,categorial_bar=51):
+    def __init__(self,state_size,action_size,node=64,noisy=False,dualing=False,ModelOptions=None,bar_mean=None):
         super(Model, self).__init__()
         self.dualing = dualing
         self.noisy = noisy
-        self.categorial_bar = categorial_bar
+        self.categorial_bar_n = bar_mean.shape[3]
         if noisy:
             lin = NoisyLinear
         else:
             lin = nn.Linear
         self.preprocess = nn.ModuleList([
             nn.Sequential(
-                nn.Conv2d(st[1],32,kernel_size=7,stride=3,padding=3,padding_mode='replicate'),
+                nn.Conv2d(st[0],32,kernel_size=3,stride=1,padding=1,padding_mode='replicate'),
                 nn.ReLU(),
-                nn.Conv2d(32,64,kernel_size=5,stride=2,padding=2,padding_mode='replicate'),
-                nn.ReLU(),
-                nn.Conv2d(64,64,kernel_size=3,stride=1,padding=1,padding_mode='replicate'),
+                nn.Conv2d(32,64,kernel_size=3,stride=1,padding=1,padding_mode='replicate'),
                 nn.Flatten()
             )
             if len(st) == 3 else nn.Identity()
@@ -78,7 +76,7 @@ class Model(nn.Module):
     
     def get_action(self,xs):
         with torch.no_grad():
-            return self(xs).max(-1)[1].view(-1,1).detach().cpu().clone()
+            return (self(xs)*self.bar_mean).mean(2).max(1)[1].view(-1,1).detach().cpu().clone()
         
     def sample_noise(self):
         if not self.noisy:
