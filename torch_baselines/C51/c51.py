@@ -73,7 +73,6 @@ class C51(Q_Network_Family):
         self.target_model.sample_noise()
         vals = self.model(obses).gather(1,actions).squeeze()
         with torch.no_grad():
-            
             if self.double_q:
                 next_actions = (self.model(nxtobses)*self._categorial_bar).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
             else:
