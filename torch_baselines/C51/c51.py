@@ -37,11 +37,11 @@ class C51(Q_Network_Family):
         
         self.model = Model(self.observation_space,self.action_size,
                            dualing=self.dualing_model,noisy=self.param_noise,
-                           bar_mean=self._categorial_bar,categorial_bar_n=self.categorial_bar_n,
+                           categorial_bar=self._categorial_bar,categorial_bar_n=self.categorial_bar_n,
                            **self.policy_kwargs)
         self.target_model = Model(self.observation_space,self.action_size,
                                   dualing=self.dualing_model,noisy=self.param_noise,
-                                  bar_mean=self._categorial_bar,categorial_bar_n=self.categorial_bar_n,
+                                  categorial_bar=self._categorial_bar,categorial_bar_n=self.categorial_bar_n,
                                   **self.policy_kwargs)
         self.model.train()
         self.model.to(self.device)
