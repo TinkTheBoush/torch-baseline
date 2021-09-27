@@ -32,7 +32,6 @@ class C51(Q_Network_Family):
         
         self.categorial_bar = torch.linspace(self.categorial_min,self.categorial_max,self.categorial_bar_n).view(1,self.categorial_bar_n).to(self.device)
         self._categorial_bar = self.categorial_bar.view(1,1,self.categorial_bar_n)
-        #self.bar_mean = ((self.categorial_bar[0][1:] + self.categorial_bar[0][:-1])/2.0).view(1,1,self._categorial_bar_n)
         self.delta_bar = torch.tensor((self.categorial_max - self.categorial_min)/(self.categorial_bar_n - 1)).to(self.device)
         
         self.model = Model(self.observation_space,self.action_size,
