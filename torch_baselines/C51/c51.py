@@ -80,6 +80,7 @@ class C51(Q_Network_Family):
                 next_actions = (self.target_model(nxtobses)*self._categorial_bar).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
             next_distribution = self.target_model(nxtobses).gather(1,next_actions).squeeze()
             targets_categorial_bar = (dones * self.categorial_bar * self._gamma) + rewards
+            print(targets_categorial_bar)
             
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
