@@ -66,7 +66,7 @@ class C51(Q_Network_Family):
             data = self.replay_buffer.sample(self.batch_size)
         obses = [torch.from_numpy(o).to(self.device).float() for o in data[0]]
         obses = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obses]
-        actions = torch.from_numpy(data[1]).to(self.device).view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
+        actions = torch.from_numpy(data[1]).to(self.device).view(-1,1,1).repeat_interleave(self._categorial_bar_n, dim=2)
         rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1)
         nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
@@ -77,9 +77,9 @@ class C51(Q_Network_Family):
         with torch.no_grad():
             
             if self.double_q:
-                next_actions = (self.model(nxtobses)*self._categorial_bar).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
+                next_actions = (self.model(nxtobses)*self._categorial_bar).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self._categorial_bar_n, dim=2)
             else:
-                next_actions = (self.target_model(nxtobses)*self._categorial_bar).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
+                next_actions = (self.target_model(nxtobses)*self._categorial_bar).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self._categorial_bar_n, dim=2)
             next_distribution = self.target_model(nxtobses).gather(1,next_actions).squeeze()
             targets_categorial_bar = (dones * self.categorial_bar * self._gamma) + rewards
             
