@@ -42,8 +42,7 @@ class CategorialDistributionLoss(_Loss):
 
     def forward(self, input_distribution: Tensor, next_distribution: Tensor, next_categorial_bar: Tensor) -> Tensor:
         with torch.no_grad():
-            Tz = next_categorial_bar.clamp(self.categorial_bar[0], self.categorial_bar[-1])
-            Tz = Tz.clamp(self.min, self.max)
+            Tz = next_categorial_bar.clamp(self.min, self.max)
             C51_b = (Tz - self.min) / self.delta
             print(C51_b.shape)
             C51_L = C51_b.floor().int()
