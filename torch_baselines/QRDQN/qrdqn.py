@@ -83,6 +83,7 @@ class QRDQN(Q_Network_Family):
                 logsum = torch.logsumexp((q_k_targets - v_k_target)/self.munchausen_entropy_tau, 1).unsqueeze(-1)
                 log_pi = q_k_targets - v_k_target - self.munchausen_entropy_tau*logsum
                 munchausen_addon = log_pi.gather(1, actions)
+                print(munchausen_addon.shape)
                 
                 rewards += self.munchausen_alpha*torch.clamp(munchausen_addon, min=-1, max=0)
             else:
