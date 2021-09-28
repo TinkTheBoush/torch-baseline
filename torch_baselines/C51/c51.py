@@ -84,7 +84,7 @@ class C51(Q_Network_Family):
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
             losses = self.loss(vals,next_distribution,targets_categorial_bar)
-            new_priorities = np.max(np.nan_to_num(losses.detach().cpu().clone().numpy()) + self.prioritized_replay_eps,self.prioritized_replay_eps)
+            new_priorities = np.maximum(np.nan_to_num(losses.detach().cpu().clone().numpy()) + self.prioritized_replay_eps,self.prioritized_replay_eps)
             self.replay_buffer.update_priorities(indexs,new_priorities)
             loss = (weights*losses).mean(-1)
         else:
