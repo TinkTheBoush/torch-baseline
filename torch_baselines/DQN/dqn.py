@@ -39,8 +39,6 @@ class DQN(Q_Network_Family):
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         self.loss = MSELosses()
-        if self.munchausen:
-            self.softmax = torch.nn.Softmax(1)
         
         print("----------------------model----------------------")
         print(self.model)
