@@ -84,7 +84,7 @@ class QRDQN(Q_Network_Family):
                 print(logsum.shape)
                 log_pi = q_k_targets - v_k_target - self.munchausen_entropy_tau*logsum
                 print(log_pi.shape)
-                munchausen_addon = log_pi.gather(1, actions).squeeze()
+                munchausen_addon = log_pi.gather(1, actions)
                 print(munchausen_addon.shape)
                 print(rewards.shape)
                 
