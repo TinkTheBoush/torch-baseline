@@ -80,11 +80,11 @@ class QRDQN(Q_Network_Family):
                 v_k_target = q_k_targets.max(1)[0].unsqueeze(-1)
                 logsum = torch.logsumexp((q_k_targets - v_k_target)/self.munchausen_entropy_tau, 1).unsqueeze(-1)
                 log_pi = q_k_targets - v_k_target - self.munchausen_entropy_tau*logsum
-                munchausen_addon = log_pi.gather(1, actions)
+                munchausen_addon = log_pi.gather(1, actions).squeeze()
                 
-                rewards += self.munchausen_alpha*torch.clamp(munchausen_addon, min=-1, max=0).squeeze()
+                rewards += self.munchausen_alpha*torch.clamp(munchausen_addon, min=-1, max=0)
             else:
-                next_vals = dones*next_q.gather(1,next_actions)
+                next_vals = (dones*next_q.gather(1,next_actions)).squeeze()
             targets = (next_vals * self._gamma) + rewards
         
         logit_valid_tile = targets.view(-1,self.n_support,1).repeat_interleave(self.n_support, dim=2)
