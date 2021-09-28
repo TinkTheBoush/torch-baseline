@@ -71,7 +71,7 @@ class DQN(Q_Network_Family):
                 logsum = torch.logsumexp((next_q - next_q.max(1)[0].unsqueeze(-1))/self.munchausen_entropy_tau , 1).unsqueeze(-1)
                 tau_log_pi_next = next_q - next_q.max(1)[0].unsqueeze(-1) - self.munchausen_entropy_tau*logsum
                 pi_target = torch.nn.functional.softmax(next_q/self.munchausen_entropy_tau, dim=1)
-                next_vals = pi_target*dones*(next_q.gather(1,next_actions) - tau_log_pi_next)
+                next_vals = (pi_target*dones*(next_q.gather(1,next_actions) - tau_log_pi_next)).sum(1)
                 
                 q_k_targets = self.target_model(obses)
                 v_k_target = q_k_targets.max(1)[0].unsqueeze(-1)
