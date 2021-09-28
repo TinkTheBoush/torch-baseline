@@ -56,7 +56,7 @@ class QRDQN(Q_Network_Family):
         obses = [torch.from_numpy(o).to(self.device).float() for o in data[0]]
         obses = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obses]
         actions = torch.from_numpy(data[1]).to(self.device).view(-1,1)
-        rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1,1)
+        rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1)
         nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~(torch.from_numpy(data[4]).to(self.device))).float().view(-1,1,1)
@@ -83,7 +83,7 @@ class QRDQN(Q_Network_Family):
                 logsum = torch.logsumexp((q_k_targets - v_k_target)/self.munchausen_entropy_tau, 1).unsqueeze(-1)
                 log_pi = q_k_targets - v_k_target - self.munchausen_entropy_tau*logsum
                 munchausen_addon = log_pi.gather(1, actions)
-                print(munchausen_addon.shape)
+                #print(munchausen_addon.shape)
                 
                 rewards += self.munchausen_alpha*torch.clamp(munchausen_addon, min=-1, max=0)
             else:
