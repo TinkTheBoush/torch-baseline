@@ -77,9 +77,13 @@ class QRDQN(Q_Network_Family):
                 next_vals = (pi_target*dones*(next_q.gather(1,next_actions) - tau_log_pi_next)).sum(1)
                 
                 q_k_targets = self.target_model(obses).mean(2)
+                print(q_k_targets.shape)
                 v_k_target = q_k_targets.max(1)[0].unsqueeze(-1)
+                print(v_k_target.shape)
                 logsum = torch.logsumexp((q_k_targets - v_k_target)/self.munchausen_entropy_tau, 1).unsqueeze(-1)
+                print(logsum.shape)
                 log_pi = q_k_targets - v_k_target - self.munchausen_entropy_tau*logsum
+                print(log_pi.shape)
                 munchausen_addon = log_pi.gather(1, actions).squeeze()
                 
                 rewards += self.munchausen_alpha*torch.clamp(munchausen_addon, min=-1, max=0)
