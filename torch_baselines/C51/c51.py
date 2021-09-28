@@ -79,7 +79,7 @@ class C51(Q_Network_Family):
             if self.double_q:
                 next_actions = (self.model(nxtobses)*self._categorial_bar).sum(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
             else:
-                next_actions = (next_q*self._categorial_bar).sum(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
+                next_actions = sum_q.max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
             next_distribution = next_q.gather(1,next_actions).squeeze()
             if self.munchausen:
                 logsum = torch.logsumexp((sum_q - sum_q.max(1)[0].unsqueeze(-1))/self.munchausen_entropy_tau , 1).unsqueeze(-1)
