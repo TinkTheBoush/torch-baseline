@@ -11,6 +11,7 @@ class C51(Q_Network_Family):
                  dualing_model = False, n_step = 1, learning_starts=1000, target_network_update_freq=2000, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
                  param_noise=False, munchausen=False, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
+                 categorial_max = 250, categorial_min = -250,
                  full_tensorboard_log=False, seed=None):
         
         super(C51, self).__init__(env, gamma, learning_rate, buffer_size, exploration_fraction,
