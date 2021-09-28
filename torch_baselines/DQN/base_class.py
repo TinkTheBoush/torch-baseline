@@ -18,7 +18,7 @@ class Q_Network_Family(object):
                  exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32, double_q=True,
                  dualing_model = False, n_step = 1, learning_starts=1000, target_network_update_freq=2000, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
-                 param_noise=False, munchausen = False, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
+                 param_noise=False, munchausen=False, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
         
         self.env = env
