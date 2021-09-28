@@ -74,18 +74,15 @@ class QRDQN(Q_Network_Family):
                 logsum = torch.logsumexp((next_mean_q - next_mean_q.max(1)[0].unsqueeze(-1))/self.munchausen_entropy_tau , 1).unsqueeze(-1)
                 tau_log_pi_next = (next_mean_q - next_mean_q.max(1)[0].unsqueeze(-1) - self.munchausen_entropy_tau*logsum).unsqueeze(-1)
                 pi_target = torch.nn.functional.softmax(next_mean_q/self.munchausen_entropy_tau, dim=1).unsqueeze(-1)
-                #print(tau_log_pi_next.shape)
-                #print(pi_target.shape)
-                next_vals = (pi_target*dones*(next_q.gather(1,next_actions) - tau_log_pi_next)).sum(1).unsqueeze(-1)
+                next_vals = (pi_target*dones*(next_q.gather(1,next_actions) - tau_log_pi_next)).sum(1)
                 
                 q_k_targets = self.target_model(obses).mean(2)
                 v_k_target = q_k_targets.max(1)[0].unsqueeze(-1)
                 logsum = torch.logsumexp((q_k_targets - v_k_target)/self.munchausen_entropy_tau, 1).unsqueeze(-1)
                 log_pi = q_k_targets - v_k_target - self.munchausen_entropy_tau*logsum
                 munchausen_addon = log_pi.gather(1, actions)
-                #print(munchausen_addon.shape)
                 
-                rewards += self.munchausen_alpha*torch.clamp(munchausen_addon, min=-1, max=0)
+                rewards += self.munchausen_alpha*torch.clamp(munchausen_addon, min=-1, max=0).squeeze()
             else:
                 next_vals = dones*next_q.gather(1,next_actions)
             targets = (next_vals * self._gamma) + rewards
