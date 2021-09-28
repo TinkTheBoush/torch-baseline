@@ -80,8 +80,6 @@ class DQN(Q_Network_Family):
                 munchausen_addon = log_pi.gather(1, actions)
                 
                 rewards += self.munchausen_alpha*torch.clamp(munchausen_addon, min=-1, max=0)
-                print(next_vals.shape)
-                print(rewards.shape)
             else:
                 next_vals = dones*next_q.gather(1,next_actions)
                 
