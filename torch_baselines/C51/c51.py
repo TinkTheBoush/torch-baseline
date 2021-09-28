@@ -74,12 +74,29 @@ class C51(Q_Network_Family):
         self.target_model.sample_noise()
         vals = self.model(obses).gather(1,actions).squeeze()
         with torch.no_grad():
+            next_q = self.target_model(nxtobses)
+            sum_q = (next_q*self._categorial_bar).sum(2)
             if self.double_q:
                 next_actions = (self.model(nxtobses)*self._categorial_bar).sum(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
             else:
-                next_actions = (self.target_model(nxtobses)*self._categorial_bar).sum(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
-            next_distribution = self.target_model(nxtobses).gather(1,next_actions).squeeze()
-            targets_categorial_bar = (dones * self.categorial_bar * self._gamma) + rewards
+                next_actions = (next_q*self._categorial_bar).sum(2).max(1)[1].view(-1,1,1).repeat_interleave(self.categorial_bar_n, dim=2)
+            next_distribution = next_q.gather(1,next_actions).squeeze()
+            if self.munchausen:
+                logsum = torch.logsumexp((sum_q - sum_q.max(1)[0].unsqueeze(-1))/self.munchausen_entropy_tau , 1).unsqueeze(-1)
+                tau_log_pi_next = sum_q - sum_q.max(1)[0].unsqueeze(-1) - self.munchausen_entropy_tau*logsum
+                pi_target = torch.nn.functional.softmax(sum_q/self.munchausen_entropy_tau, dim=1)
+                categorial_bar = (pi_target*dones*(self.categorial_bar - tau_log_pi_next))
+                
+                q_k_targets = self.target_model(obses)
+                v_k_target = q_k_targets.max(1)[0].unsqueeze(-1)
+                logsum = torch.logsumexp((q_k_targets - v_k_target)/self.munchausen_entropy_tau, 1).unsqueeze(-1)
+                log_pi = q_k_targets - v_k_target - self.munchausen_entropy_tau*logsum
+                munchausen_addon = log_pi.gather(1, actions)
+                
+                rewards += self.munchausen_alpha*torch.clamp(munchausen_addon, min=-1, max=0)
+                targets_categorial_bar = (dones * categorial_bar * self._gamma) + rewards
+            else:
+                targets_categorial_bar = (dones * self.categorial_bar * self._gamma) + rewards
             
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
