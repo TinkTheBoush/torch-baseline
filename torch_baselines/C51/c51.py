@@ -89,7 +89,7 @@ class C51(Q_Network_Family):
                 print(pi_target.shape)
                 categorial_bar = self.categorial_bar - (pi_target*tau_log_pi_next).sum(1)
                 
-                q_k_targets = self.target_model(obses)
+                q_k_targets = (self.target_model(obses)*self._categorial_bar).sum(2)
                 v_k_target = q_k_targets.max(1)[0].unsqueeze(-1)
                 logsum = torch.logsumexp((q_k_targets - v_k_target)/self.munchausen_entropy_tau, 1).unsqueeze(-1)
                 log_pi = q_k_targets - v_k_target - self.munchausen_entropy_tau*logsum
