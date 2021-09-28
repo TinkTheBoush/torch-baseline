@@ -69,7 +69,7 @@ class C51(Q_Network_Family):
         rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1)
         nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
-        dones = (~(torch.from_numpy(data[4]).to(self.device))).float().view(-1,1,1)
+        dones = (~(torch.from_numpy(data[4]).to(self.device))).float().view(-1,1)
         self.model.sample_noise()
         self.target_model.sample_noise()
         vals = self.model(obses).gather(1,actions).squeeze()
@@ -87,7 +87,7 @@ class C51(Q_Network_Family):
                 pi_target = torch.nn.functional.softmax(sum_q/self.munchausen_entropy_tau, dim=1).unsqueeze(-1)
                 print(tau_log_pi_next.shape)
                 print(pi_target.shape)
-                categorial_bar = (dones*(self._categorial_bar - pi_target*tau_log_pi_next)).sum(1)
+                categorial_bar = self.categorial_bar - (pi_target*tau_log_pi_next).sum(1)
                 
                 q_k_targets = self.target_model(obses)
                 v_k_target = q_k_targets.max(1)[0].unsqueeze(-1)
