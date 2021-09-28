@@ -39,6 +39,8 @@ class DQN(Q_Network_Family):
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         self.loss = MSELosses()
+        if self.munchausen:
+            self.softmax = torch.nn.Softmax(1)
         
         print("----------------------model----------------------")
         print(self.model)
@@ -61,11 +63,28 @@ class DQN(Q_Network_Family):
         self.target_model.sample_noise()
         vals = self.model(obses).gather(1,actions)
         with torch.no_grad():
+            next_q = self.target_model(nxtobses)
             if self.double_q:
-                double_actions = self.model(nxtobses).max(1)[1].view(-1,1)
-                next_vals = dones*self.target_model(nxtobses).gather(1,double_actions)
+                next_actions = self.model(nxtobses).max(1)[1].view(-1,1)
             else:
-                next_vals = dones*torch.max(self.target_model(nxtobses),1)[0].view(-1,1)
+                next_actions = next_q.max(1)[1].view(-1,1)
+            
+            if self.munchausen:
+                logsum = torch.logsumexp((next_q - next_q.max(1)[0].unsqueeze(-1))/self.munchausen_entropy_tau , 1).unsqueeze(-1)
+                tau_log_pi_next = next_q - next_q.max(1)[0].unsqueeze(-1) - self.munchausen_entropy_tau*logsum
+                pi_target = torch.functional.softmax(next_q/self.munchausen_entropy_tau, dim=1)
+                next_vals = pi_target*dones*(next_q.gather(1,next_actions) - tau_log_pi_next)
+                
+                q_k_targets = self.target_model(obses)
+                v_k_target = q_k_targets.max(1)[0].unsqueeze(-1)
+                logsum = torch.logsumexp((q_k_targets - v_k_target)/self.munchausen_entropy_tau, 1).unsqueeze(-1)
+                log_pi = q_k_targets - v_k_target - self.munchausen_entropy_tau*logsum
+                munchausen_addon = log_pi.gather(1, actions)
+                
+                rewards += self.munchausen_alpha*torch.clamp(munchausen_addon, min=-1, max=0)
+            else:
+                next_vals = dones*next_q.gather(1,next_actions)
+                
             targets = (next_vals * self._gamma) + rewards
             
 
@@ -74,7 +93,6 @@ class DQN(Q_Network_Family):
             indexs = data[6]
             new_priorities = np.abs((targets - vals).squeeze().detach().cpu().clone().numpy()) + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
-            #loss = self.loss(vals,targets).mean(-1)
             loss = (weights*self.loss(vals,targets)).mean(-1)
         else:
             loss = self.loss(vals,targets).mean(-1)
