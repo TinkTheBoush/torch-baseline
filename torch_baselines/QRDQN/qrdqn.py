@@ -75,7 +75,7 @@ class QRDQN(Q_Network_Family):
                 tau_log_pi_next = (next_mean_q - next_mean_q.max(1)[0].unsqueeze(-1) - self.munchausen_entropy_tau*logsum).unsqueeze(-1)
                 pi_target = torch.nn.functional.softmax(next_mean_q/self.munchausen_entropy_tau, dim=1).unsqueeze(-1)
                 print(tau_log_pi_next.shape)
-                print(tau_log_pi_next.pi_target)
+                print(pi_target.shape)
                 #next_vals = (pi_target*dones*(next_q.gather(1,next_actions).squeeze() - tau_log_pi_next)).sum(1).unsqueeze(-1)
                 
                 q_k_targets = self.target_model(obses).mean(2)
