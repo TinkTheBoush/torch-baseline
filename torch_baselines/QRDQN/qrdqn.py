@@ -72,8 +72,8 @@ class QRDQN(Q_Network_Family):
                 next_actions = next_q.mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             if self.munchausen:
                 logsum = torch.logsumexp((next_mean_q - next_mean_q.max(1)[0].unsqueeze(-1))/self.munchausen_entropy_tau , 1).unsqueeze(-1)
-                tau_log_pi_next = next_mean_q - next_mean_q.max(1)[0].unsqueeze(-1) - self.munchausen_entropy_tau*logsum
-                pi_target = torch.nn.functional.softmax(next_mean_q/self.munchausen_entropy_tau, dim=1).unsqueeze(-1)
+                tau_log_pi_next = (next_mean_q - next_mean_q.max(1)[0].unsqueeze(-1) - self.munchausen_entropy_tau*logsum).unsqueeze(1)
+                pi_target = torch.nn.functional.softmax(next_mean_q/self.munchausen_entropy_tau, dim=1).unsqueeze(1)
                 next_vals = (pi_target*dones*(next_q.gather(1,next_actions).squeeze() - tau_log_pi_next)).sum(1).unsqueeze(-1)
                 
                 q_k_targets = self.target_model(obses).mean(2)
