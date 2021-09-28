@@ -21,9 +21,9 @@ class Model(nn.Module):
             nn.Sequential(
                 nn.Conv2d(st[0],32,kernel_size=3,stride=1,padding=1,padding_mode='replicate'),
                 nn.ReLU(),
-                nn.Conv2d(32,64,kernel_size=3,stride=1,padding=1,padding_mode='replicate'),
+                nn.Conv2d(32,64,kernel_size=3,stride=1),
                 nn.ReLU(),
-                nn.Conv2d(64,64,kernel_size=3,stride=1,padding=1,padding_mode='replicate'),
+                nn.Conv2d(64,64,kernel_size=3,stride=1),
                 nn.Flatten()
             )
             if len(st) == 3 else nn.Identity()
