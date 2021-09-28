@@ -64,11 +64,27 @@ class QRDQN(Q_Network_Family):
         self.target_model.sample_noise()
         vals = self.model(obses).gather(1,actions)
         with torch.no_grad():
+            next_q = self.target_model(nxtobses)
+            next_mean_q = next_q.mean(2)
             if self.double_q:
-                action = self.model(nxtobses).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
+                next_actions = self.model(nxtobses).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             else:
-                action = self.target_model(nxtobses).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
-            next_vals = dones*self.target_model(nxtobses).gather(1,action)
+                next_actions = next_q.mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
+            if self.munchausen:
+                logsum = torch.logsumexp((next_mean_q - next_mean_q.max(1)[0].unsqueeze(-1))/self.munchausen_entropy_tau , 1).unsqueeze(-1)
+                tau_log_pi_next = next_mean_q - next_mean_q.max(1)[0].unsqueeze(-1) - self.munchausen_entropy_tau*logsum
+                pi_target = torch.nn.functional.softmax(next_mean_q/self.munchausen_entropy_tau, dim=1)
+                next_vals = (pi_target*dones*(next_mean_q.gather(1,next_actions).squeeze() - tau_log_pi_next)).sum(1).unsqueeze(-1)
+                
+                q_k_targets = self.target_model(obses).mean(2)
+                v_k_target = q_k_targets.max(1)[0].unsqueeze(-1)
+                logsum = torch.logsumexp((q_k_targets - v_k_target)/self.munchausen_entropy_tau, 1).unsqueeze(-1)
+                log_pi = q_k_targets - v_k_target - self.munchausen_entropy_tau*logsum
+                munchausen_addon = log_pi.gather(1, actions)
+                
+                rewards += self.munchausen_alpha*torch.clamp(munchausen_addon, min=-1, max=0)
+            else:
+                next_vals = dones*next_q.gather(1,next_actions)
             targets = (next_vals * self._gamma) + rewards
         
         logit_valid_tile = targets.view(-1,self.n_support,1).repeat_interleave(self.n_support, dim=2)
