@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=64,noisy=False,dualing=False,ModelOptions=None,n_support = 200):
+    def __init__(self,state_size,action_size,node=64,noisy=False,dualing=False,ModelOptions=None,n_support = 80):
         super(Model, self).__init__()
         self.dualing = dualing
         self.noisy = noisy
