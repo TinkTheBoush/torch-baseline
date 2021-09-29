@@ -41,37 +41,31 @@ class Model(nn.Module):
                         ))
         
         self.state_embedding = nn.Sequential(
-            lin(flatten_size,node),
+            lin(flatten_size,flatten_size),
             nn.ReLU()
         )
         
         self.register_buffer('pi_mtx', torch.from_numpy(np.expand_dims(np.pi * np.arange(0, 128,dtype=np.float32), axis=0))) # for non updating constant values
         self.quantile_embedding = nn.Sequential(
-            lin(128,node),
+            lin(128,flatten_size),
             nn.ReLU()
         )
         
         if not self.dualing:
             self.q_linear = nn.Sequential(
-                lin(node,node),
-                nn.ReLU(),
-                lin(node,node),
+                lin(flatten_size,node),
                 nn.ReLU(),
                 lin(node, action_size[0])
             )
         else:
             self.advatage_linear = nn.Sequential(
-                lin(node,node),
-                nn.ReLU(),
-                lin(node,node),
+                lin(flatten_size,node),
                 nn.ReLU(),
                 lin(node, action_size[0])
             )
             
             self.value_linear = nn.Sequential(
-                lin(node,node),
-                nn.ReLU(),
-                lin(node,node),
+                lin(flatten_size,node),
                 nn.ReLU(),
                 lin(node, 1)
             )
