@@ -45,7 +45,7 @@ class Model(nn.Module):
             nn.ReLU()
         )
         
-        self.register_buffer('pi_mtx', torch.from_numpy(np.expand_dims(np.pi * np.arange(0, 128), axis=0))) # for non updating constant values
+        self.register_buffer('pi_mtx', torch.from_numpy(np.expand_dims(np.pi * np.arange(0, 128,dtype=np.float32), axis=0))) # for non updating constant values
         self.quantile_embedding = nn.Sequential(
             lin(128,node),
             nn.ReLU()
