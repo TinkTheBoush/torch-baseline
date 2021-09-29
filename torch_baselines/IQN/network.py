@@ -107,4 +107,4 @@ class Qunatile_Maker(nn.Module):
         self.dummy_param = nn.Parameter(torch.empty(0)) #for auto device sinc!
     
     def forward(self, buffer_size):
-        return torch.rand([buffer_size,self.n_support],device=self.dummy_param.device)
+        return torch.rand([buffer_size,self.n_support],dtype=torch.float32,device=self.dummy_param.device)
