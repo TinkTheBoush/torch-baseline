@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 from torch_baselines.DQN.base_class import Q_Network_Family
-from torch_baselines.IQN.network import Model
+from torch_baselines.IQN.network import Model, Qunatile_Maker
 from torch_baselines.common.losses import QRHuberLosses
 
 class IQN(Q_Network_Family):
@@ -38,6 +38,8 @@ class IQN(Q_Network_Family):
         self.target_model.load_state_dict(self.model.state_dict())
         self.target_model.train()
         self.target_model.to(self.device)
+        self.quantile = Qunatile_Maker(self.n_support)
+        self.quantile.to(self.device)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         self.loss = QRHuberLosses(support_size=self.n_support)
@@ -47,6 +49,16 @@ class IQN(Q_Network_Family):
         print("----------------------model----------------------")
         print(self.model)
         print("-------------------------------------------------")
+        
+    def actions(self,obs,epsilon,befor_train):
+        if (epsilon <= np.random.uniform(0,1) or self.param_noise) and not befor_train:
+            obs = [torch.from_numpy(o).to(self.device).float() for o in obs]
+            obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
+            self.model.sample_noise()
+            actions = self.model.get_action(obs,self.quantile(1)).numpy()
+        else:
+            actions = np.random.choice(self.action_size[0], [self.worker_size,1])
+        return actions
     
     def _train_step(self, steps):
         # Sample a batch from the replay buffer
@@ -61,14 +73,16 @@ class IQN(Q_Network_Family):
         nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~(torch.from_numpy(data[4]).to(self.device))).float().view(-1,1,1)
+        quantile = self.quantile(self.batch_size)
+        quantile_target = self.quantile(self.batch_size)
         self.model.sample_noise()
         self.target_model.sample_noise()
-        vals = self.model(obses).gather(1,actions.view(-1,1,1).repeat_interleave(self.n_support, dim=2))
+        vals = self.model(obses,quantile).gather(1,actions.view(-1,1,1).repeat_interleave(self.n_support, dim=2))
         with torch.no_grad():
-            next_q = self.target_model(nxtobses)
+            next_q = self.target_model(nxtobses,quantile_target)
             next_mean_q = next_q.mean(2)
             if self.double_q:
-                next_actions = self.model(nxtobses).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
+                next_actions = self.model(nxtobses,quantile_target).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             else:
                 next_actions = next_q.mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             if self.munchausen:
@@ -94,13 +108,13 @@ class IQN(Q_Network_Family):
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
-            losses = self.loss(theta_loss_tile,logit_valid_tile,self.quantile)
+            losses = self.loss(theta_loss_tile,logit_valid_tile,quantile)
             new_priorities = losses.detach().cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
             loss = losses.mean(-1)
             loss = (weights*losses).mean(-1)
         else:
-            loss = self.loss(theta_loss_tile,logit_valid_tile,self.quantile).mean(-1)
+            loss = self.loss(theta_loss_tile,logit_valid_tile,quantile).mean(-1)
         
         self.optimizer.zero_grad()
         loss.backward()

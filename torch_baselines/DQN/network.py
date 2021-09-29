@@ -81,6 +81,6 @@ class Model(nn.Module):
     def sample_noise(self):
         if not self.noisy:
             return
-        for idx,m in enumerate(self.modules()):
+        for m in self.modules():
             if isinstance(m,NoisyLinear):
                 m.sample_noise()

@@ -89,14 +89,14 @@ class Model(nn.Module):
             q = v + a - a.mean(1, keepdim=True)
         return q
     
-    def get_action(self,xs):
+    def get_action(self,xs, quantile):
         with torch.no_grad():
-            return self(xs).mean(2).max(1)[1].view(-1,1).detach().cpu().clone()
+            return self(xs,quantile).mean(2).max(1)[1].view(-1,1).detach().cpu().clone()
         
     def sample_noise(self):
         if not self.noisy:
             return
-        for idx,m in enumerate(self.modules()):
+        for m in self.modules():
             if isinstance(m,NoisyLinear):
                 m.sample_noise()
                 
@@ -104,8 +104,7 @@ class Qunatile_Maker(nn.Module):
     def __init__(self,n_support = 64):
         super(Qunatile_Maker, self).__init__()
         self.n_support = n_support
-        self.dummy_param = nn.Parameter(torch.empty(0))
-
+        self.dummy_param = nn.Parameter(torch.empty(0)) #for auto device sinc!
     
     def forward(self, buffer_size):
-        return torch.rand([buffer_size,self.n_support]).to(self.dummy_param.device)
+        return torch.rand([buffer_size,self.n_support],device=self.dummy_param.device)
