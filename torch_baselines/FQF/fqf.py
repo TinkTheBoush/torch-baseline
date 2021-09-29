@@ -74,16 +74,16 @@ class FQF(Q_Network_Family):
         nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~(torch.from_numpy(data[4]).to(self.device))).float().view(-1,1,1)
-        quantile = self.quantile(self.batch_size)
-        quantile_target = self.quantile(self.batch_size)
+        quantile = self.quantile(obses)
+        quantile_next = self.quantile(nxtobses)
         self.model.sample_noise()
         self.target_model.sample_noise()
         vals = self.model(obses,quantile).gather(1,actions.view(-1,1,1).repeat_interleave(self.n_support, dim=2))
         with torch.no_grad():
-            next_q = self.target_model(nxtobses,quantile_target)
+            next_q = self.target_model(nxtobses,quantile_next)
             next_mean_q = next_q.mean(2)
             if self.double_q:
-                next_actions = self.model(nxtobses,quantile_target).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
+                next_actions = self.model(nxtobses,quantile_next).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             else:
                 next_actions = next_q.mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             if self.munchausen:
