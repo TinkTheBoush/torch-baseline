@@ -7,12 +7,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=256,noisy=False,dualing=False,ModelOptions=None,n_support = 200):
+    def __init__(self,state_size,action_size,node=256,noisy=False,dualing=False,ModelOptions=None,n_support = 64):
         super(Model, self).__init__()
         self.dualing = dualing
         self.noisy = noisy
         self.n_support = n_support
         self.action_size = action_size
+        self.node = node
         if noisy:
             lin = NoisyLinear
         else:
@@ -38,6 +39,7 @@ class Model(nn.Module):
                         for pr,st in zip(self.preprocess,state_size)
                         ]
                         ))
+        
         self.state_embedding = nn.Sequential(
             lin(flatten_size,node),
             nn.ReLU()
@@ -65,21 +67,25 @@ class Model(nn.Module):
             self.value_linear = nn.Sequential(
                 lin(node,node),
                 nn.ReLU(),
-                lin(node, n_support)
+                lin(node, 1)
             )
         
 
     def forward(self, xs, quantile):
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
         cated = torch.cat(flats,dim=-1)
-        state_embed = self.state_embedding(cated)
-        quantile_embed = self.tau_embedding(quantile)
+        
+        state_embed = self.state_embedding(cated).unsqueeze(2).repeat_interleave(self.n_support, dim=2).view(-1,self.node)
+        costau = quantile.view(-1,1)*self.pi_mtx
+        quantile_embed = self.quantile_embedding(costau)
+        
+        mul_embed = torch.multiply(state_embed,quantile_embed)
         
         if not self.dualing:
-            q = self.q_linear(cated).view(-1,self.action_size[0],self.n_support)
+            q = self.q_linear(mul_embed).view(-1,self.action_size[0],self.n_support)
         else:
-            a = self.advatage_linear(cated).view(-1,self.action_size[0],self.n_support)
-            v = self.value_linear(cated).view(-1,1,self.n_support)
+            a = self.advatage_linear(mul_embed).view(-1,self.action_size[0],self.n_support)
+            v = self.value_linear(mul_embed).view(-1,1,self.n_support)
             q = v + a - a.mean(1, keepdim=True)
         return q
     
