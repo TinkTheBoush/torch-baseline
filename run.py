@@ -6,6 +6,7 @@ from torch_baselines.DQN.dqn import DQN
 from torch_baselines.C51.c51 import C51
 from torch_baselines.QRDQN.qrdqn import QRDQN
 from torch_baselines.IQN.iqn import IQN
+from torch_baselines.FQF.fqf import FQF
 from mlagents_envs.environment import UnityEnvironment,ActionTuple
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
@@ -76,7 +77,7 @@ if __name__ == "__main__":
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
                     tensorboard_log=args.logdir+env_name)
     elif args.algo == "FQF":
-        agent = QRDQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
+        agent = FQF(env,batch_size = args.batch, target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
                     tensorboard_log=args.logdir+env_name)
