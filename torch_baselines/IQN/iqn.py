@@ -74,15 +74,15 @@ class IQN(Q_Network_Family):
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~(torch.from_numpy(data[4]).to(self.device))).float().view(-1,1,1)
         quantile = self.quantile(self.batch_size)
-        quantile_target = self.quantile(self.batch_size)
+        quantile_next = self.quantile(self.batch_size)
         self.model.sample_noise()
         self.target_model.sample_noise()
         vals = self.model(obses,quantile).gather(1,actions.view(-1,1,1).repeat_interleave(self.n_support, dim=2))
         with torch.no_grad():
-            next_q = self.target_model(nxtobses,quantile_target)
+            next_q = self.target_model(nxtobses,quantile_next)
             next_mean_q = next_q.mean(2)
             if self.double_q:
-                next_actions = self.model(nxtobses,quantile_target).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
+                next_actions = self.model(nxtobses,quantile_next).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             else:
                 next_actions = next_q.mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             if self.munchausen:
@@ -91,7 +91,7 @@ class IQN(Q_Network_Family):
                 pi_target = torch.nn.functional.softmax(next_mean_q/self.munchausen_entropy_tau, dim=1).unsqueeze(-1)
                 next_vals = (pi_target*dones*(next_q.gather(1,next_actions) - tau_log_pi_next)).sum(1)
                 
-                q_k_targets = self.target_model(obses).mean(2)
+                q_k_targets = self.target_model(obses,quantile).mean(2)
                 v_k_target = q_k_targets.max(1)[0].unsqueeze(-1)
                 logsum = torch.logsumexp((q_k_targets - v_k_target)/self.munchausen_entropy_tau, 1).unsqueeze(-1)
                 log_pi = q_k_targets - v_k_target - self.munchausen_entropy_tau*logsum
