@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 from torch_baselines.DQN.base_class import Q_Network_Family
-from torch_baselines.FQF.network import Model, Qunatile_Maker
+from torch_baselines.FQF.network import Model, QuantileFunction
 from torch_baselines.common.losses import QRHuberLosses
 
 class FQF(Q_Network_Family):
@@ -38,13 +38,12 @@ class FQF(Q_Network_Family):
         self.target_model.load_state_dict(self.model.state_dict())
         self.target_model.train()
         self.target_model.to(self.device)
-        self.quantile = Qunatile_Maker(self.n_support)
+        self.quantile = QuantileFunction(self.n_support)
         self.quantile.to(self.device)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
+        self.quantile_optimizer = torch.optim.Adam(self.quantile.parameters(),lr=self.learning_rate)
         self.loss = QRHuberLosses(support_size=self.n_support)
-        
-        #self.quantile = torch.arange(0.5 / self.n_support,1, 1 / self.n_support).to(self.device).view(1,1,self.n_support)
         
         print("----------------------model----------------------")
         print(self.model)
@@ -55,7 +54,9 @@ class FQF(Q_Network_Family):
             obs = [torch.from_numpy(o).to(self.device).float() for o in obs]
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             self.model.sample_noise()
-            actions = self.model.get_action(obs,self.quantile(1)).numpy()
+            self.quantile.sample_noise()
+            _, _, quantile_hat, _ = self.quantile(obs)
+            actions = self.model.get_action(obs,quantile_hat).numpy()
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
         return actions

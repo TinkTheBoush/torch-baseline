@@ -134,7 +134,7 @@ class QuantileFunction(nn.Module):
                         ))
         
         self.linear = nn.Sequential(
-                lin(node,node),
+                lin(flatten_size,node),
                 nn.ReLU(),
                 lin(node, n_support),
                 nn.Softmax(1)
@@ -144,31 +144,15 @@ class QuantileFunction(nn.Module):
     def forward(self, xs):
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
         cated = torch.cat(flats,dim=-1)
-        softmax = self.linear(cated)
-        quantile = torch.cat([torch.zeros([cated.shape(0),1]),torch.cumsum(softmax,1)],1)
-        quantile = (quantile[:][1:] + quantile[:][:-1])/2.0
-        return quantile
-        
+        pi = self.linear(cated)
+        quantile = torch.cat([torch.zeros([cated.shape(0),1]),torch.cumsum(pi,1)],1)
+        quantile_hat = (quantile[:][1:] + quantile[:][:-1])/2.0
+        entropies = -(pi.log * pi).sum(1,keepdim=True)
+        return pi, quantile, quantile_hat, entropies
     
-'''
-    with tf.variable_scope(scope, reuse=reuse):
-        if self.feature_extraction == "cnn":
-            critics_h = self.cnn_extractor(obs, **self.cnn_kwargs)
-        else:
-            critics_h = tf.layers.flatten(obs)
-
-        # Concatenate preprocessed state and action
-        qi_h = tf.concat([critics_h, action], axis=-1)
-
-        qi_h = mlp(qi_h, self.layers, self.activ_fn, layer_norm=self.layer_norm)
-        #qi_h = tf.layers.dense(qi_h, n_support, name="qi")
-        #logqi = tf.nn.log_softmax(qi_h,axis=1)
-        #qi = tf.exp(logqi)
-        qi = tf.layers.dense(qi_h, n_support, tf.nn.softmax, name="qi")
-        logqi = tf.log(qi)
-        tau = tf.math.cumsum(qi,axis=1)
-        tau = tf.concat([tf.zeros([tf.shape(tau)[0],1]),tau],axis=-1)
-        tau_hats = tf.stop_gradient((tau[:, :-1] + tau[:, 1:]) / 2.0)
-        entropies = -tf.reduce_sum(logqi * qi,axis=-1,keepdims=True)
-    return qi, tau, tau_hats, entropies
-'''
+    def sample_noise(self):
+        if not self.noisy:
+            return
+        for m in self.modules():
+            if isinstance(m,NoisyLinear):
+                m.sample_noise()
