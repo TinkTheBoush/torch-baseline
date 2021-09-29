@@ -22,8 +22,8 @@ class C51(Q_Network_Family):
                  full_tensorboard_log, seed)
         
         self.categorial_bar_n = categorial_bar_n
-        self.categorial_min = -250
-        self.categorial_max = 250
+        self.categorial_max = categorial_max
+        self.categorial_min = categorial_min
         
         if _init_setup_model:
             self.setup_model() 
