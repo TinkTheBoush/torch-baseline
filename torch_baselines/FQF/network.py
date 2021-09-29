@@ -102,7 +102,7 @@ class Model(nn.Module):
                 m.sample_noise()
                 
 class QuantileFunction(nn.Module):
-    def __init__(self,state_size,node=256,noisy=False,ModelOptions=None,n_support = 64):
+    def __init__(self,state_size,node=256,noisy=False,ModelOptions=None,preprocess=None,n_support = 64):
         super(QuantileFunction, self).__init__()
         self.noisy = noisy
         self.n_support = n_support
@@ -111,19 +111,8 @@ class QuantileFunction(nn.Module):
             lin = NoisyLinear
         else:
             lin = nn.Linear
-        self.preprocess = nn.ModuleList([
-            nn.Sequential(
-                nn.Conv2d(st[0],32,kernel_size=3,stride=1,padding=1,padding_mode='replicate'),
-                nn.ReLU(),
-                nn.Conv2d(32,64,kernel_size=3,stride=1),
-                nn.ReLU(),
-                nn.Conv2d(64,64,kernel_size=3,stride=1),
-                nn.ReLU(),
-                nn.Flatten()
-            )
-            if len(st) == 3 else nn.Identity()
-            for st in state_size 
-        ])
+        
+        self.preprocess = preprocess #get embeding net from iqn
         
         flatten_size = np.sum(
                        np.asarray(
