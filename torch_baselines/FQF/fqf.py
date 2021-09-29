@@ -3,7 +3,7 @@ import numpy as np
 
 from torch_baselines.DQN.base_class import Q_Network_Family
 from torch_baselines.FQF.network import Model, QuantileFunction
-from torch_baselines.common.losses import QRHuberLosses
+from torch_baselines.common.losses import QRHuberLosses, QuantileFunctionLoss 
 
 class FQF(Q_Network_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3, n_support = 64,
@@ -21,6 +21,7 @@ class FQF(Q_Network_Family):
                  full_tensorboard_log, seed)
         
         self.n_support = n_support
+        self.ent_coef = 0.1
         
         if _init_setup_model:
             self.setup_model()
@@ -44,6 +45,7 @@ class FQF(Q_Network_Family):
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         self.quantile_optimizer = torch.optim.Adam(self.quantile.parameters(),lr=self.learning_rate)
         self.loss = QRHuberLosses(support_size=self.n_support)
+        self.quantile_loss = QuantileFunctionLoss(support_size=self.n_support)
         
         print("----------------------model----------------------")
         print(self.model)
@@ -55,7 +57,7 @@ class FQF(Q_Network_Family):
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             self.model.sample_noise()
             self.quantile.sample_noise()
-            _, _, quantile_hat, _ = self.quantile(obs)
+            _, quantile_hat, _ = self.quantile(obs)
             actions = self.model.get_action(obs,quantile_hat).numpy()
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
@@ -74,11 +76,11 @@ class FQF(Q_Network_Family):
         nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
         dones = (~(torch.from_numpy(data[4]).to(self.device))).float().view(-1,1,1)
-        quantile = self.quantile(obses)
-        quantile_next = self.quantile(nxtobses)
+        quantile, quantile_hat, entropies = self.quantile(obses)
+        quantile_next, _, _ = self.quantile(nxtobses)
         self.model.sample_noise()
         self.target_model.sample_noise()
-        vals = self.model(obses,quantile).gather(1,actions.view(-1,1,1).repeat_interleave(self.n_support, dim=2))
+        vals = self.model(obses,quantile_hat).gather(1,actions.view(-1,1,1).repeat_interleave(self.n_support, dim=2))
         with torch.no_grad():
             next_q = self.target_model(nxtobses,quantile_next)
             next_mean_q = next_q.mean(2)
@@ -92,7 +94,7 @@ class FQF(Q_Network_Family):
                 pi_target = torch.nn.functional.softmax(next_mean_q/self.munchausen_entropy_tau, dim=1).unsqueeze(-1)
                 next_vals = (pi_target*dones*(next_q.gather(1,next_actions) - tau_log_pi_next)).sum(1)
                 
-                q_k_targets = self.target_model(obses).mean(2)
+                q_k_targets = self.target_model(obses,quantile_hat).mean(2)
                 v_k_target = q_k_targets.max(1)[0].unsqueeze(-1)
                 logsum = torch.logsumexp((q_k_targets - v_k_target)/self.munchausen_entropy_tau, 1).unsqueeze(-1)
                 log_pi = q_k_targets - v_k_target - self.munchausen_entropy_tau*logsum
@@ -109,17 +111,26 @@ class FQF(Q_Network_Family):
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
-            losses = self.loss(theta_loss_tile,logit_valid_tile,quantile)
+            losses = self.loss(theta_loss_tile,logit_valid_tile,quantile_hat)
             new_priorities = losses.detach().cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
             loss = losses.mean(-1)
             loss = (weights*losses).mean(-1)
         else:
-            loss = self.loss(theta_loss_tile,logit_valid_tile,quantile).mean(-1)
+            loss = self.loss(theta_loss_tile,logit_valid_tile,quantile_hat).mean(-1)
+        
+        tua_vals = self.model(obses,quantile[:][1:-1]).gather(1,actions.view(-1,1,1).repeat_interleave(self.n_support, dim=2)).squeeze()
+        qunatile_function_loss = self.quantile_loss(tua_vals,vals.squeeze(),quantile)
+        entropy_loss = -self.ent_coef * entropies.mean()
+        qunatile_function_loss = qunatile_function_loss + entropy_loss
         
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+        
+        self.quantile_optimizer.zero_grad()
+        qunatile_function_loss
+        self.quantile_optimizer.step()
         
         if steps % self.target_network_update_freq == 0:
             self.target_model.load_state_dict(self.model.state_dict())
@@ -128,6 +139,8 @@ class FQF(Q_Network_Family):
             self.summary.add_scalar("loss/qloss", loss, steps)
 
         return loss.detach().cpu().clone().numpy()
+    
+
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="FQF",
               reset_num_timesteps=True, replay_wrapper=None):
