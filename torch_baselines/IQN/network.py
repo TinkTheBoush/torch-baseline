@@ -14,6 +14,7 @@ class Model(nn.Module):
         self.n_support = n_support
         self.action_size = action_size
         self.node = node
+        
         if noisy:
             lin = NoisyLinear
         else:
@@ -39,6 +40,7 @@ class Model(nn.Module):
                         for pr,st in zip(self.preprocess,state_size)
                         ]
                         ))
+        self.preprocess.flatten_size = flatten_size
         
         self.state_embedding = nn.Sequential(
             lin(flatten_size,flatten_size),
@@ -75,7 +77,7 @@ class Model(nn.Module):
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
         cated = torch.cat(flats,dim=-1)
         
-        state_embed = self.state_embedding(cated).unsqueeze(2).repeat_interleave(self.n_support, dim=2).view(-1,self.node)
+        state_embed = self.state_embedding(cated).unsqueeze(2).repeat_interleave(self.n_support, dim=2).view(-1,self.preprocess.flatten_size)
         costau = quantile.view(-1,1)*self.pi_mtx
         quantile_embed = self.quantile_embedding(costau)
         
