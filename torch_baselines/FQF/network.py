@@ -41,34 +41,37 @@ class Model(nn.Module):
                         for pr,st in zip(self.preprocess,state_size)
                         ]
                         ))
+        
         self.preprocess.flatten_size = flatten_size
         
+        self.embedding_size = np.maximum(flatten_size, 256)
+        
         self.state_embedding = nn.Sequential(
-            lin(flatten_size,flatten_size),
+            lin(flatten_size,self.embedding_size),
             nn.ReLU()
         )
         
         self.register_buffer('pi_mtx', torch.from_numpy(np.expand_dims(np.pi * np.arange(0, 128,dtype=np.float32), axis=0))) # for non updating constant values
         self.quantile_embedding = nn.Sequential(
-            lin(128,flatten_size),
+            lin(128,self.embedding_size),
             nn.ReLU()
         )
         
         if not self.dualing:
             self.q_linear = nn.Sequential(
-                lin(flatten_size,node),
+                lin(self.embedding_size,node),
                 nn.ReLU(),
                 lin(node, action_size[0])
             )
         else:
             self.advatage_linear = nn.Sequential(
-                lin(flatten_size,node),
+                lin(self.embedding_size,node),
                 nn.ReLU(),
                 lin(node, action_size[0])
             )
             
             self.value_linear = nn.Sequential(
-                lin(flatten_size,node),
+                lin(self.embedding_size,node),
                 nn.ReLU(),
                 lin(node, 1)
             )
@@ -78,7 +81,7 @@ class Model(nn.Module):
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
         cated = torch.cat(flats,dim=-1)
         
-        state_embed = self.state_embedding(cated).unsqueeze(2).repeat_interleave(self.n_support, dim=2).view(-1,self.preprocess.flatten_size)
+        state_embed = self.state_embedding(cated).unsqueeze(2).repeat_interleave(self.n_support, dim=2).view(-1,self.embedding_size)
         costau = quantile.view(-1,1)*self.pi_mtx
         quantile_embed = self.quantile_embedding(costau)
         
