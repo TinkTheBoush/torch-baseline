@@ -99,3 +99,13 @@ class Model(nn.Module):
         for idx,m in enumerate(self.modules()):
             if isinstance(m,NoisyLinear):
                 m.sample_noise()
+                
+class Qunatile_Maker(nn.Module):
+    def __init__(self,n_support = 64):
+        super(Qunatile_Maker, self).__init__()
+        self.n_support = n_support
+        self.dummy_param = nn.Parameter(torch.empty(0))
+
+    
+    def forward(self, buffer_size):
+        return torch.rand([buffer_size,self.n_support]).to(self.dummy_param.device)
