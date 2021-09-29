@@ -39,7 +39,8 @@ class FQF(Q_Network_Family):
         self.target_model.load_state_dict(self.model.state_dict())
         self.target_model.train()
         self.target_model.to(self.device)
-        self.quantile = QuantileFunction(self.n_support)
+        self.quantile = QuantileFunction(self.observation_space,n_support=self.n_support,
+                                         noisy=self.param_noise,preprocess=self.model.preprocess)
         self.quantile.to(self.device)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
