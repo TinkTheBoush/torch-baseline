@@ -142,7 +142,7 @@ class QuantileFunction(nn.Module):
         cated = torch.cat(flats,dim=-1)
         pi = self.linear(cated)
         quantile = torch.cat([torch.zeros([cated.shape[0],1],device=self.dummy_param.device),torch.cumsum(pi,1)],1)
-        quantile_hat = (quantile[:][1:] + quantile[:][:-1])/2.0
+        quantile_hat = (quantile[:,1:] + quantile[:,:-1])/2.0
         print("---")
         print(quantile.shape)
         print(quantile_hat.shape)
