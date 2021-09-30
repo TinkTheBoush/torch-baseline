@@ -7,11 +7,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=256,noisy=False,dualing=False,ModelOptions=None,n_support = 64):
+    def __init__(self,state_size,action_size,node=256,noisy=False,dualing=False,ModelOptions=None):
         super(Model, self).__init__()
         self.dualing = dualing
         self.noisy = noisy
-        self.n_support = n_support
         self.action_size = action_size
         self.node = node
         
@@ -85,31 +84,21 @@ class Model(nn.Module):
     def forward(self, xs, quantile):
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
         cated = torch.cat(flats,dim=-1)
+        n_support = quantile.shape[1]
         
-        state_embed = self.state_embedding(cated).unsqueeze(2).repeat_interleave(self.n_support, dim=2).view(-1,self.embedding_size)
+        state_embed = self.state_embedding(cated).unsqueeze(2).repeat_interleave(n_support, dim=2).view(-1,self.embedding_size)
         costau = quantile.view(-1,1)*self.pi_mtx
         quantile_embed = self.quantile_embedding(costau)
         
         mul_embed = torch.multiply(state_embed,quantile_embed)
         
         if not self.dualing:
-            q = self.q_linear(mul_embed).view(-1,self.action_size[0],self.n_support)
+            q = self.q_linear(mul_embed).view(-1,self.action_size[0],n_support)
         else:
-            a = self.advatage_linear(mul_embed).view(-1,self.action_size[0],self.n_support)
-            v = self.value_linear(mul_embed).view(-1,1,self.n_support)
+            a = self.advatage_linear(mul_embed).view(-1,self.action_size[0],n_support)
+            v = self.value_linear(mul_embed).view(-1,1,n_support)
             q = v + a - a.mean(1, keepdim=True)
         return q
-    
-    def get_action(self,xs, quantile):
-        with torch.no_grad():
-            return self(xs,quantile).mean(2).max(1)[1].view(-1,1).detach().cpu().clone()
-        
-    def sample_noise(self):
-        if not self.noisy:
-            return
-        for m in self.modules():
-            if isinstance(m,NoisyLinear):
-                m.sample_noise()
                 
 class Qunatile_Maker(nn.Module):
     def __init__(self,n_support = 64):
