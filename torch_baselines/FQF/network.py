@@ -90,6 +90,8 @@ class Model(nn.Module):
         state_embed = self.state_embedding(cated).unsqueeze(2).repeat_interleave(n_support, dim=2).view(-1,self.embedding_size)
         costau = quantile.view(-1,1)*self.pi_mtx
         quantile_embed = self.quantile_embedding(costau)
+        print(cated.shape)
+        print(quantile.shape)
         print(state_embed.shape)
         print(quantile_embed.shape)
         
