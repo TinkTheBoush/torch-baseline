@@ -132,4 +132,6 @@ class IQN(Q_Network_Family):
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="IQN",
               reset_num_timesteps=True, replay_wrapper=None):
+        if self.CVaR != 1.0:
+            tb_log_name = tb_log_name + "CVaR[{}]".format(self.CVaR)
         super().learn(total_timesteps, callback, log_interval, tb_log_name, reset_num_timesteps, replay_wrapper)
