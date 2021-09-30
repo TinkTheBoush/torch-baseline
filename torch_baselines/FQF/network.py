@@ -134,8 +134,9 @@ class QuantileFunction(nn.Module):
         
     
     def forward(self, xs):
-        flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
-        cated = torch.cat(flats,dim=-1)
+        with torch.no_grad():
+            flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
+            cated = torch.cat(flats,dim=-1)
         pi = self.linear(cated)
         quantile = torch.cat([torch.zeros([cated.shape[0],1],device=self.dummy_param.device),torch.cumsum(pi,1)],1)
         quantile_hat = (quantile[:,1:] + quantile[:,:-1])/2.0
