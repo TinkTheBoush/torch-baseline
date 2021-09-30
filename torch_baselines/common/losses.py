@@ -86,7 +86,7 @@ class QRHuberLosses(_Loss):
 class QuantileFunctionLoss(_Loss):
     __constants__ = ['reduction']
     def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', support_size = 64) -> None:
-        super(QRHuberLosses, self).__init__(size_average, reduce, reduction)
+        super(QuantileFunctionLoss, self).__init__(size_average, reduce, reduction)
         self.support_size = support_size
 
     def forward(self, tua_vals: Tensor, vals: Tensor, quantile: Tensor) -> Tensor:
