@@ -40,7 +40,7 @@ class Model(nn.Module):
         
         self.preprocess.flatten_size = flatten_size
         
-        self.embedding_size = np.maximum(flatten_size, 256)
+        self.embedding_size = np.maximum(flatten_size, 32)
         if not (flatten_size == self.embedding_size):
             self.state_embedding = nn.Sequential(
                 lin(flatten_size,self.embedding_size),
