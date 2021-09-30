@@ -98,6 +98,7 @@ class Model(nn.Module):
         # [batch, n_support] -> [batch x n_support,1] -> [batch x n_support,128] -> [batch x n_support,embed_size]
         
         mul_embed = torch.multiply(state_embed,quantile_embed)
+        #[batch x n_support,embed_size] + [batch x n_support,embed_size] = [batch x n_support,embed_size]
         
         if not self.dualing:
             q = self.q_linear(mul_embed).view(-1,n_support,self.action_size[0]).permute(0,2,1)
