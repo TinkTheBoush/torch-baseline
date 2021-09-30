@@ -108,13 +108,13 @@ class IQN(Q_Network_Family):
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
-            losses = self.loss(theta_loss_tile,logit_valid_tile,quantile.view(32,1,self.n_support))
+            losses = self.loss(theta_loss_tile,logit_valid_tile,quantile.view(self.batch_size,1,self.n_support))
             new_priorities = losses.detach().cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
             loss = losses.mean(-1)
             loss = (weights*losses).mean(-1)
         else:
-            loss = self.loss(theta_loss_tile,logit_valid_tile,quantile.view(32,1,self.n_support)).mean(-1)
+            loss = self.loss(theta_loss_tile,logit_valid_tile,quantile.view(self.batch_size,1,self.n_support)).mean(-1)
         
         self.optimizer.zero_grad()
         loss.backward()

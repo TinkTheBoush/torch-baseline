@@ -112,13 +112,13 @@ class FQF(Q_Network_Family):
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
-            losses = self.loss(theta_loss_tile,logit_valid_tile,quantile_hat)
+            losses = self.loss(theta_loss_tile,logit_valid_tile,quantile_hat.view(self.batch_size,1,self.n_support))
             new_priorities = losses.detach().cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
             loss = losses.mean(-1)
             loss = (weights*losses).mean(-1)
         else:
-            loss = self.loss(theta_loss_tile,logit_valid_tile,quantile_hat).mean(-1)
+            loss = self.loss(theta_loss_tile,logit_valid_tile,quantile_hat.view(self.batch_size,1,self.n_support)).mean(-1)
         
         tua_vals = self.model(obses,quantile[:][1:-1]).gather(1,actions.view(-1,1,1).repeat_interleave(self.n_support, dim=2)).squeeze()
         qunatile_function_loss = self.quantile_loss(tua_vals,vals.squeeze(),quantile)
