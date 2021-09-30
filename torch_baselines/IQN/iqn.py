@@ -10,7 +10,7 @@ class IQN(Q_Network_Family):
                  exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32, double_q=True,
                  dualing_model = False, n_step = 1, learning_starts=1000, target_network_update_freq=2000, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
-                 param_noise=False, munchausen=False, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
+                 param_noise=False, munchausen=False, CVaR=1.0, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
         
         super(IQN, self).__init__(env, gamma, learning_rate, buffer_size, exploration_fraction,
@@ -21,6 +21,7 @@ class IQN(Q_Network_Family):
                  full_tensorboard_log, seed)
         
         self.n_support = n_support
+        self.CVaR = CVaR
         
         if _init_setup_model:
             self.setup_model()
@@ -55,7 +56,7 @@ class IQN(Q_Network_Family):
             obs = [torch.from_numpy(o).to(self.device).float() for o in obs]
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             self.model.sample_noise()
-            actions = self.model.get_action(obs,self.quantile(1)).numpy()
+            actions = self.model.get_action(obs,self.quantile(1)*self.CVaR).numpy()
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
         return actions

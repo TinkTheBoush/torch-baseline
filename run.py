@@ -37,6 +37,7 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int, default=0, help='random seed')
     parser.add_argument('--max', type=float, default=250, help='c51 max')
     parser.add_argument('--min', type=float, default=-250, help='c51 min')
+    parser.add_argument('--CVaR', type=float, default=1.0, help='IQN risk avoiding factor')
     args = parser.parse_args() 
     env_name = args.env
     
@@ -74,7 +75,8 @@ if __name__ == "__main__":
     elif args.algo == "IQN":
         agent = IQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
-                    param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
+                    param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen, 
+                    CVaR=args.CVaR,
                     tensorboard_log=args.logdir+env_name)
     elif args.algo == "FQF":
         agent = FQF(env,batch_size = args.batch, target_network_update_freq = args.target_update,
