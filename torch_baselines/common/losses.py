@@ -103,4 +103,4 @@ class QuantileFunctionLoss(_Loss):
             + torch.where(signs_2, values_2, -values_2)
         ).view(-1, self.support_size-1)
         
-        return (gradient_of_taus * tua_vals[:, 1:-1]).sum(dim=1).mean()
+        return (gradient_of_taus * quantile[:, 1:-1]).sum(dim=1).mean()
