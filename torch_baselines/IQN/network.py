@@ -20,11 +20,9 @@ class Model(nn.Module):
             lin = nn.Linear
         self.preprocess = nn.ModuleList([
             nn.Sequential(
-                nn.Conv2d(st[0],32,kernel_size=3,stride=1,padding=1,padding_mode='replicate'),
+                nn.Conv2d(st[0],16,kernel_size=4, stride=2, padding=0),
                 nn.ReLU(),
-                nn.Conv2d(32,64,kernel_size=3,stride=1),
-                nn.ReLU(),
-                nn.Conv2d(64,64,kernel_size=3,stride=1),
+                nn.Conv2d(16,32,kernel_size=3,stride=1),
                 nn.ReLU(),
                 nn.Flatten()
             )
@@ -43,11 +41,11 @@ class Model(nn.Module):
         self.preprocess.flatten_size = flatten_size
         
         self.embedding_size = np.maximum(flatten_size, 256)
-        
-        self.state_embedding = nn.Sequential(
-            lin(flatten_size,self.embedding_size),
-            nn.ReLU()
-        )
+        if not (flatten_size == self.embedding_size):
+            self.state_embedding = nn.Sequential(
+                lin(flatten_size,self.embedding_size),
+                nn.ReLU()
+            )
         
         self.register_buffer('pi_mtx', torch.from_numpy(np.expand_dims(np.pi * np.arange(0, 128,dtype=np.float32), axis=0))) # for non updating constant values
         self.quantile_embedding = nn.Sequential(
@@ -86,7 +84,10 @@ class Model(nn.Module):
         cated = torch.cat(flats,dim=-1)
         n_support = quantile.shape[1]
         
-        state_embed = self.state_embedding(cated)
+        if self.preprocess.flatten_size == self.embedding_size:
+            state_embed = cated
+        else:
+            state_embed = self.state_embedding(cated)
         state_embed = state_embed.unsqueeze(1).repeat_interleave(n_support, dim=1).view(-1,self.embedding_size)
         # [batch,embed_size] -> [batch,n_support,embed_size] -> [batch x n_support,embed_size]
         costau = quantile.view(-1,1)*self.pi_mtx
@@ -94,8 +95,7 @@ class Model(nn.Module):
         # [batch, n_support] -> [batch x n_support,1] -> [batch x n_support,128] -> [batch x n_support,embed_size]
         
         mul_embed = torch.multiply(state_embed,quantile_embed)
-        #[batch x n_support,embed_size] + [batch x n_support,embed_size] = [batch x n_support,embed_size]
-        
+        #[batch x n_support,embed_size] + [batch x n_support,embed_size] = [batch x n_support,embed_size]        
         if not self.dualing:
             q = self.q_linear(mul_embed).view(-1,n_support,self.action_size[0]).permute(0,2,1)
             #[batch x n_support,embed_size] -> [batch x n_support,action_size] -> [batch,n_support,action_size] -> [batch,action_size,n_support]
