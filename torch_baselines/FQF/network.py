@@ -90,14 +90,16 @@ class Model(nn.Module):
         state_embed = self.state_embedding(cated).unsqueeze(2).repeat_interleave(n_support, dim=2).view(-1,self.embedding_size)
         costau = quantile.view(-1,1)*self.pi_mtx
         quantile_embed = self.quantile_embedding(costau)
+        print(state_embed.shape)
+        print(quantile_embed.shape)
         
         mul_embed = torch.multiply(state_embed,quantile_embed)
         
         if not self.dualing:
-            q = self.q_linear(mul_embed).view(-1,self.action_size[0],n_support)
+            q = self.q_linear(mul_embed).view(-1,n_support,self.action_size[0])
         else:
-            a = self.advatage_linear(mul_embed).view(-1,self.action_size[0],n_support)
-            v = self.value_linear(mul_embed).view(-1,1,n_support)
+            a = self.advatage_linear(mul_embed).view(-1,n_support,self.action_size[0])
+            v = self.value_linear(mul_embed).view(-1,n_support,1)
             q = v + a - a.mean(1, keepdim=True)
         return q
     
