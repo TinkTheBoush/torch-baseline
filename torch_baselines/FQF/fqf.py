@@ -130,7 +130,7 @@ class FQF(Q_Network_Family):
         self.optimizer.step()
         
         self.quantile_optimizer.zero_grad()
-        qunatile_function_loss
+        qunatile_function_loss.backward()
         self.quantile_optimizer.step()
         
         if steps % self.target_network_update_freq == 0:
