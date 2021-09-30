@@ -69,7 +69,7 @@ class QRDQN(Q_Network_Family):
             if self.double_q:
                 next_actions = self.model(nxtobses).mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             else:
-                next_actions = next_q.mean(2).max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
+                next_actions = next_mean_q.max(1)[1].view(-1,1,1).repeat_interleave(self.n_support, dim=2)
             if self.munchausen:
                 logsum = torch.logsumexp((next_mean_q - next_mean_q.max(1)[0].unsqueeze(-1))/self.munchausen_entropy_tau , 1).unsqueeze(-1)
                 tau_log_pi_next = (next_mean_q - next_mean_q.max(1)[0].unsqueeze(-1) - self.munchausen_entropy_tau*logsum).unsqueeze(-1)
