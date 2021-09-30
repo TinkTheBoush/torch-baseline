@@ -143,8 +143,10 @@ class QuantileFunction(nn.Module):
         pi = self.linear(cated)
         quantile = torch.cat([torch.zeros([cated.shape[0],1],device=self.dummy_param.device),torch.cumsum(pi,1)],1)
         quantile_hat = (quantile[:][1:] + quantile[:][:-1])/2.0
+        print("---")
         print(quantile.shape)
         print(quantile_hat.shape)
+        print("---")
         entropies = -(pi.log() * pi).sum(1,keepdim=True)
         return quantile, quantile_hat, entropies
     
