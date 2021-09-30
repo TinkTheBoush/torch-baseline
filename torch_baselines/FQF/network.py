@@ -122,7 +122,7 @@ class QuantileFunction(nn.Module):
             lin = NoisyLinear
         else:
             lin = nn.Linear
-        
+        self.dummy_param = nn.Parameter(torch.empty(0)) #for auto device sinc!
         self.preprocess = preprocess #get embeding net from iqn
         
         self.linear = nn.Sequential(
@@ -137,7 +137,7 @@ class QuantileFunction(nn.Module):
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
         cated = torch.cat(flats,dim=-1)
         pi = self.linear(cated)
-        quantile = torch.cat([torch.zeros([cated.shape[0],1]),torch.cumsum(pi,1)],1)
+        quantile = torch.cat([torch.zeros([cated.shape[0],1],device=self.dummy_param.device),torch.cumsum(pi,1)],1)
         quantile_hat = (quantile[:][1:] + quantile[:][:-1])/2.0
         entropies = -(pi.log * pi).sum(1,keepdim=True)
         return quantile, quantile_hat, entropies
