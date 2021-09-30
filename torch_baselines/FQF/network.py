@@ -74,7 +74,9 @@ class Model(nn.Module):
                 nn.ReLU(),
                 lin(node, 1)
             )
-        
+    
+    def preprocess(self,xs):
+        pass
 
     def forward(self, xs, quantile):
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)]
@@ -126,7 +128,6 @@ class QuantileFunction(nn.Module):
                 nn.Softmax(1)
             )
         
-    
     def forward(self, xs):
         with torch.no_grad():
             flats = [pre(x) for pre,x in zip(self.preprocess,xs)]

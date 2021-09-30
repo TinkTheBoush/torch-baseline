@@ -58,8 +58,9 @@ class FQF(Q_Network_Family):
             obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             self.model.sample_noise()
             self.quantile.sample_noise()
-            _, quantile_hat, _ = self.quantile(obs)
-            actions = self.model.get_action(obs,quantile_hat).numpy()
+            preprocess = self.model.preprocess(obs)
+            _, quantile_hat, _ = self.quantile(preprocess)
+            actions = self.model.get_action(preprocess,quantile_hat).numpy()
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
         return actions
