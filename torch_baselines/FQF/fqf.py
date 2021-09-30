@@ -120,7 +120,7 @@ class FQF(Q_Network_Family):
         else:
             loss = self.loss(theta_loss_tile,logit_valid_tile,quantile_hat.view(self.batch_size,1,self.n_support)).mean(-1)
         
-        tua_vals = self.model(obses,quantile[:,1:-1]).gather(1,actions.view(-1,1,1).repeat_interleave(self.n_support-1, dim=2)).squeeze()
+        tua_vals = self.model(obses,quantile[:,1:-1].contiguous()).gather(1,actions.view(-1,1,1).repeat_interleave(self.n_support-1, dim=2)).squeeze()
         qunatile_function_loss = self.quantile_loss(tua_vals,vals.squeeze(),quantile)
         entropy_loss = -self.ent_coef * entropies.mean()
         qunatile_function_loss = qunatile_function_loss + entropy_loss
