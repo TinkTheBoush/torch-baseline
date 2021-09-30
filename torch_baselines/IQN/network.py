@@ -43,11 +43,11 @@ class Model(nn.Module):
         self.preprocess.flatten_size = flatten_size
         
         self.embedding_size = np.maximum(flatten_size, 256)
-        
-        self.state_embedding = nn.Sequential(
-            lin(flatten_size,self.embedding_size),
-            nn.ReLU()
-        )
+        if not (flatten_size == self.embedding_size):
+            self.state_embedding = nn.Sequential(
+                lin(flatten_size,self.embedding_size),
+                nn.ReLU()
+            )
         
         self.register_buffer('pi_mtx', torch.from_numpy(np.expand_dims(np.pi * np.arange(0, 128,dtype=np.float32), axis=0))) # for non updating constant values
         self.quantile_embedding = nn.Sequential(
@@ -86,7 +86,11 @@ class Model(nn.Module):
         cated = torch.cat(flats,dim=-1)
         n_support = quantile.shape[1]
         
-        state_embed = self.state_embedding(cated).unsqueeze(2).repeat_interleave(n_support, dim=2).view(-1,self.embedding_size)
+        if self.preprocess.flatten_size == self.embedding_size:
+            state_embed = cated
+        else:
+            state_embed = self.state_embedding(cated)
+        state_embed = state_embed.unsqueeze(2).repeat_interleave(n_support, dim=2).view(-1,self.embedding_size)
         costau = quantile.view(-1,1)*self.pi_mtx
         quantile_embed = self.quantile_embedding(costau)
         
