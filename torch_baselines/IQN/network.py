@@ -89,18 +89,27 @@ class Model(nn.Module):
         state_embed = self.state_embedding(cated).unsqueeze(2).repeat_interleave(n_support, dim=2).view(-1,self.embedding_size)
         costau = quantile.view(-1,1)*self.pi_mtx
         quantile_embed = self.quantile_embedding(costau)
-        print(state_embed.shape)
-        print(quantile_embed.shape)
         
         mul_embed = torch.multiply(state_embed,quantile_embed)
         
         if not self.dualing:
-            q = self.q_linear(mul_embed).view(-1,n_support,self.action_size[0])
+            q = self.q_linear(mul_embed).view(-1,n_support,self.action_size[0]).permute(0,2,1)
         else:
-            a = self.advatage_linear(mul_embed).view(-1,n_support,self.action_size[0])
-            v = self.value_linear(mul_embed).view(-1,n_support,1)
+            a = self.advatage_linear(mul_embed).view(-1,n_support,self.action_size[0]).permute(0,2,1)
+            v = self.value_linear(mul_embed).view(-1,n_support,1).permute(0,2,1)
             q = v + a - a.mean(1, keepdim=True)
         return q
+    
+    def get_action(self,xs, quantile):
+        with torch.no_grad():
+            return self(xs,quantile).mean(2).max(1)[1].view(-1,1).detach().cpu().clone()
+        
+    def sample_noise(self):
+        if not self.noisy:
+            return
+        for m in self.modules():
+            if isinstance(m,NoisyLinear):
+                m.sample_noise()
                 
 class Qunatile_Maker(nn.Module):
     def __init__(self,n_support = 64):
