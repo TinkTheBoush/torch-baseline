@@ -60,23 +60,17 @@ class Model(nn.Module):
             self.q_linear = nn.Sequential(
                 lin(self.embedding_size,node),
                 nn.ReLU(),
-                lin(node,node),
-                nn.ReLU(),
                 lin(node, action_size[0])
             )
         else:
             self.advatage_linear = nn.Sequential(
                 lin(self.embedding_size,node),
                 nn.ReLU(),
-                lin(node,node),
-                nn.ReLU(),
                 lin(node, action_size[0])
             )
             
             self.value_linear = nn.Sequential(
                 lin(self.embedding_size,node),
-                nn.ReLU(),
-                lin(node,node),
                 nn.ReLU(),
                 lin(node, 1)
             )
