@@ -90,18 +90,14 @@ class Model(nn.Module):
         state_embed = self.state_embedding(cated).unsqueeze(2).repeat_interleave(n_support, dim=2).view(-1,self.embedding_size)
         costau = quantile.view(-1,1)*self.pi_mtx
         quantile_embed = self.quantile_embedding(costau)
-        print(cated.shape)
-        print(quantile.shape)
-        print(state_embed.shape)
-        print(quantile_embed.shape)
         
         mul_embed = torch.multiply(state_embed,quantile_embed)
         
         if not self.dualing:
-            q = self.q_linear(mul_embed).view(-1,n_support,self.action_size[0])
+            q = self.q_linear(mul_embed).view(-1,n_support,self.action_size[0]).permute(0,2,1)
         else:
-            a = self.advatage_linear(mul_embed).view(-1,n_support,self.action_size[0])
-            v = self.value_linear(mul_embed).view(-1,n_support,1)
+            a = self.advatage_linear(mul_embed).view(-1,n_support,self.action_size[0]).permute(0,2,1)
+            v = self.value_linear(mul_embed).view(-1,n_support,1).permute(0,2,1)
             q = v + a - a.mean(1, keepdim=True)
         return q
     
@@ -143,10 +139,6 @@ class QuantileFunction(nn.Module):
         pi = self.linear(cated)
         quantile = torch.cat([torch.zeros([cated.shape[0],1],device=self.dummy_param.device),torch.cumsum(pi,1)],1)
         quantile_hat = (quantile[:,1:] + quantile[:,:-1])/2.0
-        print("---")
-        print(quantile.shape)
-        print(quantile_hat.shape)
-        print("---")
         entropies = -(pi.log() * pi).sum(1,keepdim=True)
         return quantile, quantile_hat, entropies
     
