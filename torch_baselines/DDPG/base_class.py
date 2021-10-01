@@ -123,7 +123,7 @@ class Q_Network_Family(object):
         if not self.prioritized_replay:
             self.replay_buffer = ReplayBuffer(self.buffer_size,buffer_obs)
         else:
-            self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,self.prioritized_replay_alpha)
+            self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,buffer_obs,self.prioritized_replay_alpha)
     
     def setup_model(self):
         pass
