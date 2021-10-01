@@ -6,17 +6,27 @@ import cpprb
 
 class ReplayBuffer(object):
     
-    def __init__(self, size: int, observation_space: list):
+    def __init__(self, size: int, observation_space: list,n_step=1,gamma=0.99):
         self.max_size = size
         self.obsdict = dict(("obs{}".format(idx),{"shape": o}) for idx,o in enumerate(observation_space))
         self.nextobsdict = dict(("nextobs{}".format(idx),{"shape": o}) for idx,o in enumerate(observation_space))
+        n_s = dict()
+        if n_step > 1:
+            n_s = {
+             'Nste':{"size": n_step,
+                    "gamma": gamma,
+                    "rew": "reward",
+                    "next": list(self.nextobsdict.keys())
+                    }
+             }
         self.buffer = cpprb.ReplayBuffer(size,
                     env_dict={**self.obsdict,
                         "action": {"shape": 1},
                         "reward": {},
                         **self.nextobsdict,
                         "done": {}
-                    })
+                    },
+                    **n_s)
 
     def __len__(self) -> int:
         return len(self.buffer)
