@@ -44,6 +44,8 @@ class DQN(Q_Network_Family):
         
         print("----------------------model----------------------")
         print(self.model)
+        print(self.optimizer)
+        print(self.loss)
         print("-------------------------------------------------")
     
     def _train_step(self, steps):
