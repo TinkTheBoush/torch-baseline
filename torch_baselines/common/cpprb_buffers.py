@@ -36,8 +36,8 @@ class ReplayBuffer(object):
         return len(self) == self.max_size
 
     def add(self, obs_t, action, reward, nxtobs_t, done):
-        obsdict = zip(self.obsdict.keys(),obs_t)
-        nextobsdict = zip(self.nextobsdict.keys(),nxtobs_t)
+        obsdict = dict(zip(self.obsdict.keys(),obs_t))
+        nextobsdict = dict(zip(self.nextobsdict.keys(),nxtobs_t))
         self.buffer.add(**obsdict,action=action,reward=reward,**nextobsdict,done=done)
 
     def sample(self, batch_size: int):
