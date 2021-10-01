@@ -3,7 +3,7 @@ import numpy as np
 
 from torch_baselines.DQN.base_class import Q_Network_Family
 from torch_baselines.DQN.network import Model
-from torch_baselines.common.losses import MSELosses
+from torch_baselines.common.losses import MSELosses, HuberLosses
 
 class DQN(Q_Network_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
@@ -38,7 +38,8 @@ class DQN(Q_Network_Family):
         self.target_model.to(self.device)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
-        self.loss = MSELosses()
+        self.loss = HuberLosses()
+        #self.loss = MSELosses()
         
         print("----------------------model----------------------")
         print(self.model)
