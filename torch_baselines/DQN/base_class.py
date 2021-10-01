@@ -7,6 +7,7 @@ from tqdm.auto import trange
 from collections import deque
 
 from torch_baselines.common.base_classes import TensorboardWriter
+from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer, EpisodicReplayBuffer, PrioritizedEpisodicReplayBuffer
 from torch_baselines.common.cpprb_buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
@@ -105,11 +106,24 @@ class Q_Network_Family(object):
         print("-------------------------------------------------")
         
     def get_memory_setup(self):
+        if self.prioritized_replay:
+            if self.n_step_method:
+                self.replay_buffer = PrioritizedEpisodicReplayBuffer(self.buffer_size,self.worker_size,self.n_step,
+                                                                     self.gamma, self.prioritized_replay_alpha)
+            else:
+                self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,self.prioritized_replay_alpha)
+            
+        elif self.n_step_method:
+            self.replay_buffer = EpisodicReplayBuffer(self.buffer_size,self.worker_size,self.n_step,self.gamma)
+        else:
+            self.replay_buffer = ReplayBuffer(self.buffer_size)
+        '''
         buffer_obs = [[sp[1], sp[2], sp[0]] if len(sp) == 3 else sp for sp in self.observation_space]
         if not self.prioritized_replay:
             self.replay_buffer = ReplayBuffer(self.buffer_size,buffer_obs,self.n_step,self.gamma)
         else:
             self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,buffer_obs,self.prioritized_replay_alpha,self.n_step,self.gamma)
+        '''
     
     def setup_model(self):
         pass
