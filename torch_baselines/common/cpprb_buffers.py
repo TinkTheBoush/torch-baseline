@@ -50,7 +50,7 @@ class ReplayBuffer(object):
         obsdict = dict(zip(self.obsdict.keys(),obs_t))
         nextobsdict = dict(zip(self.nextobsdict.keys(),nxtobs_t))
         self.buffer.add(**obsdict,action=action,reward=reward,**nextobsdict,done=done)
-        if self.n_step:
+        if self.n_step and terminal:
             self.buffer.on_episode_end()
 
     def sample(self, batch_size: int):
