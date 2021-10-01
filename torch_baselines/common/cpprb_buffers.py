@@ -7,7 +7,7 @@ import cpprb
 class ReplayBuffer(object):
     
     def __init__(self, size: int, observation_space: list):
-        self.buffer_size = size
+        self.max_size = size
         self.obsdict = dict(("obs{}".format(idx),{"shape": o}) for idx,o in enumerate(observation_space))
         self.nextobsdict = dict(("nextobs{}".format(idx),{"shape": o}) for idx,o in enumerate(observation_space))
         self.buffer = cpprb.ReplayBuffer(size,
@@ -27,13 +27,13 @@ class ReplayBuffer(object):
 
     @property
     def buffer_size(self) -> int:
-        return self.buffer_size
+        return self.max_size
 
     def can_sample(self, n_samples: int) -> bool:
         return len(self) >= n_samples
 
     def is_full(self) -> int:
-        return len(self) == self.buffer_size
+        return len(self) == self.max_size
 
     def add(self, obs_t, action, reward, nxtobs_t, done):
         obsdict = zip(self.obsdict.keys,obs_t)
