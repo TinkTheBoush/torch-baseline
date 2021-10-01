@@ -10,8 +10,9 @@ class ReplayBuffer(object):
         self.max_size = size
         self.obsdict = dict(("obs{}".format(idx),{"shape": o}) for idx,o in enumerate(observation_space))
         self.nextobsdict = dict(("nextobs{}".format(idx),{"shape": o}) for idx,o in enumerate(observation_space))
+        self.n_step = n_step > 1
         n_s = dict()
-        if n_step > 1:
+        if self.n_step:
             n_s = {
              'Nste':{"size": n_step,
                     "gamma": gamma,
@@ -45,10 +46,12 @@ class ReplayBuffer(object):
     def is_full(self) -> int:
         return len(self) == self.max_size
 
-    def add(self, obs_t, action, reward, nxtobs_t, done):
+    def add(self, obs_t, action, reward, nxtobs_t, done, worker=0, terminal=False):
         obsdict = dict(zip(self.obsdict.keys(),obs_t))
         nextobsdict = dict(zip(self.nextobsdict.keys(),nxtobs_t))
         self.buffer.add(**obsdict,action=action,reward=reward,**nextobsdict,done=done)
+        if self.n_step:
+            self.buffer.on_episode_end()
 
     def sample(self, batch_size: int):
         smpl = self.buffer.sample(batch_size)
@@ -64,10 +67,20 @@ class ReplayBuffer(object):
                 dones)
         
 class PrioritizedReplayBuffer(ReplayBuffer):
-    def __init__(self, size: int, observation_space: list, alpha: float):
+    def __init__(self, size: int, observation_space: list, alpha: float, n_step=1,gamma=0.99):
         self.max_size = size
         self.obsdict = dict(("obs{}".format(idx),{"shape": o}) for idx,o in enumerate(observation_space))
         self.nextobsdict = dict(("nextobs{}".format(idx),{"shape": o}) for idx,o in enumerate(observation_space))
+        self.n_step = n_step > 1
+        n_s = dict()
+        if self.n_step:
+            n_s = {
+             'Nste':{"size": n_step,
+                    "gamma": gamma,
+                    "rew": "reward",
+                    "next": list(self.nextobsdict.keys())
+                    }
+             }
         self.buffer = cpprb.PrioritizedReplayBuffer(size,
                     env_dict={**self.obsdict,
                         "action": {"shape": 1},
@@ -75,7 +88,8 @@ class PrioritizedReplayBuffer(ReplayBuffer):
                         **self.nextobsdict,
                         "done": {}
                     },
-                    alpha=alpha)
+                    alpha=alpha,
+                    **n_s)
 
     def sample(self, batch_size: int, beta=0.5):
         smpl = self.buffer.sample(batch_size, beta)
