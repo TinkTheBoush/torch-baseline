@@ -25,6 +25,7 @@ if __name__ == "__main__":
     parser.add_argument('--algo', type=str, default="DQN", help='algo ID')
     parser.add_argument('--target_update', type=int, default=2000, help='target update intervals')
     parser.add_argument('--batch', type=int, default=64, help='batch size')
+    parser.add_argument('--buffer_size', type=int, default=50000, help='batch size')
     parser.add_argument('--double', action='store_true')
     parser.add_argument('--dualing',action='store_true')
     parser.add_argument('--per', action='store_true')
@@ -57,29 +58,29 @@ if __name__ == "__main__":
             env = gym.make(env_name_)
         
     if args.algo == "DQN":
-        agent = DQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
+        agent = DQN(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
                     tensorboard_log=args.logdir+env_name)
     elif args.algo == "C51":
-        agent = C51(env,batch_size = args.batch, target_network_update_freq = args.target_update,
+        agent = C51(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
                     categorial_max = args.max, categorial_min = args.min,
                     tensorboard_log=args.logdir+env_name)
     elif args.algo == "QRDQN":
-        agent = QRDQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
+        agent = QRDQN(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
                     tensorboard_log=args.logdir+env_name)
     elif args.algo == "IQN":
-        agent = IQN(env,batch_size = args.batch, target_network_update_freq = args.target_update,
+        agent = IQN(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen, 
                     CVaR=args.CVaR,
                     tensorboard_log=args.logdir+env_name)
     elif args.algo == "FQF":
-        agent = FQF(env,batch_size = args.batch, target_network_update_freq = args.target_update,
+        agent = FQF(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
                     tensorboard_log=args.logdir+env_name)
