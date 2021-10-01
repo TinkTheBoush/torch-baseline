@@ -37,7 +37,8 @@ class DQN(Q_Network_Family):
         self.target_model.train()
         self.target_model.to(self.device)
         
-        self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
+        self.optimizer = torch.optim.RMSprop(self.model.parameters(),lr=self.learning_rate)
+        #self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         self.loss = HuberLosses()
         #self.loss = MSELosses()
         
