@@ -7,9 +7,9 @@ from tqdm.auto import trange
 from collections import deque
 
 from torch_baselines.common.base_classes import TensorboardWriter
-from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer, EpisodicReplayBuffer, PrioritizedEpisodicReplayBuffer
+#from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer, EpisodicReplayBuffer, PrioritizedEpisodicReplayBuffer
 #from torch_baselines.common.buffers import PrioritizedReplayBuffer, EpisodicReplayBuffer, PrioritizedEpisodicReplayBuffer
-#from torch_baselines.common.cpprb_buffers import ReplayBuffer
+from torch_baselines.common.cpprb_buffers import ReplayBuffer,PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
@@ -120,7 +120,10 @@ class Q_Network_Family(object):
         else:
         '''
         buffer_obs = [[sp[1], sp[2], sp[0]] if len(sp) == 3 else sp for sp in self.observation_space]
-        self.replay_buffer = ReplayBuffer(self.buffer_size,buffer_obs)
+        if not self.prioritized_replay:
+            self.replay_buffer = ReplayBuffer(self.buffer_size,buffer_obs)
+        else:
+            self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,self.prioritized_replay_alpha)
     
     def setup_model(self):
         pass
@@ -130,8 +133,8 @@ class Q_Network_Family(object):
     
     def actions(self,obs,epsilon,befor_train):
         if (epsilon <= np.random.uniform(0,1) or self.param_noise) and not befor_train:
-            obs = [torch.from_numpy(o).to(self.device).float() for o in obs]
-            obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
+            obs = [torch.from_numpy(o).float() for o in obs]
+            obs = [o.permute(0,3,1,2).to(self.device) if len(o.shape) == 4 else o.to(self.device) for o in obs]
             self.model.sample_noise()
             actions = self.model.get_action(obs).numpy()
         else:
