@@ -281,8 +281,7 @@ class Q_Network_Family(object):
                 self.env.reset()
                 state = np.expand_dims(self.env.state(), axis=0)
                 
-            can_sample = self.replay_buffer.can_sample(self.batch_size)
-            if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
+            if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
                 loss = self._train_step(steps)
                 self.lossque.append(loss)
