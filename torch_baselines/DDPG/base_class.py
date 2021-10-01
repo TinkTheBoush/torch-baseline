@@ -107,6 +107,7 @@ class Q_Network_Family(object):
         print("-------------------------------------------------")
         
     def get_memory_setup(self):
+        '''
         if self.prioritized_replay:
             if self.n_step_method:
                 self.replay_buffer = PrioritizedEpisodicReplayBuffer(self.buffer_size,self.worker_size,self.n_step,
@@ -117,7 +118,9 @@ class Q_Network_Family(object):
         elif self.n_step_method:
             self.replay_buffer = EpisodicReplayBuffer(self.buffer_size,self.worker_size,self.n_step,self.gamma)
         else:
-            self.replay_buffer = ReplayBuffer(self.buffer_size)
+        '''
+        buffer_obs = [[sp[1], sp[2], sp[0]] if len(sp) == 3 else sp for sp in self.observation_space]
+        self.replay_buffer = ReplayBuffer(self.buffer_size,buffer_obs)
     
     def setup_model(self):
         pass
