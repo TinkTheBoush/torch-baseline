@@ -52,8 +52,8 @@ class DQN(Q_Network_Family):
             data = self.replay_buffer.sample(self.batch_size)
         obses = [torch.from_numpy(o).float() for o in data[0]]
         obses = [o.permute(0,3,1,2).to(self.device) if len(o.shape) == 4 else o.to(self.device) for o in obses]
-        actions = torch.from_numpy(data[1]).int().view(-1,1).to(self.device)
-        rewards = torch.from_numpy(data[2]).float().view(-1,1).to(self.device)
+        actions = torch.from_numpy(data[1]).to(self.device).int().view(-1,1)
+        rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1)
         nxtobses = [torch.from_numpy(o).float() for o in data[3]]
         nxtobses = [no.permute(0,3,1,2).to(self.device) if len(no.shape) == 4 else no.to(self.device) for no in nxtobses]
         dones = (~torch.from_numpy(data[4]).bool()).float().view(-1,1).to(self.device)
