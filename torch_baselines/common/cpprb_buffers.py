@@ -67,8 +67,8 @@ class PrioritizedReplayBuffer(ReplayBuffer):
                     },
                     alpha=alpha)
 
-    def sample(self, batch_size: int):
-        smpl = self.buffer.sample(batch_size)
+    def sample(self, batch_size: int, beta=0.5):
+        smpl = self.buffer.sample(batch_size, beta)
         obses_t = [smpl[o] for o in self.obsdict.keys()]
         actions = smpl['action']
         rewards = smpl['reward']
