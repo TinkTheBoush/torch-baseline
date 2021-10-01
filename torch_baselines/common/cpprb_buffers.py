@@ -14,7 +14,7 @@ class ReplayBuffer(object):
         n_s = dict()
         if self.n_step:
             n_s = {
-             'Nste':{"size": n_step,
+             'Nstep':{"size": n_step,
                     "gamma": gamma,
                     "rew": "reward",
                     "next": list(self.nextobsdict.keys())
@@ -75,7 +75,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         n_s = dict()
         if self.n_step:
             n_s = {
-             'Nste':{"size": n_step,
+             'Nstep':{"size": n_step,
                     "gamma": gamma,
                     "rew": "reward",
                     "next": list(self.nextobsdict.keys())
