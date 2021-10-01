@@ -104,6 +104,7 @@ class DQN(Q_Network_Family):
         
         if self.summary:
             self.summary.add_scalar("loss/qloss", loss, steps)
+            self.summary.add_scalar("loss/targets", targets.mean(), steps)
 
         return loss.detach().cpu().clone().numpy()
     
