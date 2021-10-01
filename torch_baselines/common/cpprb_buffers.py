@@ -5,8 +5,8 @@ import numpy as np
 import cpprb
 
 class ReplayBuffer(object):
+    
     def __init__(self, size: int, observation_space: list):
-        
         self.buffer_size = size
         self.obsdict = dict(("obs{}".format(idx),{"shape": o}) for idx,o in enumerate(observation_space))
         self.nextobsdict = dict(("nextobs{}".format(idx),{"shape": o}) for idx,o in enumerate(observation_space))
