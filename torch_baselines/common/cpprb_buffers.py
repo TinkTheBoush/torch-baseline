@@ -57,7 +57,7 @@ class ReplayBuffer(object):
         smpl = self.buffer.sample(batch_size)
         obses_t = [smpl[o] for o in self.obsdict.keys()]
         actions = smpl['action']
-        rewards = smpl['reward']
+        rewards = smpl['rew'] if self.n_step else smpl['reward']
         nxtobses_t = [smpl[no] for no in self.nextobsdict.keys()]
         dones = smpl['done']
         return (obses_t,
