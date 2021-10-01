@@ -11,6 +11,7 @@ setup(
         'box2d-py',
         'torch',
         'numpy',
+        'cpprb',
         'importlib; python_version >= "3.5"',
     ],
     #dependency_links=[
