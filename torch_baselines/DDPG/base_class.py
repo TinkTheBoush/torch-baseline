@@ -7,8 +7,6 @@ from tqdm.auto import trange
 from collections import deque
 
 from torch_baselines.common.base_classes import TensorboardWriter
-#from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer, EpisodicReplayBuffer, PrioritizedEpisodicReplayBuffer
-#from torch_baselines.common.buffers import PrioritizedReplayBuffer, EpisodicReplayBuffer, PrioritizedEpisodicReplayBuffer
 from torch_baselines.common.cpprb_buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
 
