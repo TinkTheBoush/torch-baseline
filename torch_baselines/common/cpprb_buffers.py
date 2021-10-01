@@ -55,7 +55,7 @@ class ReplayBuffer(object):
         
 class PrioritizedReplayBuffer(ReplayBuffer):
     def __init__(self, size: int, observation_space: list, alpha: float):
-        self.buffer_size = size
+        self.max_size = size
         self.obsdict = dict(("obs{}".format(idx),{"shape": o}) for idx,o in enumerate(observation_space))
         self.nextobsdict = dict(("nextobs{}".format(idx),{"shape": o}) for idx,o in enumerate(observation_space))
         self.buffer = cpprb.PrioritizedReplayBuffer(size,
@@ -65,7 +65,7 @@ class PrioritizedReplayBuffer(ReplayBuffer):
                         **self.nextobsdict,
                         "done": {}
                     },
-                    alpha=0.5)
+                    alpha=alpha)
 
     def sample(self, batch_size: int):
         smpl = self.buffer.sample(batch_size)
