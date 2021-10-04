@@ -201,8 +201,8 @@ class Deterministic_Policy_Gradient_Family(object):
             actions = self.actions([state],update_eps,befor_train)
             next_state, reward, terminal, info = self.env.step(actions[0])
             done = terminal
-            if "TimeLimit.truncated" in info:
-                done = not info["TimeLimit.truncated"]
+            #if "TimeLimit.truncated" in info:
+            #    done = not info["TimeLimit.truncated"]
             if self.n_step_method:
                 self.replay_buffer.add([state], actions, reward, [next_state], done, 0, terminal)
             else:
