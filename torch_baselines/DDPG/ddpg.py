@@ -5,6 +5,7 @@ from torch_baselines.DDPG.base_class import Deterministic_Policy_Gradient_Family
 from torch_baselines.DDPG.network import Actor, Critic
 from torch_baselines.common.losses import MSELosses, HuberLosses
 from torch_baselines.common.utils import convert_states, hard_update, soft_update
+from torch_baselines.common.noise import OUNoise
 
 class DDPG(Deterministic_Policy_Gradient_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
@@ -20,6 +21,8 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                  prioritized_replay_alpha, prioritized_replay_beta0, prioritized_replay_eps, 
                  param_noise, verbose, tensorboard_log, _init_setup_model, policy_kwargs, 
                  full_tensorboard_log, seed)
+        
+        self.noise = OUNoise(0.2, worker_size= self.worker_size)
         
         if _init_setup_model:
             self.setup_model()
