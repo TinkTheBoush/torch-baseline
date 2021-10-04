@@ -22,7 +22,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                  param_noise, verbose, tensorboard_log, _init_setup_model, policy_kwargs, 
                  full_tensorboard_log, seed)
         
-        self.noise = OUNoise(0.2, worker_size= self.worker_size)
+        self.noise = OUNoise(0.2, action_size = self.action_size, worker_size= self.worker_size)
         
         if _init_setup_model:
             self.setup_model()
@@ -30,9 +30,9 @@ class DDPG(Deterministic_Policy_Gradient_Family):
     def actions(self,obs,epsilon,befor_train):
         if not befor_train:
             self.model.sample_noise()
-            actions = self.model.get_action(convert_states(obs,self.device)).numpy()
+            actions = np.clip(self.model.get_action(convert_states(obs,self.device)).numpy() + self.noise(),-1,1)
         else:
-            actions = np.random.choice(self.action_size[0], [self.worker_size,1])
+            actions = np.clip(np.random.normal(size=(self.worker_size,self.action_size)),-1,1)
         return actions
             
     def setup_model(self):
@@ -111,6 +111,9 @@ class DDPG(Deterministic_Policy_Gradient_Family):
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
 
         return critic_loss.detach().cpu().clone().numpy()
+    
+    def terminal_callback(self,workers):
+        self.noise.reset(workers)
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):

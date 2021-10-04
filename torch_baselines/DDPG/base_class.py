@@ -129,7 +129,9 @@ class Deterministic_Policy_Gradient_Family(object):
                 self.learn_unity(pbar, callback, log_interval)
             if self.env_type == "gym":
                 self.learn_gym(pbar, callback, log_interval)
-
+                
+    def terminal_callback(self,workers):
+        pass
     
     def learn_unity(self, pbar, callback=None, log_interval=100):
         self.env.reset()
@@ -186,6 +188,8 @@ class Deterministic_Policy_Gradient_Family(object):
                                     )
                                     )
             
+            self.terminal_callback(term.agent_id)
+            
             can_sample = self.replay_buffer.can_sample(self.batch_size)
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
@@ -218,6 +222,7 @@ class Deterministic_Policy_Gradient_Family(object):
                     self.summary.add_scalar("episode_reward", self.scores[0], steps)
                 self.scores[0] = 0
                 state = self.env.reset()
+                self.terminal_callback(0)
                 
             can_sample = self.replay_buffer.can_sample(self.batch_size)
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
