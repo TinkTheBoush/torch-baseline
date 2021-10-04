@@ -22,7 +22,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                  param_noise, verbose, tensorboard_log, _init_setup_model, policy_kwargs, 
                  full_tensorboard_log, seed)
         
-        self.noise = OUNoise(1.0, action_size = self.action_size[0], worker_size= self.worker_size)
+        self.noise = OUNoise(0.3, action_size = self.action_size[0], worker_size= self.worker_size)
         
         if _init_setup_model:
             self.setup_model()
