@@ -82,6 +82,8 @@ class DDPG(Deterministic_Policy_Gradient_Family):
             next_vals = dones * self.target_critic(nxtobses,next_actions)
             targets = (next_vals * self._gamma) + rewards
 
+
+        self.critic_optimizer.zero_grad()   
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
@@ -91,13 +93,14 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         else:
             critic_loss = self.critic_loss(vals,targets).mean(-1)
          
-        self.critic.zero_grad()   
+
         critic_loss.backward()
         self.critic_optimizer.step()
         
-        actor_loss = -self.critic(obses,self.actor(obses)).squeeze().mean(-1)
         
-        self.actor.zero_grad()
+        
+        self.actor_optimizer.zero_grad()
+        actor_loss = -self.critic(obses,self.actor(obses)).squeeze().mean(-1)
         actor_loss.backward()
         self.actor_optimizer.step()
         
