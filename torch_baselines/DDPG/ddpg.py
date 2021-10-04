@@ -114,6 +114,6 @@ class DDPG(Deterministic_Policy_Gradient_Family):
     def terminal_callback(self,workers):
         self.noise.reset(workers)
     
-    def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="DQN",
+    def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="DDPG",
               reset_num_timesteps=True, replay_wrapper=None):
         super().learn(total_timesteps, callback, log_interval, tb_log_name, reset_num_timesteps, replay_wrapper)
