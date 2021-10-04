@@ -56,10 +56,10 @@ class DQN(Q_Network_Family):
         else:
             data = self.replay_buffer.sample(self.batch_size)
         obses = convert_states(data[0],self.device)
-        actions = torch.from_numpy(data[1]).to(self.device).to(torch.int64).view(-1,1)
-        rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1)
+        actions = torch.Tensor(data[1],dtype=torch.int32,device=self.device).view(-1,1)
+        rewards = torch.Tensor(data[2],dtype=torch.float32,device=self.device).view(-1,1)
         nxtobses = convert_states(data[3],self.device)
-        dones = (~torch.from_numpy(data[4]).bool()).float().view(-1,1).to(self.device)
+        dones = (~torch.Tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1)
         self.model.sample_noise()
         self.target_model.sample_noise()
         vals = self.model(obses).gather(1,actions)
