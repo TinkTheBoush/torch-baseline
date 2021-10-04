@@ -61,9 +61,9 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         self.critic_loss = HuberLosses()
         
         print("----------------------model----------------------")
-        print(self.model)
-        print(self.optimizer)
-        print(self.loss)
+        print(self.actor)
+        print(self.critic)
+        print(self.critic_loss)
         print("-------------------------------------------------")
     
     def _train_step(self, steps):
