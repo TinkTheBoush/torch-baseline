@@ -135,7 +135,7 @@ class Q_Network_Family(object):
     def actions(self,obs,epsilon,befor_train):
         if (epsilon <= np.random.uniform(0,1) or self.param_noise) and not befor_train:
             self.model.sample_noise()
-            actions = self.model.get_action(convert_states(obs)).numpy()
+            actions = self.model.get_action(convert_states(obs,self.device)).numpy()
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
         return actions

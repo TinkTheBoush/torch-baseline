@@ -55,10 +55,10 @@ class DQN(Q_Network_Family):
             data = self.replay_buffer.sample(self.batch_size,self.prioritized_replay_beta0)
         else:
             data = self.replay_buffer.sample(self.batch_size)
-        obses = convert_states(data[0])
+        obses = convert_states(data[0],self.device)
         actions = torch.from_numpy(data[1]).to(self.device).to(torch.int64).view(-1,1)
         rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1)
-        nxtobses = convert_states(data[3])
+        nxtobses = convert_states(data[3],self.device)
         dones = (~torch.from_numpy(data[4]).bool()).float().view(-1,1).to(self.device)
         self.model.sample_noise()
         self.target_model.sample_noise()
