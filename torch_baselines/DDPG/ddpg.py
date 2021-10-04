@@ -57,7 +57,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         
         self.actor_optimizer = torch.optim.RMSprop(self.actor.parameters(),lr=self.learning_rate)
         self.critic_optimizer = torch.optim.RMSprop(self.critic.parameters(),lr=self.learning_rate)
-        self.critic_loss = HuberLosses()
+        self.critic_loss = MSELosses()
         
         print("----------------------model----------------------")
         print(self.actor)
