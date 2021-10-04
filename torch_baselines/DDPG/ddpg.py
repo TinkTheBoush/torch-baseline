@@ -91,13 +91,13 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         else:
             critic_loss = self.critic_loss(vals,targets).mean(-1)
          
-        self.critic_optimizer.zero_grad()   
+        self.critic.zero_grad()   
         critic_loss.backward()
         self.critic_optimizer.step()
         
         actor_loss = -self.critic(obses,self.actor(obses)).squeeze().mean(-1)
         
-        self.actor_optimizer.zero_grad()
+        self.actor.zero_grad()
         actor_loss.backward()
         self.actor_optimizer.step()
         
