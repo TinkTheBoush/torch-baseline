@@ -57,7 +57,7 @@ class Actor(nn.Module):
                 
 class Critic(nn.Module):
     def __init__(self,state_size,action_size,node=256,noisy=False,ModelOptions=None):
-        super(Actor, self).__init__()
+        super(Critic, self).__init__()
         self.noisy = noisy
         if noisy:
             lin = NoisyLinear
