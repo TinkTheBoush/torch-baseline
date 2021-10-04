@@ -12,7 +12,6 @@ from torch_baselines.common.schedules import LinearSchedule
 from torch_baselines.common.utils import convert_states
 
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
-import minatar
 
 class Deterministic_Policy_Gradient_Family(object):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
@@ -84,11 +83,6 @@ class Deterministic_Policy_Gradient_Family(object):
             self.action_size = [action_space.n]
             self.worker_size = 1
             self.env_type = "gym"
-        
-        elif isinstance(self.env,minatar.Environment):
-            print("minatar environmet")
-            print("there is no continuous environment")
-            exit()
         
         print("observation size : ", self.observation_space)
         print("action size : ", self.action_size)
