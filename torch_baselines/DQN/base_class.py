@@ -10,6 +10,7 @@ from torch_baselines.common.base_classes import TensorboardWriter
 #from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer, EpisodicReplayBuffer, PrioritizedEpisodicReplayBuffer
 from torch_baselines.common.cpprb_buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
+from torch_baselines.common.utils import convert_states
 
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
 import minatar
@@ -133,10 +134,8 @@ class Q_Network_Family(object):
     
     def actions(self,obs,epsilon,befor_train):
         if (epsilon <= np.random.uniform(0,1) or self.param_noise) and not befor_train:
-            obs = [torch.from_numpy(o).to(self.device).float() for o in obs]
-            obs = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obs]
             self.model.sample_noise()
-            actions = self.model.get_action(obs).numpy()
+            actions = self.model.get_action(convert_states(obs)).numpy()
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
         return actions

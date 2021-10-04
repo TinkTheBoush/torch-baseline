@@ -4,6 +4,7 @@ import numpy as np
 from torch_baselines.DQN.base_class import Q_Network_Family
 from torch_baselines.DQN.network import Model
 from torch_baselines.common.losses import MSELosses, HuberLosses
+from torch_baselines.common.utils import convert_states
 
 class DQN(Q_Network_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
@@ -54,12 +55,10 @@ class DQN(Q_Network_Family):
             data = self.replay_buffer.sample(self.batch_size,self.prioritized_replay_beta0)
         else:
             data = self.replay_buffer.sample(self.batch_size)
-        obses = [torch.from_numpy(o).to(self.device).float() for o in data[0]]
-        obses = [o.permute(0,3,1,2) if len(o.shape) == 4 else o for o in obses]
+        obses = convert_states(data[0])
         actions = torch.from_numpy(data[1]).to(self.device).to(torch.int64).view(-1,1)
         rewards = torch.from_numpy(data[2]).to(self.device).float().view(-1,1)
-        nxtobses = [torch.from_numpy(o).to(self.device).float() for o in data[3]]
-        nxtobses = [no.permute(0,3,1,2) if len(no.shape) == 4 else no for no in nxtobses]
+        nxtobses = convert_states(data[3])
         dones = (~torch.from_numpy(data[4]).bool()).float().view(-1,1).to(self.device)
         self.model.sample_noise()
         self.target_model.sample_noise()

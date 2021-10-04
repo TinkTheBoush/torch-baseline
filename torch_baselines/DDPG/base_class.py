@@ -13,7 +13,7 @@ from torch_baselines.common.schedules import LinearSchedule
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
 import minatar
 
-class Q_Network_Family(object):
+class Deterministic_Policy_Gradient_Family(object):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
                  exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32, double_q=True,
                  dualing_model = False, n_step = 1, learning_starts=1000, target_network_update_freq=2000, prioritized_replay=False,
@@ -76,7 +76,7 @@ class Q_Network_Family(object):
             
             self.observation_space = [list(spec.shape) for spec in group_spec.observation_specs]
             self.observation_space = [[sp[2], sp[0], sp[1]] if len(sp) == 3 else sp for sp in self.observation_space]
-            self.action_size = [branch for branch in group_spec.action_spec.discrete_branches]
+            self.action_size = [branch for branch in group_spec.action_spec.continuous_size]
             self.worker_size = len(dec.agent_id)
             self.env_type = "unity"
             
@@ -88,16 +88,6 @@ class Q_Network_Family(object):
             self.action_size = [action_space.n]
             self.worker_size = 1
             self.env_type = "gym"
-            
-        elif isinstance(self.env,minatar.Environment):
-            print("minatar environmet")
-            action_space = self.env.num_actions()
-            observation_space = self.env.state_shape()
-            observation_space = [observation_space[2],observation_space[0],observation_space[1]]
-            self.observation_space = [observation_space]
-            self.action_size = [action_space]
-            self.worker_size = 1
-            self.env_type = "minatar"
         
         print("observation size : ", self.observation_space)
         print("action size : ", self.action_size)
@@ -107,9 +97,9 @@ class Q_Network_Family(object):
     def get_memory_setup(self):
         buffer_obs = [[sp[1], sp[2], sp[0]] if len(sp) == 3 else sp for sp in self.observation_space]
         if not self.prioritized_replay:
-            self.replay_buffer = ReplayBuffer(self.buffer_size,buffer_obs)
+            self.replay_buffer = ReplayBuffer(self.buffer_size,buffer_obs,action_space=self.action_space[0])
         else:
-            self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,buffer_obs,self.prioritized_replay_alpha)
+            self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,buffer_obs,self.prioritized_replay_alpha,action_space=self.action_space[0])
     
     def setup_model(self):
         pass
@@ -118,7 +108,8 @@ class Q_Network_Family(object):
         pass
     
     def actions(self,obs,epsilon,befor_train):
-        if (epsilon <= np.random.uniform(0,1) or self.param_noise) and not befor_train:
+        if not befor_train:
+            #(epsilon <= np.random.uniform(0,1) or self.param_noise) and 
             obs = [torch.from_numpy(o).float() for o in obs]
             obs = [o.permute(0,3,1,2).to(self.device) if len(o.shape) == 4 else o.to(self.device) for o in obs]
             self.model.sample_noise()
@@ -129,18 +120,6 @@ class Q_Network_Family(object):
         
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="Q_network",
               reset_num_timesteps=True, replay_wrapper=None):
-        if self.munchausen:
-            tb_log_name = "M-" + tb_log_name
-        if self.param_noise:
-            tb_log_name = "Noisy_" + tb_log_name
-        if self.dualing_model:
-            tb_log_name = "Dualing_" + tb_log_name
-        if self.double_q:
-            tb_log_name = "Double_" + tb_log_name
-        if self.n_step_method:
-            tb_log_name = "{}Step_".format(self.n_step) + tb_log_name
-        if self.prioritized_replay:
-            tb_log_name = tb_log_name + "+PER"
         
         self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
                                                 initial_p=self.exploration_initial_eps,
@@ -245,43 +224,6 @@ class Q_Network_Family(object):
                 
             can_sample = self.replay_buffer.can_sample(self.batch_size)
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
-                befor_train = False
-                loss = self._train_step(steps)
-                self.lossque.append(loss)
-            
-            if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
-                pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
-                                    np.mean(self.scoreque),update_eps,np.mean(self.lossque)
-                                    )
-                                    )
-                
-    def learn_minatar(self, pbar, callback=None, log_interval=100):
-        self.env.reset()
-        state = np.expand_dims(self.env.state(), axis=0)
-        self.scores = np.zeros([self.worker_size])
-        self.scoreque = deque(maxlen=10)
-        self.lossque = deque(maxlen=10)
-        befor_train = True
-        for steps in pbar:
-            update_eps = self.exploration.value(steps)
-            actions = self.actions([state],update_eps,befor_train)
-            reward, terminal = self.env.act(actions[0][0])
-            next_state = np.expand_dims(self.env.state(), axis=0)
-            if self.n_step_method:
-                self.replay_buffer.add(state, actions[0], reward, next_state, terminal, 0, terminal)
-            else:
-                self.replay_buffer.add(state, actions[0], reward, next_state, terminal)
-            self.scores[0] += reward
-            state = next_state
-            if terminal:
-                self.scoreque.append(self.scores[0])
-                if self.summary:
-                    self.summary.add_scalar("episode_reward", self.scores[0], steps)
-                self.scores[0] = 0
-                self.env.reset()
-                state = np.expand_dims(self.env.state(), axis=0)
-                
-            if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
                 loss = self._train_step(steps)
                 self.lossque.append(loss)
