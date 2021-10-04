@@ -94,7 +94,7 @@ class Deterministic_Policy_Gradient_Family(object):
         if not self.prioritized_replay:
             self.replay_buffer = ReplayBuffer(self.buffer_size,buffer_obs,action_space=self.action_size[0])
         else:
-            self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,buffer_obs,self.prioritized_replay_alpha,action_space=self.action_space[0])
+            self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,buffer_obs,self.prioritized_replay_alpha,action_space=self.action_size[0])
     
     def setup_model(self):
         pass

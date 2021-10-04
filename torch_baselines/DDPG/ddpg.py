@@ -22,7 +22,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                  param_noise, verbose, tensorboard_log, _init_setup_model, policy_kwargs, 
                  full_tensorboard_log, seed)
         
-        self.noise = OUNoise(0.2, action_size = self.action_size, worker_size= self.worker_size)
+        self.noise = OUNoise(0.2, action_size = self.action_size[0], worker_size= self.worker_size)
         
         if _init_setup_model:
             self.setup_model()
@@ -32,7 +32,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
             self.model.sample_noise()
             actions = np.clip(self.model.get_action(convert_states(obs,self.device)).numpy() + self.noise(),-1,1)
         else:
-            actions = np.clip(np.random.normal(size=(self.worker_size,self.action_size)),-1,1)
+            actions = np.clip(np.random.normal(size=(self.worker_size,self.action_size[0])),-1,1)
         return actions
             
     def setup_model(self):
