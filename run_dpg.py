@@ -11,6 +11,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', type=str, default="Cartpole-v1", help='environment')
     parser.add_argument('--algo', type=str, default="DQN", help='algo ID')
+    parser.add_argument('--gamma', type=float, default=0.99, help='gamma')
     parser.add_argument('--target_update_tau', type=float, default=0.99, help='target update intervals')
     parser.add_argument('--batch', type=int, default=64, help='batch size')
     parser.add_argument('--buffer_size', type=float, default=50000, help='buffer_size')
@@ -36,7 +37,7 @@ if __name__ == "__main__":
         env = gym.make(env_name)
         
     if args.algo == "DDPG":
-        agent = DDPG(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
+        agent = DDPG(env,batch_size = args.batch, gamma = args.gamma, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
                     prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step,
                     tensorboard_log=args.logdir+env_name)
 
