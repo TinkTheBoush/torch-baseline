@@ -1,5 +1,6 @@
 import numpy as np
 import jax.numpy as jnp
+from torch.nn.modules.activation import Tanh
 from torch_baselines.common.utils import get_flatten_size
 from torch_baselines.common.layer import NoisyLinear
 import torch
@@ -39,7 +40,8 @@ class Actor(nn.Module):
             nn.ReLU(),
             lin(node,node),
             nn.ReLU(),
-            lin(node, action_size[0])
+            lin(node, action_size[0]),
+            nn.Tanh()
         )
 
     def forward(self, xs):
