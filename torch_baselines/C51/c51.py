@@ -4,7 +4,7 @@ import numpy as np
 from torch_baselines.DQN.base_class import Q_Network_Family
 from torch_baselines.C51.network import Model
 from torch_baselines.common.losses import CategorialDistributionLoss
-from torch_baselines.common.utils import convert_states
+from torch_baselines.common.utils import convert_states, hard_update
 
 class C51(Q_Network_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3, categorial_bar_n = 51,
@@ -46,9 +46,9 @@ class C51(Q_Network_Family):
                                   **self.policy_kwargs)
         self.model.train()
         self.model.to(self.device)
-        self.target_model.load_state_dict(self.model.state_dict())
         self.target_model.train()
         self.target_model.to(self.device)
+        hard_update(self.target_model,self.model)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         self.loss = CategorialDistributionLoss(batch_size=self.batch_size,categorial_bar=self.categorial_bar,
@@ -113,7 +113,7 @@ class C51(Q_Network_Family):
         self.optimizer.step()
         
         if steps % self.target_network_update_freq == 0:
-            self.target_model.load_state_dict(self.model.state_dict())
+            hard_update(self.target_model,self.model)
         
         if self.summary:
             self.summary.add_scalar("loss/qloss", loss, steps)

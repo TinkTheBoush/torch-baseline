@@ -4,7 +4,7 @@ import numpy as np
 from torch_baselines.DQN.base_class import Q_Network_Family
 from torch_baselines.FQF.network import Model, QuantileFunction
 from torch_baselines.common.losses import QRHuberLosses, QuantileFunctionLoss
-from torch_baselines.common.utils import convert_states
+from torch_baselines.common.utils import convert_states, hard_update
 
 class FQF(Q_Network_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3, n_support = 64,
@@ -37,9 +37,10 @@ class FQF(Q_Network_Family):
                                   **self.policy_kwargs)
         self.model.train()
         self.model.to(self.device)
-        self.target_model.load_state_dict(self.model.state_dict())
         self.target_model.train()
         self.target_model.to(self.device)
+        hard_update(self.target_model,self.model)
+        
         self.quantile = QuantileFunction(self.observation_space,n_support=self.n_support,
                                          noisy=self.param_noise,preprocess=self.model.preprocess)
         self.quantile.to(self.device)
@@ -133,7 +134,7 @@ class FQF(Q_Network_Family):
         self.quantile_optimizer.step()
         
         if steps % self.target_network_update_freq == 0:
-            self.target_model.load_state_dict(self.model.state_dict())
+            hard_update(self.target_model,self.model)
         
         if self.summary:
             self.summary.add_scalar("loss/qloss", loss, steps)

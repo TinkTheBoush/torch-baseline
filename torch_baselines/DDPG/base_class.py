@@ -9,16 +9,17 @@ from collections import deque
 from torch_baselines.common.base_classes import TensorboardWriter
 from torch_baselines.common.cpprb_buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
+from torch_baselines.common.utils import convert_states
 
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
 import minatar
 
 class Deterministic_Policy_Gradient_Family(object):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
-                 exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32, double_q=True,
-                 dualing_model = False, n_step = 1, learning_starts=1000, target_network_update_freq=2000, prioritized_replay=False,
+                 exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32,
+                 n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
-                 param_noise=False, munchausen=False, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
+                 param_noise=False, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
         
         self.env = env
@@ -32,7 +33,7 @@ class Deterministic_Policy_Gradient_Family(object):
         self.prioritized_replay = prioritized_replay
         self.prioritized_replay_eps = prioritized_replay_eps
         self.batch_size = batch_size
-        self.target_network_update_freq = target_network_update_freq
+        self.target_network_tau = target_network_tau
         self.prioritized_replay_alpha = prioritized_replay_alpha
         self.prioritized_replay_beta0 = prioritized_replay_beta0
         self.exploration_final_eps = exploration_final_eps
@@ -44,13 +45,8 @@ class Deterministic_Policy_Gradient_Family(object):
         self._gamma = self.gamma**n_step #n_step gamma
         self.tensorboard_log = tensorboard_log
         self.full_tensorboard_log = full_tensorboard_log
-        self.double_q = double_q
-        self.dualing_model = dualing_model
         self.n_step_method = (n_step > 1)
         self.n_step = n_step
-        self.munchausen = munchausen
-        self.munchausen_alpha = 0.9
-        self.munchausen_entropy_tau = 0.03
         
         self.get_device_setup()
         self.get_env_setup()
@@ -89,6 +85,11 @@ class Deterministic_Policy_Gradient_Family(object):
             self.worker_size = 1
             self.env_type = "gym"
         
+        elif isinstance(self.env,minatar.Environment):
+            print("minatar environmet")
+            print("there is no continuous environment")
+            exit()
+        
         print("observation size : ", self.observation_space)
         print("action size : ", self.action_size)
         print("worker_size : ", self.worker_size)
@@ -110,10 +111,8 @@ class Deterministic_Policy_Gradient_Family(object):
     def actions(self,obs,epsilon,befor_train):
         if not befor_train:
             #(epsilon <= np.random.uniform(0,1) or self.param_noise) and 
-            obs = [torch.from_numpy(o).float() for o in obs]
-            obs = [o.permute(0,3,1,2).to(self.device) if len(o.shape) == 4 else o.to(self.device) for o in obs]
             self.model.sample_noise()
-            actions = self.model.get_action(obs).numpy()
+            actions = self.model.get_action(convert_states(obs,self.device)).numpy()
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
         return actions
@@ -130,8 +129,6 @@ class Deterministic_Policy_Gradient_Family(object):
                 self.learn_unity(pbar, callback, log_interval)
             if self.env_type == "gym":
                 self.learn_gym(pbar, callback, log_interval)
-            if self.env_type == "minatar":
-                self.learn_minatar(pbar, callback, log_interval)
 
     
     def learn_unity(self, pbar, callback=None, log_interval=100):
@@ -205,14 +202,14 @@ class Deterministic_Policy_Gradient_Family(object):
         for steps in pbar:
             update_eps = self.exploration.value(steps)
             actions = self.actions([state],update_eps,befor_train)
-            next_state, reward, terminal, info = self.env.step(actions[0][0])
+            next_state, reward, terminal, info = self.env.step(actions[0])
             done = terminal
             if "TimeLimit.truncated" in info:
                 done = not info["TimeLimit.truncated"]
             if self.n_step_method:
-                self.replay_buffer.add([state], actions[0], reward, [next_state], done, 0, terminal)
+                self.replay_buffer.add([state], actions, reward, [next_state], done, 0, terminal)
             else:
-                self.replay_buffer.add([state], actions[0], reward, [next_state], done)
+                self.replay_buffer.add([state], actions, reward, [next_state], done)
             self.scores[0] += reward
             state = next_state
             if terminal:
