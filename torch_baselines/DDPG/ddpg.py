@@ -28,9 +28,8 @@ class DDPG(Deterministic_Policy_Gradient_Family):
             self.setup_model()
             
     def actions(self,obs,epsilon,befor_train):
-        if not befor_train:
-            self.model.sample_noise()
-            actions = np.clip(self.model.get_action(convert_states(obs,self.device)).numpy() + self.noise(),-1,1)
+        if not befor_train:\
+            actions = np.clip(self.actor(convert_states(obs,self.device)).numpy() + self.noise(),-1,1)
         else:
             actions = np.clip(np.random.normal(size=(self.worker_size,self.action_size[0])),-1,1)
         return actions
