@@ -97,7 +97,8 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         critic_loss.backward()
         self.critic_optimizer.step()
         
-        actor_loss = -self.critic(obses,self.actor(obses)).squeeze().mean(-1)
+        acntion_grad = torch.clamp(self.actor(obses),-1.0 + 1e-2, 1.0 - 1e-2)
+        actor_loss = -self.critic(obses,acntion_grad).squeeze().mean(-1)
         
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
