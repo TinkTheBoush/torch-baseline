@@ -8,7 +8,7 @@ from torch_baselines.common.utils import convert_states, hard_update, soft_updat
 
 class TD3(Deterministic_Policy_Gradient_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, action_noise = 0.1, train_freq=1, batch_size=32,
-                 n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False,
+                 n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False, policy_delay = 5,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
                  param_noise=False, max_grad_norm = 1.0, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
@@ -22,6 +22,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
         self.action_noise = action_noise
         self.target_action_noise = 0.2
         self.action_noise_clamp = 0.5
+        self.policy_delay = policy_delay
         
         if _init_setup_model:
             self.setup_model()
@@ -103,13 +104,14 @@ class TD3(Deterministic_Policy_Gradient_Family):
         critic_loss.backward()
         self.critic_optimizer.step()
         
-        q1,_ = self.critic(obses,self.actor(obses))
-        actor_loss = -q1.squeeze().mean(-1)
-        
-        self.actor_optimizer.zero_grad()
-        actor_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
-        self.actor_optimizer.step()
+        if steps % self.policy_delay == 0:
+            q1,_ = self.critic(obses,self.actor(obses))
+            actor_loss = -q1.squeeze().mean(-1)
+            
+            self.actor_optimizer.zero_grad()
+            actor_loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
+            self.actor_optimizer.step()
         
         soft_update(self.target_actor,self.actor,self.target_network_tau)
         soft_update(self.target_critic,self.critic,self.target_network_tau)
