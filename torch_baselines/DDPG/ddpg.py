@@ -78,11 +78,9 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         dones = (~torch.tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1)
         vals = self.critic(obses,actions)
         with torch.no_grad():
-            next_actions = self.target_actor(nxtobses)
+            next_actions = torch.clamp(self.target_actor(nxtobses),-1.0 + 1e-2, 1.0 - 1e-2)
             next_vals = dones * self.target_critic(nxtobses,next_actions)
             targets = (next_vals * self._gamma) + rewards
-
-
         
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
@@ -97,7 +95,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         critic_loss.backward()
         self.critic_optimizer.step()
         
-        acntion_grad = torch.clamp(self.actor(obses),-1.0 + 1e-2, 1.0 - 1e-2)
+        acntion_grad = torch.clamp(self.actor(obses),-1.0 + 1e-3, 1.0 - 1e-3)
         actor_loss = -self.critic(obses,acntion_grad).squeeze().mean(-1)
         
         self.actor_optimizer.zero_grad()
