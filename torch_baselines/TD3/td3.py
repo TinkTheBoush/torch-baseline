@@ -3,27 +3,24 @@ import numpy as np
 
 from torch_baselines.DDPG.base_class import Deterministic_Policy_Gradient_Family
 from torch_baselines.DDPG.network import Actor, Critic
-from torch_baselines.common.schedules import LinearSchedule
 from torch_baselines.common.losses import MSELosses, HuberLosses
 from torch_baselines.common.utils import convert_states, hard_update, soft_update
 from torch_baselines.common.noise import OUNoise
 
-class DDPG(Deterministic_Policy_Gradient_Family):
+class TD3(Deterministic_Policy_Gradient_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
                  exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32,
                  n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
-                 param_noise=False, max_grad_norm = 0.1, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
+                 param_noise=False, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
         
-        super(DDPG, self).__init__(env, gamma, learning_rate, buffer_size, exploration_fraction,
+        super(TD3, self).__init__(env, gamma, learning_rate, buffer_size, exploration_fraction,
                  exploration_final_eps, exploration_initial_eps, train_freq, batch_size, 
                  n_step, learning_starts, target_network_tau, prioritized_replay,
                  prioritized_replay_alpha, prioritized_replay_beta0, prioritized_replay_eps, 
-                 param_noise, max_grad_norm, verbose, tensorboard_log, _init_setup_model, policy_kwargs, 
+                 param_noise, verbose, tensorboard_log, _init_setup_model, policy_kwargs, 
                  full_tensorboard_log, seed)
-        
-        self.noise = OUNoise(action_size = self.action_size[0], worker_size= self.worker_size)
         
         if _init_setup_model:
             self.setup_model()
@@ -99,7 +96,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
+        torch.nn.utils.clip_grad_norm_(self.actor.parameters(), 5)
         self.actor_optimizer.step()
         
         soft_update(self.target_actor,self.actor,self.target_network_tau)
@@ -115,10 +112,6 @@ class DDPG(Deterministic_Policy_Gradient_Family):
     def terminal_callback(self,workers):
         self.noise.reset(workers)
     
-    def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="DDPG",
+    def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="TD3",
               reset_num_timesteps=True, replay_wrapper=None):
-        
-        self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
-                                                initial_p=self.exploration_initial_eps,
-                                                final_p=self.exploration_final_eps)
         super().learn(total_timesteps, callback, log_interval, tb_log_name, reset_num_timesteps, replay_wrapper)
