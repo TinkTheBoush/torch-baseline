@@ -8,7 +8,6 @@ from collections import deque
 
 from torch_baselines.common.base_classes import TensorboardWriter
 from torch_baselines.common.cpprb_buffers import ReplayBuffer, PrioritizedReplayBuffer
-from torch_baselines.common.schedules import LinearSchedule
 from torch_baselines.common.utils import convert_states
 
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
@@ -18,7 +17,7 @@ class Deterministic_Policy_Gradient_Family(object):
                  exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32,
                  n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
-                 param_noise=False, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
+                 param_noise=False, max_grad_norm = 0.1, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
         
         self.env = env
@@ -46,6 +45,7 @@ class Deterministic_Policy_Gradient_Family(object):
         self.full_tensorboard_log = full_tensorboard_log
         self.n_step_method = (n_step > 1)
         self.n_step = n_step
+        self.max_grad_norm = max_grad_norm
         
         self.get_device_setup()
         self.get_env_setup()
@@ -114,9 +114,6 @@ class Deterministic_Policy_Gradient_Family(object):
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="Q_network",
               reset_num_timesteps=True, replay_wrapper=None):
         
-        self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
-                                                initial_p=self.exploration_initial_eps,
-                                                final_p=self.exploration_final_eps)
         pbar = trange(total_timesteps, miniters=log_interval)
         with TensorboardWriter(self.tensorboard_log, tb_log_name) as self.summary:
             if self.env_type == "unity":
