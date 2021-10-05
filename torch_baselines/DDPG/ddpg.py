@@ -55,8 +55,8 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         hard_update(self.target_actor,self.actor)
         hard_update(self.target_critic,self.critic)
         
-        self.actor_optimizer = torch.optim.RMSprop(self.actor.parameters(),lr=self.learning_rate)
-        self.critic_optimizer = torch.optim.RMSprop(self.critic.parameters(),lr=self.learning_rate)
+        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),lr=self.learning_rate)
+        self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),lr=self.learning_rate)
         self.critic_loss = MSELosses()
         
         print("----------------------model----------------------")
