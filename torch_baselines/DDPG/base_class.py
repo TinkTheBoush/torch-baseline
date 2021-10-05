@@ -8,14 +8,12 @@ from collections import deque
 
 from torch_baselines.common.base_classes import TensorboardWriter
 from torch_baselines.common.cpprb_buffers import ReplayBuffer, PrioritizedReplayBuffer
-from torch_baselines.common.schedules import LinearSchedule
 from torch_baselines.common.utils import convert_states
 
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
 
 class Deterministic_Policy_Gradient_Family(object):
-    def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
-                 exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32,
+    def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, train_freq=1, batch_size=32,
                  n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
                  param_noise=False, max_grad_norm = 1.0, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
@@ -35,9 +33,6 @@ class Deterministic_Policy_Gradient_Family(object):
         self.target_network_tau = target_network_tau
         self.prioritized_replay_alpha = prioritized_replay_alpha
         self.prioritized_replay_beta0 = prioritized_replay_beta0
-        self.exploration_final_eps = exploration_final_eps
-        self.exploration_initial_eps = exploration_initial_eps
-        self.exploration_fraction = exploration_fraction
         self.buffer_size = buffer_size
         self.learning_rate = learning_rate
         self.gamma = gamma
@@ -103,20 +98,11 @@ class Deterministic_Policy_Gradient_Family(object):
     def _train_step(self, steps):
         pass
     
-    def actions(self,obs,epsilon,befor_train):
-        if not befor_train:
-            #(epsilon <= np.random.uniform(0,1) or self.param_noise) and 
-            self.model.sample_noise()
-            actions = self.model.get_action(convert_states(obs,self.device)).numpy()
-        else:
-            actions = np.random.choice(self.action_size[0], [self.worker_size,1])
-        return actions
+    def actions(self,obs,befor_train):
+        pass
         
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="Q_network",
               reset_num_timesteps=True, replay_wrapper=None):
-        self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
-                                                initial_p=self.exploration_initial_eps,
-                                                final_p=self.exploration_final_eps)
         pbar = trange(total_timesteps, miniters=log_interval)
         with TensorboardWriter(self.tensorboard_log, tb_log_name) as self.summary:
             if self.env_type == "unity":
@@ -136,9 +122,7 @@ class Deterministic_Policy_Gradient_Family(object):
         self.lossque = deque(maxlen=10)
         befor_train = True
         for steps in pbar:
-            update_eps = self.exploration.value(steps)
-            actions = self.actions(dec.obs,update_eps,befor_train)
-            
+            actions = self.actions(dec.obs,befor_train)
             action_tuple = ActionTuple(discrete=actions)
             self.env.set_actions(self.group_name, action_tuple)
             old_dec = dec
@@ -178,7 +162,7 @@ class Deterministic_Policy_Gradient_Family(object):
 
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
-                                    np.mean(self.scoreque),update_eps,np.mean(self.lossque)
+                                    np.mean(self.scoreque),np.mean(self.lossque)
                                     )
                                     )
             
@@ -197,8 +181,7 @@ class Deterministic_Policy_Gradient_Family(object):
         self.lossque = deque(maxlen=10)
         befor_train = True
         for steps in pbar:
-            update_eps = self.exploration.value(steps)
-            actions = self.actions([state],update_eps,befor_train)
+            actions = self.actions([state],befor_train)
             next_state, reward, terminal, info = self.env.step(actions[0])
             done = terminal
             if "TimeLimit.truncated" in info:
@@ -224,6 +207,6 @@ class Deterministic_Policy_Gradient_Family(object):
             
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
-                                    np.mean(self.scoreque),update_eps,np.mean(self.lossque)
+                                    np.mean(self.scoreque),np.mean(self.lossque)
                                     )
                                     )

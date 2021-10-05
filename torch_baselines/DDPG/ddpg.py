@@ -1,11 +1,16 @@
 import torch
 import numpy as np
 
+from collections import deque
+
 from torch_baselines.DDPG.base_class import Deterministic_Policy_Gradient_Family
 from torch_baselines.DDPG.network import Actor, Critic
 from torch_baselines.common.losses import MSELosses, HuberLosses
 from torch_baselines.common.utils import convert_states, hard_update, soft_update
+from torch_baselines.common.schedules import LinearSchedule
 from torch_baselines.common.noise import OUNoise
+
+from mlagents_envs.environment import UnityEnvironment, ActionTuple
 
 class DDPG(Deterministic_Policy_Gradient_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
@@ -15,12 +20,15 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                  param_noise=False, max_grad_norm = 1.0, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
         
-        super(DDPG, self).__init__(env, gamma, learning_rate, buffer_size, exploration_fraction,
-                 exploration_final_eps, exploration_initial_eps, train_freq, batch_size, 
+        super(DDPG, self).__init__(env, gamma, learning_rate, buffer_size, train_freq, batch_size, 
                  n_step, learning_starts, target_network_tau, prioritized_replay,
                  prioritized_replay_alpha, prioritized_replay_beta0, prioritized_replay_eps, 
                  param_noise, max_grad_norm, verbose, tensorboard_log, _init_setup_model, policy_kwargs, 
                  full_tensorboard_log, seed)
+
+        self.exploration_final_eps = exploration_final_eps
+        self.exploration_initial_eps = exploration_initial_eps
+        self.exploration_fraction = exploration_fraction
         
         self.noise = OUNoise(action_size = self.action_size[0], worker_size= self.worker_size)
         
@@ -116,5 +124,108 @@ class DDPG(Deterministic_Policy_Gradient_Family):
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="DDPG",
               reset_num_timesteps=True, replay_wrapper=None):
-        
+        self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
+                                                initial_p=self.exploration_initial_eps,
+                                                final_p=self.exploration_final_eps)
         super().learn(total_timesteps, callback, log_interval, tb_log_name, reset_num_timesteps, replay_wrapper)
+        
+    def learn_unity(self, pbar, callback=None, log_interval=100):
+        self.env.reset()
+        self.env.step()
+        dec, term = self.env.get_steps(self.group_name)
+        self.scores = np.zeros([self.worker_size])
+        self.scoreque = deque(maxlen=10)
+        self.lossque = deque(maxlen=10)
+        befor_train = True
+        for steps in pbar:
+            update_eps = self.exploration.value(steps)
+            actions = self.actions(dec.obs,update_eps,befor_train)
+            
+            action_tuple = ActionTuple(discrete=actions)
+            self.env.set_actions(self.group_name, action_tuple)
+            old_dec = dec
+            self.env.step()
+            dec, term = self.env.get_steps(self.group_name)
+            
+            for idx in term.agent_id:
+                obs = old_dec[idx].obs
+                nxtobs = term[idx].obs
+                reward = term[idx].reward
+                done = not term[idx].interrupted
+                terminal = True
+                act = actions[idx]
+                if self.n_step_method:
+                    self.replay_buffer.add(obs, act, reward, nxtobs, done, idx, terminal)
+                else:
+                    self.replay_buffer.add(obs, act, reward, nxtobs, done)
+                self.scores[idx] += reward
+                self.scoreque.append(self.scores[idx])
+                if self.summary:
+                    self.summary.add_scalar("episode_reward", self.scores[idx], steps)
+                self.scores[idx] = 0
+            for idx in dec.agent_id:
+                if idx in term.agent_id:
+                    continue
+                obs = old_dec[idx].obs
+                nxtobs = dec[idx].obs
+                reward = dec[idx].reward
+                done = False
+                terminal = False
+                act = actions[idx]
+                if self.n_step_method:
+                    self.replay_buffer.add(obs, act, reward, nxtobs, done, idx, terminal)
+                else:
+                    self.replay_buffer.add(obs, act, reward, nxtobs, done)
+                self.scores[idx] += reward
+
+            if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
+                pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
+                                    np.mean(self.scoreque),update_eps,np.mean(self.lossque)
+                                    )
+                                    )
+            
+            self.terminal_callback(term.agent_id)
+            
+            if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
+                befor_train = False
+                loss = self._train_step(steps)
+                self.lossque.append(loss)
+                
+        
+    def learn_gym(self, pbar, callback=None, log_interval=100):
+        state = self.env.reset()
+        self.scores = np.zeros([self.worker_size])
+        self.scoreque = deque(maxlen=10)
+        self.lossque = deque(maxlen=10)
+        befor_train = True
+        for steps in pbar:
+            update_eps = self.exploration.value(steps)
+            actions = self.actions([state],update_eps,befor_train)
+            next_state, reward, terminal, info = self.env.step(actions[0])
+            done = terminal
+            if "TimeLimit.truncated" in info:
+                done = not info["TimeLimit.truncated"]
+            if self.n_step_method:
+                self.replay_buffer.add([state], actions, reward, [next_state], done, 0, terminal)
+            else:
+                self.replay_buffer.add([state], actions, reward, [next_state], done)
+            self.scores[0] += reward
+            state = next_state
+            if terminal:
+                self.scoreque.append(self.scores[0])
+                if self.summary:
+                    self.summary.add_scalar("episode_reward", self.scores[0], steps)
+                self.scores[0] = 0
+                state = self.env.reset()
+                self.terminal_callback([0])
+                
+            if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
+                befor_train = False
+                loss = self._train_step(steps)
+                self.lossque.append(loss)
+            
+            if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
+                pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
+                                    np.mean(self.scoreque),update_eps,np.mean(self.lossque)
+                                    )
+                                    )

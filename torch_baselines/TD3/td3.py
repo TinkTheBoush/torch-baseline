@@ -13,7 +13,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
                  param_noise=False, max_grad_norm = 1.0, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
         
-        super(TD3, self).__init__(env, gamma, learning_rate, buffer_size, 0, 0, 0, train_freq, batch_size, 
+        super(TD3, self).__init__(env, gamma, learning_rate, buffer_size, train_freq, batch_size, 
                  n_step, learning_starts, target_network_tau, prioritized_replay,
                  prioritized_replay_alpha, prioritized_replay_beta0, prioritized_replay_eps, 
                  param_noise, max_grad_norm, verbose, tensorboard_log, _init_setup_model, policy_kwargs, 
