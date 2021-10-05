@@ -116,9 +116,6 @@ class TD3(Deterministic_Policy_Gradient_Family):
 
         return critic_loss.detach().cpu().clone().numpy()
     
-    def terminal_callback(self,workers):
-        self.noise.reset(workers)
-    
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="TD3",
               reset_num_timesteps=True, replay_wrapper=None):
         super().learn(total_timesteps, callback, log_interval, tb_log_name, reset_num_timesteps, replay_wrapper)
