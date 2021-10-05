@@ -104,7 +104,7 @@ class DQN(Q_Network_Family):
         if steps % self.target_network_update_freq == 0:
             hard_update(self.target_model,self.model)
         
-        if self.summary:
+        if self.summary and steps % self.log_interval == 0:
             self.summary.add_scalar("loss/qloss", loss, steps)
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
 
