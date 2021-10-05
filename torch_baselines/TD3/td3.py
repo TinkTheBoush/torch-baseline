@@ -11,14 +11,14 @@ class TD3(Deterministic_Policy_Gradient_Family):
                  exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32,
                  n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
-                 param_noise=False, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
+                 param_noise=False, max_grad_norm = 1.0, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
         
         super(TD3, self).__init__(env, gamma, learning_rate, buffer_size, exploration_fraction,
                  exploration_final_eps, exploration_initial_eps, train_freq, batch_size, 
                  n_step, learning_starts, target_network_tau, prioritized_replay,
                  prioritized_replay_alpha, prioritized_replay_beta0, prioritized_replay_eps, 
-                 param_noise, verbose, tensorboard_log, _init_setup_model, policy_kwargs, 
+                 param_noise, max_grad_norm, verbose, tensorboard_log, _init_setup_model, policy_kwargs, 
                  full_tensorboard_log, seed)
         
         if _init_setup_model:
