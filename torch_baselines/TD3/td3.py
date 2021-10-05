@@ -20,7 +20,8 @@ class TD3(Deterministic_Policy_Gradient_Family):
                  full_tensorboard_log, seed)
         
         self.action_noise = action_noise
-        self.action_noise_clamp = 0.1
+        self.target_action_noise = 0.2
+        self.action_noise_clamp = 0.5
         
         if _init_setup_model:
             self.setup_model()
@@ -79,7 +80,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
         with torch.no_grad():
             next_actions = self.target_actor(nxtobses)
             next_actions = torch.clamp(next_actions + 
-                                       torch.clamp(self.action_noise*torch.randn_like(next_actions),
+                                       torch.clamp(self.target_action_noise*torch.randn_like(next_actions),
                                                    -self.action_noise_clamp,self.action_noise_clamp),
                                        -1,1)
             next_vals1, next_vals2 = self.target_critic(nxtobses,next_actions)
