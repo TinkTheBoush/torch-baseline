@@ -112,11 +112,12 @@ class TD3(Deterministic_Policy_Gradient_Family):
             actor_loss.backward()
             torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
             self.actor_optimizer.step()
+        
+            soft_update(self.target_actor,self.actor,self.target_network_tau)
+            soft_update(self.target_critic,self.critic,self.target_network_tau)
+            
             if self.summary:
                 self.summary.add_scalar("loss/actor_loss", actor_loss, steps)
-        
-        soft_update(self.target_actor,self.actor,self.target_network_tau)
-        soft_update(self.target_critic,self.critic,self.target_network_tau)
         
         if self.summary:
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)
