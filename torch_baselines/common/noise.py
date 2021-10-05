@@ -17,4 +17,4 @@ class OUNoise(object):
         return noise
 
     def reset(self,worker) -> None:
-        self.noise_prev[worker] = np.random.normal(size=(len(worker),self.action_size))
+        self.noise_prev[worker] = self._sigma * np.random.normal(size=(len(worker),self.action_size))
