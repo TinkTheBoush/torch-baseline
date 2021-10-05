@@ -7,19 +7,20 @@ from torch_baselines.common.losses import MSELosses, HuberLosses
 from torch_baselines.common.utils import convert_states, hard_update, soft_update
 
 class TD3(Deterministic_Policy_Gradient_Family):
-    def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
-                 exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32,
+    def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, action_noise = 0.1, train_freq=1, batch_size=32,
                  n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
                  param_noise=False, max_grad_norm = 1.0, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
         
-        super(TD3, self).__init__(env, gamma, learning_rate, buffer_size, exploration_fraction,
-                 exploration_final_eps, exploration_initial_eps, train_freq, batch_size, 
+        super(TD3, self).__init__(env, gamma, learning_rate, buffer_size, 0, 0, 0, train_freq, batch_size, 
                  n_step, learning_starts, target_network_tau, prioritized_replay,
                  prioritized_replay_alpha, prioritized_replay_beta0, prioritized_replay_eps, 
                  param_noise, max_grad_norm, verbose, tensorboard_log, _init_setup_model, policy_kwargs, 
                  full_tensorboard_log, seed)
+        
+        self.action_noise = action_noise
+        self.action_noise_clamp = 0.1
         
         if _init_setup_model:
             self.setup_model()
@@ -27,7 +28,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
     def actions(self,obs,epsilon,befor_train):
         if not befor_train:
             actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + 
-                              0.1*np.random.normal(size=(self.worker_size,self.action_size[0])),-1,1)
+                              self.action_noise*np.random.normal(size=(self.worker_size,self.action_size[0])),-1,1)
         else:
             actions = np.clip(np.random.normal(size=(self.worker_size,self.action_size[0])),-1,1)
         return actions
@@ -77,7 +78,10 @@ class TD3(Deterministic_Policy_Gradient_Family):
         vals1, vals2 = self.critic(obses,actions)
         with torch.no_grad():
             next_actions = self.target_actor(nxtobses)
-            next_actions = torch.clamp(next_actions + torch.clamp(0.1*torch.randn_like(next_actions),-0.1,0.1),-1,1)
+            next_actions = torch.clamp(next_actions + 
+                                       torch.clamp(self.action_noise*torch.randn_like(next_actions),
+                                                   -self.action_noise_clamp,self.action_noise_clamp),
+                                       -1,1)
             next_vals1, next_vals2 = self.target_critic(nxtobses,next_actions)
             next_vals = dones * torch.minimum(next_vals1, next_vals2)
             targets = (next_vals * self._gamma) + rewards
