@@ -102,7 +102,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
         
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.actor.parameters(), 5)
+        torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
         self.actor_optimizer.step()
         
         soft_update(self.target_actor,self.actor,self.target_network_tau)
