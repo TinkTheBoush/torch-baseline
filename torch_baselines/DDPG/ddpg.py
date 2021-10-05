@@ -3,7 +3,6 @@ import numpy as np
 
 from torch_baselines.DDPG.base_class import Deterministic_Policy_Gradient_Family
 from torch_baselines.DDPG.network import Actor, Critic
-from torch_baselines.common.schedules import LinearSchedule
 from torch_baselines.common.losses import MSELosses, HuberLosses
 from torch_baselines.common.utils import convert_states, hard_update, soft_update
 from torch_baselines.common.noise import OUNoise
@@ -118,7 +117,4 @@ class DDPG(Deterministic_Policy_Gradient_Family):
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="DDPG",
               reset_num_timesteps=True, replay_wrapper=None):
         
-        self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
-                                                initial_p=self.exploration_initial_eps,
-                                                final_p=self.exploration_final_eps)
         super().learn(total_timesteps, callback, log_interval, tb_log_name, reset_num_timesteps, replay_wrapper)

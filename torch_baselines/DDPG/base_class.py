@@ -8,6 +8,7 @@ from collections import deque
 
 from torch_baselines.common.base_classes import TensorboardWriter
 from torch_baselines.common.cpprb_buffers import ReplayBuffer, PrioritizedReplayBuffer
+from torch_baselines.common.schedules import LinearSchedule
 from torch_baselines.common.utils import convert_states
 
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
@@ -113,7 +114,9 @@ class Deterministic_Policy_Gradient_Family(object):
         
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="Q_network",
               reset_num_timesteps=True, replay_wrapper=None):
-        
+        self.exploration = LinearSchedule(schedule_timesteps=int(self.exploration_fraction * total_timesteps),
+                                                initial_p=self.exploration_initial_eps,
+                                                final_p=self.exploration_final_eps)
         pbar = trange(total_timesteps, miniters=log_interval)
         with TensorboardWriter(self.tensorboard_log, tb_log_name) as self.summary:
             if self.env_type == "unity":
