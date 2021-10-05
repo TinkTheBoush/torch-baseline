@@ -8,7 +8,7 @@ from torch_baselines.common.utils import convert_states, hard_update, soft_updat
 
 class TD3(Deterministic_Policy_Gradient_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, action_noise = 0.1, train_freq=1, batch_size=32,
-                 n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False, policy_delay = 5,
+                 n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False, policy_delay = 2,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
                  param_noise=False, max_grad_norm = 1.0, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
