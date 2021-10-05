@@ -39,7 +39,7 @@ if __name__ == "__main__":
         
     if args.algo == "DDPG":
         agent = DDPG(env,batch_size = args.batch, gamma = args.gamma, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
-                    prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step,
+                    prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step, max_grad_norm = args.max_grad,
                     tensorboard_log=args.logdir+env_name)
 
     agent.learn(int(args.steps))
