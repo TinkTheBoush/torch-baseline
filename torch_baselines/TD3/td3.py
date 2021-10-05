@@ -81,7 +81,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
         with torch.no_grad():
             next_actions = self.target_actor(nxtobses)
             next_actions = torch.clamp(next_actions + 
-                                       torch.clamp(self.target_action_noise*torch.randn_like(next_actions),
+                                       torch.clamp(torch.normal(0,self.target_action_noise,size=(self.batch_size, self.action_size[0])),
                                                    -self.action_noise_clamp,self.action_noise_clamp),
                                        -1,1)
             next_vals1, next_vals2 = self.target_critic(nxtobses,next_actions)
