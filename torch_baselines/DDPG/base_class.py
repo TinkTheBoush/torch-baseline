@@ -161,7 +161,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 self.scores[idx] += reward
 
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
-                pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
+                pbar.set_description("score : {:.3f}, loss : {:.3f} |".format(
                                     np.mean(self.scoreque),np.mean(self.lossque)
                                     )
                                     )
@@ -206,7 +206,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 self.lossque.append(loss)
             
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
-                pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
+                pbar.set_description("score : {:.3f}, loss : {:.3f} |".format(
                                     np.mean(self.scoreque),np.mean(self.lossque)
                                     )
                                     )
