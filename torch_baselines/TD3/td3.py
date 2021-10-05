@@ -2,10 +2,9 @@ import torch
 import numpy as np
 
 from torch_baselines.DDPG.base_class import Deterministic_Policy_Gradient_Family
-from torch_baselines.DDPG.network import Actor, Critic
+from torch_baselines.TD3.network import Actor, Critic
 from torch_baselines.common.losses import MSELosses, HuberLosses
 from torch_baselines.common.utils import convert_states, hard_update, soft_update
-from torch_baselines.common.noise import OUNoise
 
 class TD3(Deterministic_Policy_Gradient_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
@@ -74,25 +73,32 @@ class TD3(Deterministic_Policy_Gradient_Family):
         rewards = torch.tensor(data[2],dtype=torch.float32,device=self.device).view(-1,1)
         nxtobses = convert_states(data[3],self.device)
         dones = (~torch.tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1)
-        vals = self.critic(obses,actions)
+        vals1, vals2 = self.critic(obses,actions)
         with torch.no_grad():
-            next_vals = dones * self.target_critic(nxtobses,self.target_actor(nxtobses))
+            next_actions = self.target_actor(nxtobses)
+            next_actions = torch.clamp(next_actions + torch.clamp(0.1*torch.randn_like(next_actions),-0.1,0.1),-1,1)
+            next_vals1, next_vals2 = self.target_critic(nxtobses,next_actions)
+            next_vals = dones * torch.minimum(next_vals1, next_vals2)
             targets = (next_vals * self._gamma) + rewards
         
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
-            new_priorities = np.abs((targets - vals).squeeze().detach().cpu().clone().numpy()) + self.prioritized_replay_eps
+            new_priorities = np.abs((targets - vals1).squeeze().detach().cpu().clone().numpy()) + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
-            critic_loss = (weights*self.critic_loss(vals,targets)).mean(-1)
+            critic_loss1 = (weights*self.critic_loss(vals1,targets)).mean(-1)
+            critic_loss2 = (weights*self.critic_loss(vals2,targets)).mean(-1)
         else:
-            critic_loss = self.critic_loss(vals,targets).mean(-1)
+            critic_loss1 = self.critic_loss(vals1,targets).mean(-1)
+            critic_loss2 = self.critic_loss(vals2,targets).mean(-1)
+        critic_loss = critic_loss1 + critic_loss2
          
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
         
-        actor_loss = -self.critic(obses,self.actor(obses)).squeeze().mean(-1)
+        q1,_ = self.critic(obses,self.actor(obses))
+        actor_loss = -q1.squeeze().mean(-1)
         
         self.actor_optimizer.zero_grad()
         actor_loss.backward()

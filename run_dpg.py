@@ -3,6 +3,7 @@ import argparse
 import gym
 
 from torch_baselines.DDPG.ddpg import DDPG
+from torch_baselines.TD3.td3 import TD3
 from mlagents_envs.environment import UnityEnvironment,ActionTuple
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
@@ -39,6 +40,10 @@ if __name__ == "__main__":
         
     if args.algo == "DDPG":
         agent = DDPG(env,batch_size = args.batch, gamma = args.gamma, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
+                    prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step, max_grad_norm = args.max_grad,
+                    tensorboard_log=args.logdir+env_name)
+    elif args.algo == "TD3":
+        agent = TD3(env,batch_size = args.batch, gamma = args.gamma, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
                     prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step, max_grad_norm = args.max_grad,
                     tensorboard_log=args.logdir+env_name)
 
