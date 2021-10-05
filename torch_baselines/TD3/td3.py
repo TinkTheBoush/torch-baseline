@@ -30,9 +30,9 @@ class TD3(Deterministic_Policy_Gradient_Family):
     def actions(self,obs,befor_train):
         if not befor_train:
             actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + 
-                              self.action_noise*np.random.normal(size=(self.worker_size,self.action_size[0])),-1,1)
+                              np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0])),-1,1)
         else:
-            actions = np.clip(np.random.normal(size=(self.worker_size,self.action_size[0])),-1,1)
+            actions = np.clip(np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0])),-1,1)
         return actions
             
     def setup_model(self):
