@@ -85,7 +85,7 @@ class Critic(nn.Module):
                         ]
                         )) + action_size[0]
         
-        self.linear = nn.Sequential(
+        self.q = nn.Sequential(
             lin(flatten_size,node),
             nn.ReLU(),
             lin(node,node),
@@ -96,8 +96,8 @@ class Critic(nn.Module):
     def forward(self, xs,action):
         flats = [pre(x) for pre,x in zip(self.preprocess,xs)] + [action]
         cated = torch.cat(flats,dim=-1)
-        action = self.linear(cated)
-        return action
+        q = self.q(cated)
+        return q
         
     def sample_noise(self):
         if not self.noisy:
