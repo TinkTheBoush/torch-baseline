@@ -29,7 +29,7 @@ if __name__ == "__main__":
         engine_configuration_channel = EngineConfigurationChannel()
         channel = EnvironmentParametersChannel()
         
-        env = UnityEnvironment(file_name=env_name,no_graphics=False, side_channels=[engine_configuration_channel,channel],timeout_wait=10000)
+        env = UnityEnvironment(file_name=env_name,no_graphics=True, side_channels=[engine_configuration_channel,channel],timeout_wait=10000)
         engine_configuration_channel.set_configuration_parameters(time_scale=20.0)
         env_name = env_name.split('/')[-1].split('.')[0]
         
