@@ -2,7 +2,7 @@ import numpy as np
 
 
 class OUNoise(object):
-    def __init__(self, sigma, theta=.15, action_size=1, worker_size=1):
+    def __init__(self, sigma, theta=.05, action_size=1, worker_size=1):
         self._theta = theta
         self._sigma = sigma
         self.noise_prev = None
