@@ -141,4 +141,5 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="TD4_QR",
               reset_num_timesteps=True, replay_wrapper=None):
+        tb_log_name = tb_log_name + "_{:.2f}".format(self.risk_avoidance)
         super().learn(total_timesteps, callback, log_interval, tb_log_name, reset_num_timesteps, replay_wrapper)
