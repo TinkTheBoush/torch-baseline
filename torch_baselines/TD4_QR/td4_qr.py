@@ -62,7 +62,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
         self.actor_optimizer = torch.optim.RMSprop(self.actor.parameters(),lr=self.learning_rate)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),lr=self.learning_rate)
         self.critic_loss = QRHuberLosses()
-        self.quantile = torch.arange(0.5 / self.n_support,1, 1 / self.n_support).to(self.device).view(1,1,self.n_support)
+        self.quantile = torch.arange(0.5 / self.n_support,1, 1 / self.n_support,device=self.device).view(1,self.n_support,1)
         self.grad_mul = 1.0 - self.risk_avoidance*(2.0*self.quantile.view(1,self.n_support) - 1.0)
         
         print("----------------------model----------------------")
