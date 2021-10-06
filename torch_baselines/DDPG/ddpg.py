@@ -80,7 +80,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         else:
             data = self.replay_buffer.sample(self.batch_size)
         obses = convert_states(data[0],self.device)
-        actions = torch.tensor(data[1],dtype=torch.int64,device=self.device)
+        actions = torch.tensor(data[1],dtype=torch.float32,device=self.device)
         rewards = torch.tensor(data[2],dtype=torch.float32,device=self.device).view(-1,1)
         nxtobses = convert_states(data[3],self.device)
         dones = (~torch.tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1)
