@@ -26,6 +26,7 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int, default=0, help='random seed')
     parser.add_argument('--max_grad', type=float,default=1.0, help='grad clip max size')
     parser.add_argument('--risk_avoidance', type=float,default=1.0, help='risk_avoidance for TD4')
+    parser.add_argument('--n_support', type=int,default=64, help='n_support for TD4')
     args = parser.parse_args() 
     env_name = args.env
     
@@ -51,7 +52,7 @@ if __name__ == "__main__":
     elif args.algo == "TD4_QR":
         agent = TD4_QR(env,batch_size = args.batch, gamma = args.gamma, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
                     prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step, max_grad_norm = args.max_grad, 
-                    risk_avoidance = args.risk_avoidance,
+                    risk_avoidance = args.risk_avoidance, n_support=args.n_support,
                     tensorboard_log=args.logdir+env_name)
 
     agent.learn(int(args.steps))
