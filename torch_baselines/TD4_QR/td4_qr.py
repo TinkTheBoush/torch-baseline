@@ -42,11 +42,11 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
         self.actor = Actor(self.observation_space,self.action_size,
                            noisy=self.param_noise, **self.policy_kwargs)
         self.critic = Critic(self.observation_space,self.action_size,
-                           noisy=self.param_noise, **self.policy_kwargs)
+                           noisy=self.param_noise, n_support = self.n_support, **self.policy_kwargs)
         self.target_actor = Actor(self.observation_space,self.action_size,
                            noisy=self.param_noise, **self.policy_kwargs)
         self.target_critic = Critic(self.observation_space,self.action_size,
-                           noisy=self.param_noise, **self.policy_kwargs)
+                           noisy=self.param_noise, n_support = self.n_support,  **self.policy_kwargs)
         self.actor.train()
         self.actor.to(self.device)
         self.critic.train()
