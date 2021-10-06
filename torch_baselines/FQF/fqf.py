@@ -125,11 +125,11 @@ class FQF(Q_Network_Family):
         entropy_loss = -self.ent_coef * entropies.mean()
         qunatile_function_loss = qunatile_function_loss + entropy_loss
         
-        self.optimizer.zero_grad()
+        self.optimizer.zero_grad(set_to_none=True)
         loss.backward()
         self.optimizer.step()
         
-        self.quantile_optimizer.zero_grad()
+        self.quantile_optimizer.zero_grad(set_to_none=True)
         qunatile_function_loss.backward()
         self.quantile_optimizer.step()
         

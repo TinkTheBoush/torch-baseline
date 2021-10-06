@@ -32,8 +32,9 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             
     def actions(self,obs,befor_train):
         if not befor_train:
-            actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + 
-                              np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0])),-1,1)
+            with torch.no_grad():
+                actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + 
+                                np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0])),-1,1)
         else:
             actions = np.clip(np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0])),-1,1)
         return actions
@@ -113,7 +114,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             critic_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,self.quantile).mean(-1)
         critic_loss = critic_loss1 + critic_loss2
          
-        self.critic_optimizer.zero_grad()
+        self.critic_optimizer.zero_grad(set_to_none=True)
         critic_loss.backward()
         self.critic_optimizer.step()
         
@@ -121,7 +122,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             q1,_ = self.critic(obses,self.actor(obses))
             actor_loss = -(q1*self.grad_mul).mean(-1).mean(-1)
             
-            self.actor_optimizer.zero_grad()
+            self.actor_optimizer.zero_grad(set_to_none=True)
             actor_loss.backward()
             torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
             self.actor_optimizer.step()

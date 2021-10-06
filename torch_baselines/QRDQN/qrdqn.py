@@ -100,7 +100,7 @@ class QRDQN(Q_Network_Family):
         else:
             loss = self.loss(theta_loss_tile,logit_valid_tile,self.quantile).mean(-1)
         
-        self.optimizer.zero_grad()
+        self.optimizer.zero_grad(set_to_none=True)
         loss.backward()
         self.optimizer.step()
         

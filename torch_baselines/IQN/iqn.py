@@ -118,7 +118,7 @@ class IQN(Q_Network_Family):
         else:
             loss = self.loss(theta_loss_tile,logit_valid_tile,quantile.view(self.batch_size,1,self.n_support)).mean(-1)
         
-        self.optimizer.zero_grad()
+        self.optimizer.zero_grad(set_to_none=True)
         loss.backward()
         self.optimizer.step()
         

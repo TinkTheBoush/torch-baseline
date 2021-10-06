@@ -37,7 +37,8 @@ class DDPG(Deterministic_Policy_Gradient_Family):
             
     def actions(self,obs,epsilon,befor_train):
         if not befor_train:
-            actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + self.noise()*epsilon,-1,1)
+            with torch.no_grad():
+                actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + self.noise()*epsilon,-1,1)
         else:
             actions = np.clip(np.random.normal(size=(self.worker_size,self.action_size[0])),-1,1)
         return actions
@@ -98,13 +99,13 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         else:
             critic_loss = self.critic_loss(vals,targets).mean(-1)
          
-        self.critic_optimizer.zero_grad()
+        self.critic_optimizer.zero_grad(set_to_none=True)
         critic_loss.backward()
         self.critic_optimizer.step()
         
         actor_loss = -self.critic(obses,self.actor(obses)).squeeze().mean(-1)
         
-        self.actor_optimizer.zero_grad()
+        self.actor_optimizer.zero_grad(set_to_none=True)
         actor_loss.backward()
         torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
         self.actor_optimizer.step()

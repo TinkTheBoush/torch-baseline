@@ -108,7 +108,7 @@ class C51(Q_Network_Family):
         else:
             loss = self.loss(vals,next_distribution,targets_categorial_bar).mean(-1)
         
-        self.optimizer.zero_grad()
+        self.optimizer.zero_grad(set_to_none=True)
         loss.backward()
         self.optimizer.step()
         
