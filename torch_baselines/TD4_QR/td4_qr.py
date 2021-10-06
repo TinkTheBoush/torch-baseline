@@ -94,7 +94,6 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             next_vals = dones * torch.minimum(next_vals1, next_vals2)
             targets = (next_vals * self._gamma) + rewards
         
-        
         logit_valid_tile = targets.view(-1,self.n_support,1).repeat_interleave(self.n_support, dim=2)
         theta1_loss_tile = vals1.view(-1,1,self.n_support).repeat_interleave(self.n_support, dim=1)
         theta2_loss_tile = vals2.view(-1,1,self.n_support).repeat_interleave(self.n_support, dim=1)
