@@ -105,7 +105,6 @@ class Q_Network_Family(object):
         print("action size : ", self.action_size)
         print("worker_size : ", self.worker_size)
         print("-------------------------------------------------")
-        self._batch_size = self.batch_size*self.worker_size
         
     def get_memory_setup(self):
         buffer_obs = [[sp[1], sp[2], sp[0]] if len(sp) == 3 else sp for sp in self.observation_space]

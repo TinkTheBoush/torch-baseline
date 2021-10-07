@@ -65,9 +65,9 @@ class SAC(Deterministic_Policy_Gradient_Family):
     def _train_step(self, steps):
         # Sample a batch from the replay buffer
         if self.prioritized_replay:
-            data = self.replay_buffer.sample(self._batch_size,self.prioritized_replay_beta0)
+            data = self.replay_buffer.sample(self.batch_size,self.prioritized_replay_beta0)
         else:
-            data = self.replay_buffer.sample(self._batch_size)
+            data = self.replay_buffer.sample(self.batch_size)
 
         with torch.no_grad():
             obses = convert_states(data[0],self.device)

@@ -69,9 +69,9 @@ class FQF(Q_Network_Family):
     def _train_step(self, steps):
         # Sample a batch from the replay buffer
         if self.prioritized_replay:
-            data = self.replay_buffer.sample(self._batch_size,self.prioritized_replay_beta0)
+            data = self.replay_buffer.sample(self.batch_size,self.prioritized_replay_beta0)
         else:
-            data = self.replay_buffer.sample(self._batch_size)
+            data = self.replay_buffer.sample(self.batch_size)
         obses = convert_states(data[0],self.device)
         actions = torch.tensor(data[1],dtype=torch.int64,device=self.device).view(-1,1)
         rewards = torch.tensor(data[2],dtype=torch.float32,device=self.device).view(-1,1)
@@ -112,13 +112,13 @@ class FQF(Q_Network_Family):
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
-            losses = self.loss(theta_loss_tile,logit_valid_tile,quantile_hat.view(self._batch_size,1,self.n_support))
+            losses = self.loss(theta_loss_tile,logit_valid_tile,quantile_hat.view(self.batch_size,1,self.n_support))
             new_priorities = losses.detach().cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
             loss = losses.mean(-1)
             loss = (weights*losses).mean(-1)
         else:
-            loss = self.loss(theta_loss_tile,logit_valid_tile,quantile_hat.view(self._batch_size,1,self.n_support)).mean(-1)
+            loss = self.loss(theta_loss_tile,logit_valid_tile,quantile_hat.view(self.batch_size,1,self.n_support)).mean(-1)
         
         tua_vals = self.model(obses,quantile[:,1:-1].contiguous()).gather(1,actions.view(-1,1,1).repeat_interleave(self.n_support-1, dim=2)).squeeze()
         qunatile_function_loss = self.quantile_loss(tua_vals,vals.squeeze(),quantile)
