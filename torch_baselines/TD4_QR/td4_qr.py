@@ -60,7 +60,8 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
         hard_update(self.target_actor,self.actor)
         hard_update(self.target_critic,self.critic)
         
-        self.actor_optimizer = torch.optim.RMSprop(self.actor.parameters(),lr=self.learning_rate)
+        #self.actor_optimizer = torch.optim.RMSprop(self.actor.parameters(),lr=self.learning_rate)
+        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),lr=self.learning_rate)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),lr=self.learning_rate)
         self.critic_loss = QRHuberLosses()
         self.quantile = torch.arange(0.5 / self.n_support,1, 1 / self.n_support,device=self.device).view(1,1,self.n_support)
