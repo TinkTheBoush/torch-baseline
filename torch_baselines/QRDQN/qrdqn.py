@@ -51,9 +51,9 @@ class QRDQN(Q_Network_Family):
     def _train_step(self, steps):
         # Sample a batch from the replay buffer
         if self.prioritized_replay:
-            data = self.replay_buffer.sample(self.batch_size,self.prioritized_replay_beta0)
+            data = self.replay_buffer.sample(self._batch_size,self.prioritized_replay_beta0)
         else:
-            data = self.replay_buffer.sample(self.batch_size)
+            data = self.replay_buffer.sample(self._batch_size)
         obses = convert_states(data[0],self.device)
         actions = torch.tensor(data[1],dtype=torch.int64,device=self.device).view(-1,1)
         rewards = torch.tensor(data[2],dtype=torch.float32,device=self.device).view(-1,1)
