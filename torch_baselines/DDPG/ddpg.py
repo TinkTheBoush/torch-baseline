@@ -148,6 +148,10 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                 action_tuple = ActionTuple(continuous=actions)
                 self.env.set_actions(self.group_name, action_tuple)
                 old_dec = dec
+            else:
+                self.env.step()
+                dec, term = self.env.get_steps(self.group_name)
+                continue
             self.env.step()
             dec, term = self.env.get_steps(self.group_name)
             
