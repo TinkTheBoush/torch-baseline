@@ -144,8 +144,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         for steps in pbar:
             update_eps = self.exploration.value(steps)
             actions = self.actions(dec.obs,update_eps,befor_train)
-            
-            action_tuple = ActionTuple(discrete=actions)
+            action_tuple = ActionTuple(continuous=actions)
             self.env.set_actions(self.group_name, action_tuple)
             old_dec = dec
             self.env.step()

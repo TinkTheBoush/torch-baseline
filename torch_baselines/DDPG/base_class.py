@@ -124,7 +124,7 @@ class Deterministic_Policy_Gradient_Family(object):
         befor_train = True
         for steps in pbar:
             actions = self.actions(dec.obs,befor_train)
-            action_tuple = ActionTuple(discrete=actions)
+            action_tuple = ActionTuple(continuous=actions)
             self.env.set_actions(self.group_name, action_tuple)
             old_dec = dec
             self.env.step()
