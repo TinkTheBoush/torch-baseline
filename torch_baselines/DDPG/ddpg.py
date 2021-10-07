@@ -157,7 +157,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                 reward = term[id].reward
                 done = not term[id].interrupted
                 terminal = True
-                act = actions[old_dec.index(id)]
+                act = actions[old_dec.agent_id.index(id)]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 self.scores[id] += reward
                 self.scoreque.append(self.scores[id])
@@ -172,7 +172,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                 reward = dec[id].reward
                 done = False
                 terminal = False
-                act = actions[old_dec.index(id)]
+                act = actions[old_dec.agent_id.index(id)]
                 if self.n_step_method:
                     self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 else:
