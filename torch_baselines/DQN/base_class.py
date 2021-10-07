@@ -193,7 +193,7 @@ class Q_Network_Family(object):
                 reward = term[idx].reward
                 done = not term[idx].interrupted
                 terminal = True
-                act = actions[idx]
+                act = actions[old_dec.index(idx)]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, idx, terminal)
                 self.scores[idx] += reward
                 self.scoreque.append(self.scores[idx])
@@ -208,7 +208,7 @@ class Q_Network_Family(object):
                 reward = dec[idx].reward
                 done = False
                 terminal = False
-                act = actions[idx]
+                act = actions[old_dec.index(idx)]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, idx, terminal)
                 self.scores[idx] += reward
 
