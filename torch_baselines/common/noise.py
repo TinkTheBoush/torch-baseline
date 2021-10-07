@@ -12,9 +12,9 @@ class OUNoise(object):
     
     def __call__(self) -> np.ndarray:
         noise = self.noise_prev - self._theta * self.noise_prev + \
-                self._sigma * np.random.normal(size=(self.worker_size,self.action_size))
+                 np.random.normal(0,self._sigma,size=(self.worker_size,self.action_size))
         self.noise_prev = noise
         return noise
 
     def reset(self,worker) -> None:
-        self.noise_prev[worker] = self._sigma * np.random.normal(size=(len(worker),self.action_size))
+        self.noise_prev[worker] = np.random.normal(0,self._sigma,size=(len(worker),self.action_size))
