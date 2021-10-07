@@ -67,7 +67,7 @@ class Deterministic_Policy_Gradient_Family(object):
             
             self.observation_space = [list(spec.shape) for spec in group_spec.observation_specs]
             self.observation_space = [[sp[2], sp[0], sp[1]] if len(sp) == 3 else sp for sp in self.observation_space]
-            self.action_size = [branch for branch in group_spec.action_spec.continuous_size]
+            self.action_size = [group_spec.action_spec.continuous_size]
             self.worker_size = len(dec.agent_id)
             self.env_type = "unity"
             
