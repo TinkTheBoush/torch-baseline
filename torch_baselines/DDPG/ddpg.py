@@ -143,7 +143,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         befor_train = True
         for steps in pbar:
             update_eps = self.exploration.value(steps)
-            actions = self.actions(dec.obs,update_eps,befor_train)
+            actions = self.actions(dec.obs,update_eps,befor_train,dec.agent_id)
             action_tuple = ActionTuple(continuous=actions)
             self.env.set_actions(self.group_name, action_tuple)
             old_dec = dec
@@ -203,7 +203,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         befor_train = True
         for steps in pbar:
             update_eps = self.exploration.value(steps)
-            actions = self.actions([state],update_eps,befor_train)
+            actions = self.actions([state],update_eps,befor_train,[0])
             next_state, reward, terminal, info = self.env.step(actions[0])
             done = terminal
             if "TimeLimit.truncated" in info:
