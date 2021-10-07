@@ -123,15 +123,10 @@ class Deterministic_Policy_Gradient_Family(object):
         self.lossque = deque(maxlen=10)
         befor_train = True
         for steps in pbar:
-            if len(dec.agent_id) > 0:
-                actions = self.actions(dec.obs,befor_train,dec.agent_id)
-                action_tuple = ActionTuple(continuous=actions)
-                self.env.set_actions(self.group_name, action_tuple)
-                old_dec = dec
-            else:
-                self.env.step()
-                dec, term = self.env.get_steps(self.group_name)
-                continue
+            actions = self.actions(dec.obs,befor_train,dec.agent_id)
+            action_tuple = ActionTuple(continuous=actions)
+            self.env.set_actions(self.group_name, action_tuple)
+            old_dec = dec
             self.env.step()
             dec, term = self.env.get_steps(self.group_name)
             
@@ -149,7 +144,7 @@ class Deterministic_Policy_Gradient_Family(object):
                     self.summary.add_scalar("episode_reward", self.scores[id], steps)
                 self.scores[id] = 0
             for id in dec.agent_id:
-                if id in term.agent_id:
+                if id in term.agent_id or id not in old_dec.agent_id:
                     continue
                 obs = old_dec[id].obs
                 nxtobs = dec[id].obs
