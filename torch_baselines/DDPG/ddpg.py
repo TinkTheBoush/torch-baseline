@@ -187,9 +187,8 @@ class DDPG(Deterministic_Policy_Gradient_Family):
             
             if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
-                for i in range(self.gradient_steps):
-                    loss = self._train_step(steps)
-                    self.lossque.append(loss)
+                loss = self._train_step(steps)
+                self.lossque.append(loss)
                 
         
     def learn_gym(self, pbar, callback=None, log_interval=100):
@@ -218,9 +217,8 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                 
             if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
-                for i in range(self.gradient_steps):
-                    loss = self._train_step(steps)
-                    self.lossque.append(loss)
+                loss = self._train_step(steps)
+                self.lossque.append(loss)
             
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
