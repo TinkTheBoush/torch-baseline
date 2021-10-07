@@ -151,33 +151,33 @@ class DDPG(Deterministic_Policy_Gradient_Family):
             self.env.step()
             dec, term = self.env.get_steps(self.group_name)
             
-            for idx in term.agent_id:
-                obs = old_dec[idx].obs
-                nxtobs = term[idx].obs
-                reward = term[idx].reward
-                done = not term[idx].interrupted
+            for id in term.agent_id:
+                obs = old_dec[id].obs
+                nxtobs = term[id].obs
+                reward = term[id].reward
+                done = not term[id].interrupted
                 terminal = True
-                act = actions[old_dec.index(idx)]
-                self.replay_buffer.add(obs, act, reward, nxtobs, done, idx, terminal)
-                self.scores[idx] += reward
-                self.scoreque.append(self.scores[idx])
+                act = actions[old_dec.index(id)]
+                self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
+                self.scores[id] += reward
+                self.scoreque.append(self.scores[id])
                 if self.summary:
-                    self.summary.add_scalar("episode_reward", self.scores[idx], steps)
-                self.scores[idx] = 0
-            for idx in dec.agent_id:
-                if idx in term.agent_id:
+                    self.summary.add_scalar("episode_reward", self.scores[id], steps)
+                self.scores[id] = 0
+            for id in dec.agent_id:
+                if id in term.agent_id:
                     continue
-                obs = old_dec[idx].obs
-                nxtobs = dec[idx].obs
-                reward = dec[idx].reward
+                obs = old_dec[id].obs
+                nxtobs = dec[id].obs
+                reward = dec[id].reward
                 done = False
                 terminal = False
-                act = actions[old_dec.index(idx)]
+                act = actions[old_dec.index(id)]
                 if self.n_step_method:
-                    self.replay_buffer.add(obs, act, reward, nxtobs, done, idx, terminal)
+                    self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 else:
                     self.replay_buffer.add(obs, act, reward, nxtobs, done)
-                self.scores[idx] += reward
+                self.scores[id] += reward
 
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
