@@ -123,10 +123,12 @@ class Deterministic_Policy_Gradient_Family(object):
         self.lossque = deque(maxlen=10)
         befor_train = True
         for steps in pbar:
-            actions = self.actions(dec.obs,befor_train)
+            actions = self.actions(dec.obs,befor_train,dec.agent_id)
             action_tuple = ActionTuple(continuous=actions)
             self.env.set_actions(self.group_name, action_tuple)
-            old_dec = dec
+            if len(dec.agent_id) > 0:
+                old_dec = dec
+                old_action = actions
             self.env.step()
             dec, term = self.env.get_steps(self.group_name)
             
@@ -136,7 +138,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 reward = term[idx].reward
                 done = not term[idx].interrupted
                 terminal = True
-                act = actions[idx]
+                act = old_action[idx]
                 if self.n_step_method:
                     self.replay_buffer.add(obs, act, reward, nxtobs, done, idx, terminal)
                 else:
@@ -154,7 +156,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 reward = dec[idx].reward
                 done = False
                 terminal = False
-                act = actions[idx]
+                act = old_action[idx]
                 if self.n_step_method:
                     self.replay_buffer.add(obs, act, reward, nxtobs, done, idx, terminal)
                 else:
@@ -182,7 +184,7 @@ class Deterministic_Policy_Gradient_Family(object):
         self.lossque = deque(maxlen=10)
         befor_train = True
         for steps in pbar:
-            actions = self.actions([state],befor_train)
+            actions = self.actions([state],befor_train,[0])
             next_state, reward, terminal, info = self.env.step(actions[0])
             done = terminal
             if "TimeLimit.truncated" in info:
