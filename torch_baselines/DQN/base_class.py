@@ -187,6 +187,8 @@ class Q_Network_Family(object):
             dec, term = self.env.get_steps(self.group_name)
             
             for id in term.agent_id:
+                if id not in old_dec.agent_id:
+                    continue
                 obs = old_dec[id].obs
                 nxtobs = term[id].obs
                 reward = term[id].reward
