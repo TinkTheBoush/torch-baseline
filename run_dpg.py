@@ -56,3 +56,5 @@ if __name__ == "__main__":
                     tensorboard_log=args.logdir+env_name)
 
     agent.learn(int(args.steps))
+    
+    env.close()
