@@ -14,13 +14,13 @@ from mlagents_envs.environment import UnityEnvironment, ActionTuple
 
 class DDPG(Deterministic_Policy_Gradient_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
-                 exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32,
+                 exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, gradient_steps=1, batch_size=32,
                  n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
                  param_noise=False, max_grad_norm = 1.0, verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
         
-        super(DDPG, self).__init__(env, gamma, learning_rate, buffer_size, train_freq, batch_size, 
+        super(DDPG, self).__init__(env, gamma, learning_rate, buffer_size, train_freq, gradient_steps, batch_size, 
                  n_step, learning_starts, target_network_tau, prioritized_replay,
                  prioritized_replay_alpha, prioritized_replay_beta0, prioritized_replay_eps, 
                  param_noise, max_grad_norm, verbose, tensorboard_log, _init_setup_model, policy_kwargs, 
@@ -174,10 +174,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                 done = False
                 terminal = False
                 act = old_actions[id]
-                if self.n_step_method:
-                    self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
-                else:
-                    self.replay_buffer.add(obs, act, reward, nxtobs, done)
+                self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 self.scores[id] += reward
 
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
@@ -190,8 +187,9 @@ class DDPG(Deterministic_Policy_Gradient_Family):
             
             if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
-                loss = self._train_step(steps)
-                self.lossque.append(loss)
+                for i in range(self.gradient_steps):
+                    loss = self._train_step(steps)
+                    self.lossque.append(loss)
                 
         
     def learn_gym(self, pbar, callback=None, log_interval=100):
@@ -220,8 +218,9 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                 
             if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
-                loss = self._train_step(steps)
-                self.lossque.append(loss)
+                for i in range(self.gradient_steps):
+                    loss = self._train_step(steps)
+                    self.lossque.append(loss)
             
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(

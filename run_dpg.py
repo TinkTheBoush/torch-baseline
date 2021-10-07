@@ -14,6 +14,8 @@ if __name__ == "__main__":
     parser.add_argument('--env', type=str, default="Cartpole-v1", help='environment')
     parser.add_argument('--algo', type=str, default="DQN", help='algo ID')
     parser.add_argument('--gamma', type=float, default=0.99, help='gamma')
+    parser.add_argument('--train_freq', type=int, default=1, help='train freq')
+    parser.add_argument('--grad_step', type=int, default=1, help='grad step')
     parser.add_argument('--target_update_tau', type=float, default=0.99, help='target update intervals')
     parser.add_argument('--batch', type=int, default=64, help='batch size')
     parser.add_argument('--buffer_size', type=float, default=50000, help='buffer_size')
@@ -42,15 +44,18 @@ if __name__ == "__main__":
         env = gym.make(env_name)
         
     if args.algo == "DDPG":
-        agent = DDPG(env,batch_size = args.batch, gamma = args.gamma, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
+        agent = DDPG(env,batch_size = args.batch, gamma = args.gamma, train_freq=args.train_freq, gradient_steps=args.grad_step,
+                    buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
                     prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step, max_grad_norm = args.max_grad,
                     tensorboard_log=args.logdir+env_name)
     elif args.algo == "TD3":
-        agent = TD3(env,batch_size = args.batch, gamma = args.gamma, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
+        agent = TD3(env,batch_size = args.batch, gamma = args.gamma, train_freq=args.train_freq, gradient_steps=args.grad_step,
+                    buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
                     prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step, max_grad_norm = args.max_grad,
                     tensorboard_log=args.logdir+env_name)
     elif args.algo == "TD4_QR":
-        agent = TD4_QR(env,batch_size = args.batch, gamma = args.gamma, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
+        agent = TD4_QR(env,batch_size = args.batch, gamma = args.gamma, train_freq=args.train_freq, gradient_steps=args.grad_step,
+                       buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
                     prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step, max_grad_norm = args.max_grad, 
                     risk_avoidance = args.risk_avoidance, n_support=args.n_support,
                     tensorboard_log=args.logdir+env_name)

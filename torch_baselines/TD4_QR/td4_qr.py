@@ -8,13 +8,13 @@ from torch_baselines.common.utils import convert_states, hard_update, soft_updat
 
 class TD4_QR(Deterministic_Policy_Gradient_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, n_support = 64, 
-                 action_noise = 0.1, train_freq=1, batch_size=32, policy_delay = 2, risk_avoidance = 0.0,
+                 action_noise = 0.1, train_freq=1, gradient_steps=1, batch_size=32, policy_delay = 2, risk_avoidance = 0.0,
                  n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False, 
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
                  param_noise=False, max_grad_norm = 1.0, log_interval=200, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
         
-        super(TD4_QR, self).__init__(env, gamma, learning_rate, buffer_size, train_freq, batch_size, 
+        super(TD4_QR, self).__init__(env, gamma, learning_rate, buffer_size, train_freq, gradient_steps, batch_size, 
                  n_step, learning_starts, target_network_tau, prioritized_replay,
                  prioritized_replay_alpha, prioritized_replay_beta0, prioritized_replay_eps, 
                  param_noise, max_grad_norm, log_interval, tensorboard_log, _init_setup_model, policy_kwargs, 

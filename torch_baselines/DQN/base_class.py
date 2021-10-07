@@ -17,7 +17,7 @@ import minatar
 
 class Q_Network_Family(object):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3,
-                 exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, batch_size=32, double_q=True,
+                 exploration_final_eps=0.02, exploration_initial_eps=1.0, train_freq=1, gradient_steps=1, batch_size=32, double_q=True,
                  dualing_model = False, n_step = 1, learning_starts=1000, target_network_update_freq=2000, prioritized_replay=False,
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
                  param_noise=False, munchausen=False, log_interval=200, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
@@ -31,6 +31,7 @@ class Q_Network_Family(object):
         self.param_noise = param_noise
         self.learning_starts = learning_starts
         self.train_freq = train_freq
+        self.gradient_steps = gradient_steps
         self.prioritized_replay = prioritized_replay
         self.prioritized_replay_eps = prioritized_replay_eps
         self.batch_size = batch_size
@@ -221,8 +222,9 @@ class Q_Network_Family(object):
             can_sample = self.replay_buffer.can_sample(self.batch_size)
             if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
-                loss = self._train_step(steps)
-                self.lossque.append(loss)
+                for i in range(self.gradient_steps):
+                    loss = self._train_step(steps)
+                    self.lossque.append(loss)
                 
         
     def learn_gym(self, pbar, callback=None, log_interval=100):
@@ -248,11 +250,11 @@ class Q_Network_Family(object):
                 self.scores[0] = 0
                 state = self.env.reset()
                 
-            can_sample = self.replay_buffer.can_sample(self.batch_size)
-            if can_sample and steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
+            if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
-                loss = self._train_step(steps)
-                self.lossque.append(loss)
+                for i in range(self.gradient_steps):
+                    loss = self._train_step(steps)
+                    self.lossque.append(loss)
             
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
@@ -288,8 +290,9 @@ class Q_Network_Family(object):
                 
             if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
-                loss = self._train_step(steps)
-                self.lossque.append(loss)
+                for i in range(self.gradient_steps):
+                    loss = self._train_step(steps)
+                    self.lossque.append(loss)
             
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
