@@ -35,12 +35,12 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         if _init_setup_model:
             self.setup_model()
             
-    def actions(self,obs,epsilon,befor_train):
+    def actions(self,obs,epsilon,befor_train,agent_id):
         if not befor_train:
             with torch.no_grad():
-                actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + self.noise()*epsilon,-1,1)
+                actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + self.noise()[agent_id]*epsilon,-1,1)
         else:
-            actions = np.clip(np.random.normal(size=(self.worker_size,self.action_size[0])),-1,1)
+            actions = np.clip(np.random.normal(size=(self.worker_size,self.action_size[0])),-1,1)[agent_id]
         return actions
             
     def setup_model(self):
