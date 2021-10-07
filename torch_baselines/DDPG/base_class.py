@@ -137,7 +137,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 reward = term[id].reward
                 done = not term[id].interrupted
                 terminal = True
-                act = actions[old_dec.agent_id.index(id)]
+                act = actions[id]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 self.scores[id] += reward
                 self.scoreque.append(self.scores[id])
@@ -152,7 +152,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 reward = dec[id].reward
                 done = False
                 terminal = False
-                act = actions[old_dec.agent_id.index(id)]
+                act = actions[id]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 self.scores[id] += reward
 
