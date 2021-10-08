@@ -179,14 +179,13 @@ class Q_Network_Family(object):
         befor_train = True
         for steps in pbar:
             len_dec = len(dec)
-            if not len_dec == 0:
+            if len_dec:
                 update_eps = self.exploration.value(steps)
                 actions = self.actions(dec.obs,update_eps,befor_train)
                 action_tuple = ActionTuple(discrete=actions)
                 self.env.set_actions(self.group_name, action_tuple)
                 old_dec = dec
             self.env.step()
-            old_dec_id = dec.agent_id
             old_term_id = term.agent_id
             dec, term = self.env.get_steps(self.group_name)
             for id in term.agent_id:
@@ -203,7 +202,7 @@ class Q_Network_Family(object):
                     self.summary.add_scalar("episode_reward", self.scores[id], steps)
                 self.scores[id] = 0
             for id in dec.agent_id:
-                if (id in old_term_id and id not in old_dec_id) or id in term.agent_id:
+                if (id in old_term_id and len_dec) or id in term.agent_id:
                     continue #if in old_term_id -> start dec but not in old_dec_id -> second dec, if in term.agent_id -> start dec
                 obs = old_dec[id].obs
                 nxtobs = dec[id].obs
