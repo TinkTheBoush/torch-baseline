@@ -136,12 +136,12 @@ class Deterministic_Policy_Gradient_Family(object):
             for id in np.arange(self.worker_size):
                 obs = old_dec[id]
                 act = action_dict[id]
-                self.scores[id] += reward
                 if id in term.agent_id:
                     nxtobs = term[id].obs
                     reward = term[id].reward
                     done = not term[id].interrupted
                     terminal = True
+                    self.scores[id] += reward
                     if self.summary:
                         self.summary.add_scalar("episode_reward", self.scores[id], steps)
                     self.scores[id] = 0
@@ -150,6 +150,7 @@ class Deterministic_Policy_Gradient_Family(object):
                     reward = dec[id].reward
                     done = False
                     terminal = False
+                    self.scores[id] += reward
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
 
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
