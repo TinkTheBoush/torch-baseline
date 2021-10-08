@@ -56,6 +56,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
         self.target_critic.to(self.device)
         hard_update(self.target_actor,self.actor)
         hard_update(self.target_critic,self.critic)
+        self.actor_param = self.actor.parameters()
         
         #self.actor_optimizer = torch.optim.RMSprop(self.actor.parameters(),lr=self.learning_rate)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),lr=self.learning_rate)
@@ -116,7 +117,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
             
             self.actor_optimizer.zero_grad(set_to_none=True)
             actor_loss.backward()
-            torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
+            torch.nn.utils.clip_grad_norm(self.actor_param, self.max_grad_norm)
             self.actor_optimizer.step()
         
             soft_update(self.target_actor,self.actor,self.target_network_tau)
