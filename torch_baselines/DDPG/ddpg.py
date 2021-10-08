@@ -150,7 +150,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                 self.env.set_actions(self.group_name, action_tuple)
                 old_dec = dec
             self.env.step()
-            old_term_id = dec.agent_id
+            old_term_id = term.agent_id
             dec, term = self.env.get_steps(self.group_name)
             for id in term.agent_id:
                 obs = old_dec[id].obs
@@ -166,7 +166,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                     self.summary.add_scalar("episode_reward", self.scores[id], steps)
                 self.scores[id] = 0
             for id in dec.agent_id:
-                if id not in old_term_id:
+                if id in old_term_id:
                     continue
                 obs = old_dec[id].obs
                 nxtobs = dec[id].obs
