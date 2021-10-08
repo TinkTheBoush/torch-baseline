@@ -110,9 +110,6 @@ class Deterministic_Policy_Gradient_Family(object):
                 self.learn_unity(pbar, callback, log_interval)
             if self.env_type == "gym":
                 self.learn_gym(pbar, callback, log_interval)
-                
-    def terminal_callback(self,workers):
-        pass
     
     def learn_unity(self, pbar, callback=None, log_interval=100):
         self.env.reset()
@@ -122,47 +119,24 @@ class Deterministic_Policy_Gradient_Family(object):
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
         befor_train = True
-        old_dec = {}
-        action_dict = {}
         for steps in pbar:
             actions = self.actions(dec.obs,befor_train,dec.agent_id)
             action_tuple = ActionTuple(continuous=actions)
             self.env.set_actions(self.group_name, action_tuple)
-            for idx,id in enumerate(dec.agent_id):
-                old_dec[id] = dec[id].obs
-                action_dict[id] = actions[idx]
             self.env.step()
             dec, term = self.env.get_steps(self.group_name)
-            for id in np.arange(self.worker_size):
-                obs = old_dec[id]
-                act = action_dict[id]
-                if id in term.agent_id:
-                    nxtobs = term[id].obs
-                    reward = term[id].reward
-                    done = not term[id].interrupted
-                    terminal = True
-                    self.scores[id] += reward
-                    if self.summary:
-                        self.summary.add_scalar("episode_reward", self.scores[id], steps)
-                    self.scores[id] = 0
-                else:
-                    nxtobs = dec[id].obs
-                    reward = dec[id].reward
-                    done = False
-                    terminal = False
-                    self.scores[id] += reward
-                self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
 
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, loss : {:.3f} |".format(
                                     np.mean(self.scoreque),np.mean(self.lossque)
                                     )
                                     )
-            
+            '''
             if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
                 loss = self._train_step(steps)
                 self.lossque.append(loss)
+            '''
                 
         
     def learn_gym(self, pbar, callback=None, log_interval=100):
