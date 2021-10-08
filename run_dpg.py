@@ -12,6 +12,7 @@ from mlagents_envs.side_channel.environment_parameters_channel import Environmen
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', type=str, default="Cartpole-v1", help='environment')
+    parser.add_argument('--lr', type=float, default=5e-4, help='learning rate')
     parser.add_argument('--algo', type=str, default="DQN", help='algo ID')
     parser.add_argument('--gamma', type=float, default=0.99, help='gamma')
     parser.add_argument('--train_freq', type=int, default=1, help='train freq')
@@ -45,18 +46,18 @@ if __name__ == "__main__":
         env_type = "gym"
         
     if args.algo == "DDPG":
-        agent = DDPG(env,batch_size = args.batch, gamma = args.gamma, train_freq=args.train_freq, gradient_steps=args.grad_step,
-                    buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
+        agent = DDPG(env,batch_size = args.batch, learning_rate=args.lr, gamma = args.gamma, train_freq=args.train_freq, 
+                    gradient_steps=args.grad_step, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
                     prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step, max_grad_norm = args.max_grad,
                     tensorboard_log=args.logdir + env_type + "/" +env_name)
     elif args.algo == "TD3":
-        agent = TD3(env,batch_size = args.batch, gamma = args.gamma, train_freq=args.train_freq, gradient_steps=args.grad_step,
-                    buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
+        agent = TD3(env,batch_size = args.batch, learning_rate=args.lr, gamma = args.gamma, train_freq=args.train_freq, 
+                    gradient_steps=args.grad_step, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
                     prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step, max_grad_norm = args.max_grad,
                     tensorboard_log=args.logdir + env_type + "/" +env_name)
     elif args.algo == "TD4_QR":
-        agent = TD4_QR(env,batch_size = args.batch, gamma = args.gamma, train_freq=args.train_freq, gradient_steps=args.grad_step,
-                       buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
+        agent = TD4_QR(env,batch_size = args.batch, learning_rate=args.lr, gamma = args.gamma, train_freq=args.train_freq, 
+                       gradient_steps=args.grad_step, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
                     prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step, max_grad_norm = args.max_grad, 
                     risk_avoidance = args.risk_avoidance, n_support=args.n_support,
                     tensorboard_log=args.logdir + env_type + "/" +env_name)
