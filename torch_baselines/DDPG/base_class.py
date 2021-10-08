@@ -133,38 +133,30 @@ class Deterministic_Policy_Gradient_Family(object):
                 action_dict[id] = actions[idx]
             self.env.step()
             dec, term = self.env.get_steps(self.group_name)
-            for id in term.agent_id:
+            for id in np.arange(self.worker_size):
                 obs = old_dec[id]
-                nxtobs = term[id].obs
-                reward = term[id].reward
-                done = not term[id].interrupted
-                terminal = True
                 act = action_dict[id]
-                self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 self.scores[id] += reward
-                self.scoreque.append(self.scores[id])
-                if self.summary:
-                    self.summary.add_scalar("episode_reward", self.scores[id], steps)
-                self.scores[id] = 0
-            for id in dec.agent_id:
                 if id in term.agent_id:
-                    continue
-                obs = old_dec[id]
-                nxtobs = dec[id].obs
-                reward = dec[id].reward
-                done = False
-                terminal = False
-                act = action_dict[id]
+                    nxtobs = term[id].obs
+                    reward = term[id].reward
+                    done = not term[id].interrupted
+                    terminal = True
+                    if self.summary:
+                        self.summary.add_scalar("episode_reward", self.scores[id], steps)
+                    self.scores[id] = 0
+                else:
+                    nxtobs = dec[id].obs
+                    reward = dec[id].reward
+                    done = False
+                    terminal = False
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
-                self.scores[id] += reward
 
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, loss : {:.3f} |".format(
                                     np.mean(self.scoreque),np.mean(self.lossque)
                                     )
                                     )
-            
-            self.terminal_callback(term.agent_id)
             
             if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
@@ -193,7 +185,6 @@ class Deterministic_Policy_Gradient_Family(object):
                     self.summary.add_scalar("episode_reward", self.scores[0], steps)
                 self.scores[0] = 0
                 state = self.env.reset()
-                self.terminal_callback([0])
                 
             if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
