@@ -81,6 +81,8 @@ class Deterministic_Policy_Gradient_Family(object):
             self.worker_size = 1
             self.env_type = "gym"
         
+        self.tensorboard_log += self.env_type + "/"
+        
         print("observation size : ", self.observation_space)
         print("action size : ", self.action_size)
         print("worker_size : ", self.worker_size)
