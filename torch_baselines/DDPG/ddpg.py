@@ -142,7 +142,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         self.lossque = deque(maxlen=10)
         befor_train = True
         for steps in pbar:
-            len_dec = len(dec)
+            len_dec = len(dec.agent_id)
             if not len_dec == 0:
                 update_eps = self.exploration.value(steps)
                 actions = self.actions(dec.obs,update_eps,befor_train)
