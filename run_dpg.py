@@ -19,7 +19,7 @@ if __name__ == "__main__":
     parser.add_argument('--grad_step', type=int, default=1, help='grad step')
     parser.add_argument('--target_update_tau', type=float, default=0.98, help='target update intervals')
     parser.add_argument('--batch', type=int, default=64, help='batch size')
-    parser.add_argument('--buffer_size', type=float, default=50000, help='buffer_size')
+    parser.add_argument('--buffer_size', type=float, default=5e5, help='buffer_size')
     parser.add_argument('--per', action='store_true')
     parser.add_argument('--noisynet', action='store_true')
     parser.add_argument('--n_step', type=int, default=1, help='n step setting when n > 1 is n step td method')
