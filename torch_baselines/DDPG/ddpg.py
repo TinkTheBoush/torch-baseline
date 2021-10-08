@@ -142,24 +142,23 @@ class DDPG(Deterministic_Policy_Gradient_Family):
         self.lossque = deque(maxlen=10)
         befor_train = True
         for steps in pbar:
-            update_eps = self.exploration.value(steps)
-            actions = self.actions(dec.obs,update_eps,befor_train,dec.agent_id)
-            action_tuple = ActionTuple(continuous=actions)
-            self.env.set_actions(self.group_name, action_tuple)
-            old_dec = dec
-            action_dict = dict(zip(old_dec.agent_id, actions))
+            len_dec = len(dec)
+            if not len_dec == 0:
+                update_eps = self.exploration.value(steps)
+                actions = self.actions(dec.obs,update_eps,befor_train)
+                action_tuple = ActionTuple(continuous=actions)
+                self.env.set_actions(self.group_name, action_tuple)
+                old_dec = dec
             self.env.step()
+            old_term_id = term.agent_id
             dec, term = self.env.get_steps(self.group_name)
-            
             for id in term.agent_id:
-                if id not in old_dec.agent_id:
-                    continue
                 obs = old_dec[id].obs
                 nxtobs = term[id].obs
                 reward = term[id].reward
                 done = not term[id].interrupted
                 terminal = True
-                act = action_dict[id]
+                act = actions[id]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 self.scores[id] += reward
                 self.scoreque.append(self.scores[id])
@@ -167,14 +166,14 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                     self.summary.add_scalar("episode_reward", self.scores[id], steps)
                 self.scores[id] = 0
             for id in dec.agent_id:
-                if id in term.agent_id or id not in old_dec.agent_id:
+                if id in old_term_id:
                     continue
                 obs = old_dec[id].obs
                 nxtobs = dec[id].obs
                 reward = dec[id].reward
                 done = False
                 terminal = False
-                act = action_dict[id]
+                act = actions[id]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 self.scores[id] += reward
 
@@ -183,8 +182,6 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                                     np.mean(self.scoreque),update_eps,np.mean(self.lossque)
                                     )
                                     )
-            
-            self.terminal_callback(term.agent_id)
             
             if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
