@@ -120,11 +120,39 @@ class Deterministic_Policy_Gradient_Family(object):
         self.lossque = deque(maxlen=10)
         befor_train = True
         for steps in pbar:
-            actions = self.actions(dec.obs,befor_train,dec.agent_id)
-            action_tuple = ActionTuple(continuous=actions)
-            self.env.set_actions(self.group_name, action_tuple)
+            len_dec = len(dec)
+            if not len_dec == 0:
+                actions = self.actions(dec.obs,befor_train)
+                action_tuple = ActionTuple(continuous=actions)
+                self.env.set_actions(self.group_name, action_tuple)
+                old_dec = dec
             self.env.step()
+            old_term_id = term.agent_id
             dec, term = self.env.get_steps(self.group_name)
+            for id in term.agent_id:
+                obs = old_dec[id].obs
+                nxtobs = term[id].obs
+                reward = term[id].reward
+                done = not term[id].interrupted
+                terminal = True
+                act = actions[id]
+                self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
+                self.scores[id] += reward
+                self.scoreque.append(self.scores[id])
+                if self.summary:
+                    self.summary.add_scalar("episode_reward", self.scores[id], steps)
+                self.scores[id] = 0
+            for id in dec.agent_id:
+                if id in old_term_id:
+                    continue
+                obs = old_dec[id].obs
+                nxtobs = dec[id].obs
+                reward = dec[id].reward
+                done = False
+                terminal = False
+                act = actions[id]
+                self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
+                self.scores[id] += reward
 
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, loss : {:.3f} |".format(
@@ -132,15 +160,10 @@ class Deterministic_Policy_Gradient_Family(object):
                                     )
                                     )
             
-            if len(dec) < self.worker_size:
-                print(dec.agent_id)
-                print(term.agent_id)
-            '''
             if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
                 loss = self._train_step(steps)
                 self.lossque.append(loss)
-            '''
                 
         
     def learn_gym(self, pbar, callback=None, log_interval=100):
