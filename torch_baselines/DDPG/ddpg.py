@@ -118,12 +118,12 @@ class DDPG(Deterministic_Policy_Gradient_Family):
     def terminal_callback(self,workers):
         self.noise.reset(workers)
         
-    def actions(self,obs,epsilon,befor_train,agent_id):
+    def actions(self,obs,epsilon,befor_train):
         if not befor_train:
             with torch.no_grad():
-                actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + self.noise()[agent_id]*epsilon,-1,1)
+                actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + self.noise()*epsilon,-1,1)
         else:
-            actions = np.clip(np.random.normal(size=(self.worker_size,self.action_size[0])),-1,1)[agent_id]
+            actions = np.clip(np.random.normal(size=(self.worker_size,self.action_size[0])),-1,1)
         return actions
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="DDPG",
