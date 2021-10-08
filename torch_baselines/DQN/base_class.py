@@ -202,7 +202,7 @@ class Q_Network_Family(object):
                     self.summary.add_scalar("episode_reward", self.scores[id], steps)
                 self.scores[id] = 0
             for id in dec.agent_id:
-                if (id in old_term_id and len_dec) or id in term.agent_id:
+                if (id in old_term_id and not len_dec) or id in term.agent_id:
                     continue #if in old_term_id -> start dec but not in old_dec_id -> second dec, if in term.agent_id -> start dec
                 obs = old_dec[id].obs
                 nxtobs = dec[id].obs
