@@ -35,9 +35,9 @@ if __name__ == "__main__":
     if os.path.exists(env_name):
         engine_configuration_channel = EngineConfigurationChannel()
         channel = EnvironmentParametersChannel()
+        engine_configuration_channel.set_configuration_parameters(time_scale=16.0)
         
         env = UnityEnvironment(file_name=env_name,no_graphics=True, side_channels=[engine_configuration_channel,channel],timeout_wait=10000)
-        engine_configuration_channel.set_configuration_parameters(time_scale=8.0)
         env_name = env_name.split('/')[-1].split('.')[0]
         
     else:
