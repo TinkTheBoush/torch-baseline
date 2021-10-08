@@ -12,7 +12,7 @@ from mlagents_envs.side_channel.environment_parameters_channel import Environmen
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str, default="Cartpole-v1", help='environment')
+    parser.add_argument('--env', type=str, default="BipedalWalker-v3", help='environment')
     parser.add_argument('--lr', type=float, default=5e-4, help='learning rate')
     parser.add_argument('--algo', type=str, default="DQN", help='algo ID')
     parser.add_argument('--gamma', type=float, default=0.99, help='gamma')
