@@ -173,7 +173,7 @@ class Deterministic_Policy_Gradient_Family(object):
         self.lossque = deque(maxlen=10)
         befor_train = True
         for steps in pbar:
-            actions = self.actions([state],befor_train,[0])
+            actions = self.actions([state],befor_train)
             next_state, reward, terminal, info = self.env.step(actions[0])
             done = terminal
             if "TimeLimit.truncated" in info:
