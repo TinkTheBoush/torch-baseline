@@ -147,6 +147,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
             action_tuple = ActionTuple(continuous=actions)
             self.env.set_actions(self.group_name, action_tuple)
             old_dec = dec
+            old_actions = dict(zip(old_dec.agent_id, actions))
             self.env.step()
             dec, term = self.env.get_steps(self.group_name)
             
@@ -158,7 +159,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                 reward = term[id].reward
                 done = not term[id].interrupted
                 terminal = True
-                act = actions[id]
+                act = old_actions[id]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 self.scores[id] += reward
                 self.scoreque.append(self.scores[id])
@@ -173,7 +174,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                 reward = dec[id].reward
                 done = False
                 terminal = False
-                act = actions[id]
+                act = old_actions[id]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 self.scores[id] += reward
 

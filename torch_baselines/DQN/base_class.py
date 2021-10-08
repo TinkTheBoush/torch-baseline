@@ -183,6 +183,7 @@ class Q_Network_Family(object):
             action_tuple = ActionTuple(discrete=actions)
             self.env.set_actions(self.group_name, action_tuple)
             old_dec = dec
+            old_actions = dict(zip(old_dec.agent_id, actions))
             self.env.step()
             dec, term = self.env.get_steps(self.group_name)
             
@@ -194,7 +195,7 @@ class Q_Network_Family(object):
                 reward = term[id].reward
                 done = not term[id].interrupted
                 terminal = True
-                act = actions[id]
+                act = old_actions[id]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 self.scores[id] += reward
                 self.scoreque.append(self.scores[id])
@@ -209,7 +210,7 @@ class Q_Network_Family(object):
                 reward = dec[id].reward
                 done = False
                 terminal = False
-                act = actions[id]
+                act = old_actions[id]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 self.scores[id] += reward
 
