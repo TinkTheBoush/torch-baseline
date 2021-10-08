@@ -131,6 +131,10 @@ class Deterministic_Policy_Gradient_Family(object):
                                     np.mean(self.scoreque),np.mean(self.lossque)
                                     )
                                     )
+            
+            if len(dec) < self.worker_size:
+                print(dec.agent_id)
+                print(term.agent_id)
             '''
             if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
                 befor_train = False
