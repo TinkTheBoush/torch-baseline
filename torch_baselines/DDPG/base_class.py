@@ -161,7 +161,7 @@ class Deterministic_Policy_Gradient_Family(object):
                                     )
                                     )
             
-            if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
+            if steps > self.learning_starts and steps % self.train_freq == 0:
                 befor_train = False
                 for i in np.arange(self.gradient_steps):
                     loss = self._train_step(steps)
@@ -190,7 +190,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 self.scores[0] = 0
                 state = self.env.reset()
                 
-            if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
+            if steps > self.learning_starts and steps % self.train_freq == 0:
                 befor_train = False
                 for i in np.arange(self.gradient_steps):
                     loss = self._train_step(steps)

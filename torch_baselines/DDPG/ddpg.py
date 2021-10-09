@@ -184,7 +184,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                                     )
                                     )
             
-            if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
+            if steps > self.learning_starts and steps % self.train_freq == 0:
                 befor_train = False
                 for i in np.arange(self.gradient_steps):
                     loss = self._train_step(steps)
@@ -215,7 +215,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
                 state = self.env.reset()
                 self.terminal_callback([0])
                 
-            if steps > self.learning_starts/self.worker_size and steps % self.train_freq == 0:
+            if steps > self.learning_starts and steps % self.train_freq == 0:
                 befor_train = False
                 for i in np.arange(self.gradient_steps):
                     loss = self._train_step(steps)
