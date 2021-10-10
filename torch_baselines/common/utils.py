@@ -12,7 +12,7 @@ def get_flatten_size(function,size):
     return function(torch.rand(*([1]+size))).data.shape[-1]
 
 def set_random_seed(seed):
-    torch.use_deterministic_algorithms(True)
+    #torch.use_deterministic_algorithms(True)
     torch.manual_seed(seed)
     random.seed(seed)
     np.random.seed(seed)
