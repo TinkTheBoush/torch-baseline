@@ -28,13 +28,13 @@ class TD3(Deterministic_Policy_Gradient_Family):
             self.setup_model()
             
     def actions(self,obs,befor_train):
-        with torch.no_grad():
-            if not befor_train:
-                actions = self.actor(convert_states(obs,self.device)) + \
-                    torch.normal(0,self.action_noise,size=(self.worker_size, self.action_size[0]),device=self.device)
-            else:
-                actions = torch.normal(0,self.action_noise*2,size=(self.worker_size, self.action_size[0]),device=self.device)
-            return torch.clamp(actions,-1,1).detach().cpu().clone().numpy()
+        if not befor_train:
+            with torch.no_grad():
+                actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + 
+                                np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0])),-1,1)
+        else:
+            actions = np.clip(np.random.normal(0,self.action_noise*2.0,size=(self.worker_size,self.action_size[0])),-1,1)
+        return actions
             
     def setup_model(self):
         self.policy_kwargs = {} if self.policy_kwargs is None else self.policy_kwargs
@@ -48,16 +48,12 @@ class TD3(Deterministic_Policy_Gradient_Family):
                            noisy=self.param_noise, **self.policy_kwargs)
         self.actor.train()
         self.actor.to(self.device)
-        self.actor.share_memory()
         self.critic.train()
         self.critic.to(self.device)
-        self.critic.share_memory()
         self.target_actor.train()
         self.target_actor.to(self.device)
-        self.target_actor.share_memory()
         self.target_critic.train()
         self.target_critic.to(self.device)
-        self.target_critic.share_memory()
         hard_update(self.target_actor,self.actor)
         hard_update(self.target_critic,self.critic)
         self.actor_param = self.actor.parameters()
