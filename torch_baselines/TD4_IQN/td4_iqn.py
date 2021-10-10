@@ -22,8 +22,8 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
         
         self.n_support = n_support
         self.action_noise = action_noise
-        self.target_action_noise = 0.2
-        self.action_noise_clamp = 0.5
+        self.target_action_noise = action_noise*2       #0.2
+        self.action_noise_clamp = self.target_action_noise*1.64485 #0.5
         self.risk_avoidance = risk_avoidance
         self.policy_delay = policy_delay
         
