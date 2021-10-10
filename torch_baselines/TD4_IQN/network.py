@@ -86,7 +86,7 @@ class Critic(nn.Module):
                         )) + action_size[0]
         self.preprocess.flatten_size = flatten_size
         
-        self.embedding_size = np.maximum(flatten_size, 256)
+        self.embedding_size = np.maximum(flatten_size, node)
         
         if not (flatten_size == self.embedding_size):
             self.state_embedding = nn.Sequential(
@@ -103,15 +103,11 @@ class Critic(nn.Module):
         self.q1 = nn.Sequential(
             lin(self.embedding_size,node),
             nn.ReLU(),
-            lin(node,node),
-            nn.ReLU(),
             lin(node, 1)
         )
         
         self.q2 = nn.Sequential(
             lin(self.embedding_size,node),
-            nn.ReLU(),
-            lin(node,node),
             nn.ReLU(),
             lin(node, 1)
         )
