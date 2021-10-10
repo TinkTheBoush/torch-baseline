@@ -51,7 +51,8 @@ class Deterministic_Policy_Gradient_Family(object):
         self.get_memory_setup()
         
     def get_device_setup(self):
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") 
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        mp.set_start_method('spawn')
         #torch.cuda.synchronize()
         print("----------------------device---------------------")
         print(self.device)
@@ -172,7 +173,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 self.train_process = []
                 for i in np.arange(self.gradient_steps):
                     p = mp.Process(target=self._train_step, args=(steps,))
-                    p.spawn()
+                    p.start()
                     self.train_process.append(p)
                     
                 
