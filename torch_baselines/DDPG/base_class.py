@@ -172,7 +172,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 self.train_process = []
                 for i in np.arange(self.gradient_steps):
                     p = mp.Process(target=self._train_step, args=(steps,))
-                    p.start()
+                    p.spawn()
                     self.train_process.append(p)
                     
                 
