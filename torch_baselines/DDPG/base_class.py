@@ -2,6 +2,7 @@ import gym
 import torch
 import numpy as np
 import jax.numpy as jnp
+import torch.multiprocessing as mp
 
 from tqdm.auto import trange
 from collections import deque
@@ -43,6 +44,7 @@ class Deterministic_Policy_Gradient_Family(object):
         self.n_step_method = (n_step > 1)
         self.n_step = n_step
         self.max_grad_norm = max_grad_norm
+        self.train_process = None
         
         self.get_device_setup()
         self.get_env_setup()
@@ -163,9 +165,14 @@ class Deterministic_Policy_Gradient_Family(object):
             
             if steps > self.learning_starts and steps % self.train_freq == 0:
                 befor_train = False
+                if self.train_process is not None:
+                    for p in self.train_process:
+                        p.join()
+                self.train_process = []
                 for i in np.arange(self.gradient_steps):
-                    loss = self._train_step(steps)
-                    self.lossque.append(loss)
+                    p = mp.Process(target=self._train_step, args=(steps,))
+                    p.start()
+                    self.train_process.append(p)
                 
         
     def learn_gym(self, pbar, callback=None, log_interval=100):
@@ -192,9 +199,14 @@ class Deterministic_Policy_Gradient_Family(object):
                 
             if steps > self.learning_starts and steps % self.train_freq == 0:
                 befor_train = False
+                if self.train_process is not None:
+                    for p in self.train_process:
+                        p.join()
+                self.train_process = []
                 for i in np.arange(self.gradient_steps):
-                    loss = self._train_step(steps)
-                    self.lossque.append(loss)
+                    p = mp.Process(target=self._train_step, args=(steps,))
+                    p.start()
+                    self.train_process.append(p)
             
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, loss : {:.3f} |".format(

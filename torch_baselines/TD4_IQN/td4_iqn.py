@@ -143,7 +143,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
 
-        return critic_loss.detach().cpu().clone().numpy()
+        self.lossque.append(critic_loss.detach().cpu().clone().numpy())
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="TD4_IQN",
               reset_num_timesteps=True, replay_wrapper=None):
