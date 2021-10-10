@@ -118,8 +118,8 @@ class Deterministic_Policy_Gradient_Family(object):
         self.env.step()
         dec, term = self.env.get_steps(self.group_name)
         self.scores = np.zeros([self.worker_size])
-        self.scoreque = deque(maxlen=10)
-        self.lossque = deque(maxlen=10)
+        self.scoreque = deque(maxlen=self.worker_size*10)
+        self.lossque = deque(maxlen=self.worker_size*10)
         befor_train = True
         for steps in pbar:
             len_dec = len(dec)
@@ -171,8 +171,8 @@ class Deterministic_Policy_Gradient_Family(object):
     def learn_gym(self, pbar, callback=None, log_interval=100):
         state = self.env.reset()
         self.scores = np.zeros([self.worker_size])
-        self.scoreque = deque(maxlen=10)
-        self.lossque = deque(maxlen=10)
+        self.scoreque = deque(maxlen=self.worker_size*10)
+        self.lossque = deque(maxlen=self.worker_size*10)
         befor_train = True
         for steps in pbar:
             actions = self.actions([state],befor_train)
