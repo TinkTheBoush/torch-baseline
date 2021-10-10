@@ -124,7 +124,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
             with torch.no_grad():
                 actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + self.noise()*epsilon,-1,1)
         else:
-            actions = np.clip(np.random.normal(size=(self.worker_size,self.action_size[0])),-1,1)
+            actions = np.random.uniform(-1,1,size=(self.worker_size,self.action_size[0]))
         return actions
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="DDPG",

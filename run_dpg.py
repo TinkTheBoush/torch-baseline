@@ -32,6 +32,7 @@ if __name__ == "__main__":
     parser.add_argument('--risk_avoidance', type=str,default='0.0', help='risk_avoidance for TD4')
     parser.add_argument('--n_support', type=int,default=64, help='n_support for TD4')
     parser.add_argument('--node', type=int,default=256, help='network node number')
+    parser.add_argument('--action_noise', type=float,default=0.1, help='action noise std')
     args = parser.parse_args() 
     env_name = args.env
     env_type = ""
@@ -56,18 +57,18 @@ if __name__ == "__main__":
     elif args.algo == "TD3":
         agent = TD3(env,batch_size = args.batch, learning_rate=args.lr, gamma = args.gamma, train_freq=args.train_freq, 
                     gradient_steps=args.grad_step, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
-                    prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step, max_grad_norm = args.max_grad,
+                    prioritized_replay = args.per, action_noise = args.action_noise, n_step = args.n_step, max_grad_norm = args.max_grad,
                     tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
     elif args.algo == "TD4_QR":
         agent = TD4_QR(env,batch_size = args.batch, learning_rate=args.lr, gamma = args.gamma, train_freq=args.train_freq, 
                        gradient_steps=args.grad_step, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
-                    prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step, max_grad_norm = args.max_grad, 
+                    prioritized_replay = args.per, action_noise = args.action_noise, n_step = args.n_step, max_grad_norm = args.max_grad, 
                     risk_avoidance = args.risk_avoidance, n_support=args.n_support,
                     tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
     elif args.algo == "TD4_IQN":
         agent = TD4_IQN(env,batch_size = args.batch, learning_rate=args.lr, gamma = args.gamma, train_freq=args.train_freq, 
                        gradient_steps=args.grad_step, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
-                    prioritized_replay = args.per, param_noise = args.noisynet, n_step = args.n_step, max_grad_norm = args.max_grad, 
+                    prioritized_replay = args.per, action_noise = args.action_noise, n_step = args.n_step, max_grad_norm = args.max_grad, 
                     risk_avoidance = args.risk_avoidance, n_support=args.n_support,
                     tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
 

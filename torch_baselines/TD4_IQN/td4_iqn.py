@@ -36,7 +36,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
                 actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + 
                                 np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0])),-1,1)
         else:
-            actions = np.clip(np.random.normal(0,self.action_noise*2.0,size=(self.worker_size,self.action_size[0])),-1,1)
+            actions = np.random.uniform(-1,1,size=(self.worker_size,self.action_size[0]))
         return actions
             
     def setup_model(self):
