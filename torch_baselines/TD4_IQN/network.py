@@ -124,7 +124,7 @@ class Critic(nn.Module):
             state_embed = cated
         else:
             state_embed = self.state_embedding(cated)
-        state_embed = state_embed.repeat_interleave(n_support, dim=1).view(-1,self.embedding_size)
+        state_embed = state_embed.unsqueeze(1).repeat_interleave(n_support, dim=1).view(-1,self.embedding_size)
         costau = quantile.view(-1,1)*self.pi_mtx
         quantile_embed = self.quantile_embedding(costau)
         mul_embed = torch.multiply(state_embed,quantile_embed)
