@@ -6,20 +6,21 @@ from torch_baselines.DDPG.ddpg import DDPG
 from torch_baselines.TD3.td3 import TD3
 from torch_baselines.TD4_QR.td4_qr import TD4_QR
 from torch_baselines.TD4_IQN.td4_iqn import TD4_IQN
-from mlagents_envs.environment import UnityEnvironment,ActionTuple
+from torch.utils import set_random_seed
+from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
 from mlagents_envs.side_channel.environment_parameters_channel import EnvironmentParametersChannel
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', type=str, default="BipedalWalker-v3", help='environment')
-    parser.add_argument('--lr', type=float, default=5e-4, help='learning rate')
+    parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
     parser.add_argument('--algo', type=str, default="DQN", help='algo ID')
     parser.add_argument('--gamma', type=float, default=0.99, help='gamma')
     parser.add_argument('--train_freq', type=int, default=1, help='train freq')
     parser.add_argument('--grad_step', type=int, default=1, help='grad step')
     parser.add_argument('--target_update_tau', type=float, default=0.98, help='target update intervals')
-    parser.add_argument('--batch', type=int, default=64, help='batch size')
+    parser.add_argument('--batch', type=int, default=512, help='batch size')
     parser.add_argument('--buffer_size', type=float, default=5e5, help='buffer_size')
     parser.add_argument('--per', action='store_true')
     parser.add_argument('--noisynet', action='store_true')
@@ -33,19 +34,23 @@ if __name__ == "__main__":
     parser.add_argument('--n_support', type=int,default=64, help='n_support for TD4')
     parser.add_argument('--node', type=int,default=256, help='network node number')
     parser.add_argument('--action_noise', type=float,default=0.1, help='action noise std')
+    parser.add_argument('--seed', type=int,default=1234567, help='random seed')
     args = parser.parse_args() 
     env_name = args.env
     env_type = ""
+    
+    set_random_seed(args.seed)
     if os.path.exists(env_name):
         engine_configuration_channel = EngineConfigurationChannel()
         channel = EnvironmentParametersChannel()
         engine_configuration_channel.set_configuration_parameters(time_scale=16.0)
         
-        env = UnityEnvironment(file_name=env_name,no_graphics=True, side_channels=[engine_configuration_channel,channel],timeout_wait=100)
+        env = UnityEnvironment(file_name=env_name,seed=args.seed,no_graphics=True, 
+                               side_channels=[engine_configuration_channel,channel],timeout_wait=100)
         env_name = env_name.split('/')[-1].split('.')[0]
         env_type = "unity"
     else:
-        env = gym.make(env_name)
+        env = gym.make(env_name,seed=args.seed)
         env_type = "gym"
     policy_kwargs = {'node': args.node}
     
