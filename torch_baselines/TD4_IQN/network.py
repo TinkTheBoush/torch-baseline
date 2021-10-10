@@ -101,7 +101,7 @@ class Critic(nn.Module):
         )
         
         self.q1 = nn.Sequential(
-            lin(flatten_size,node),
+            lin(self.embedding_size,node),
             nn.ReLU(),
             lin(node,node),
             nn.ReLU(),
@@ -109,7 +109,7 @@ class Critic(nn.Module):
         )
         
         self.q2 = nn.Sequential(
-            lin(flatten_size,node),
+            lin(self.embedding_size,node),
             nn.ReLU(),
             lin(node,node),
             nn.ReLU(),
