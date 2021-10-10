@@ -168,11 +168,13 @@ class Deterministic_Policy_Gradient_Family(object):
                 if self.train_process is not None:
                     for p in self.train_process:
                         p.join()
+                        p.close()
                 self.train_process = []
                 for i in np.arange(self.gradient_steps):
                     p = mp.Process(target=self._train_step, args=(steps,))
                     p.start()
                     self.train_process.append(p)
+                    
                 
         
     def learn_gym(self, pbar, callback=None, log_interval=100):
