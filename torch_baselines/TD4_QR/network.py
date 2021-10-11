@@ -40,6 +40,8 @@ class Actor(nn.Module):
             nn.ReLU(),
             lin(node,node),
             nn.ReLU(),
+            lin(node,node),
+            nn.ReLU(),
             lin(node, action_size[0]),
             nn.Tanh()
         )
@@ -90,11 +92,15 @@ class Critic(nn.Module):
             nn.ReLU(),
             lin(node,node),
             nn.ReLU(),
+            lin(node,node),
+            nn.ReLU(),
             lin(node, n_support)
         )
         
         self.q2 = nn.Sequential(
             lin(flatten_size,node),
+            nn.ReLU(),
+            lin(node,node),
             nn.ReLU(),
             lin(node,node),
             nn.ReLU(),
