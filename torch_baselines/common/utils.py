@@ -18,16 +18,16 @@ def set_random_seed(seed):
     np.random.seed(seed)
 
 @torch.jit.script
-def convert_states(obs : List, device : torch.device):
+def convert_states(obs : List[np.array], device : torch.device):
     return [torch.tensor(o,dtype=torch.float32,device=device).permute(0,3,1,2) 
                 if len(o.shape) == 4 else torch.tensor(o,dtype=torch.float32,device=device) for o in obs]
 
 @torch.jit.script
-def hard_update(target, source):
+def hard_update(target : torch.Module, source : torch.Module):
     for target_param, param in zip(target.parameters(), source.parameters()):
         target_param.data.copy_(param.data)
 
 @torch.jit.script
-def soft_update(target, source, tau):
+def soft_update(target : torch.Module, source : torch.Module, tau : float):
     for target_param, param in zip(target.parameters(), source.parameters()):
         target_param.data.copy_(target_param.data * tau  + param.data * (1.0 - tau))
