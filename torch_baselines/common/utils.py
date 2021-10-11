@@ -26,10 +26,10 @@ def convert_states(obs, device : torch.device):
 
 @torch.jit.script
 def hard_update(target, source):
-    for target_param, param in zip(target.parameters(), source.parameters()):
+    for target_param, param in zip(target, source):
         target_param.data.copy_(param.data)
 
 @torch.jit.script
 def soft_update(target, source, tau : float):
-    for target_param, param in zip(target.parameters(), source.parameters()):
+    for target_param, param in zip(target, source):
         target_param.data.copy_(target_param.data * tau  + param.data * (1.0 - tau))

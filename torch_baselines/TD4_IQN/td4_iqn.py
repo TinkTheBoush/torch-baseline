@@ -57,9 +57,10 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
         self.target_actor.to(self.device)
         self.target_critic.train()
         self.target_critic.to(self.device)
-        hard_update(self.target_actor,self.actor)
-        hard_update(self.target_critic,self.critic)
         self.actor_param = self.actor.parameters()
+        self.main_param = self.actor.parameters() + self.critic.parameters()
+        self.target_param = self.actor.parameters() + self.critic.parameters()
+        hard_update(self.target_param,self.main_param)
         
         #self.actor_optimizer = torch.optim.RMSprop(self.actor.parameters(),lr=self.learning_rate)
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),lr=self.learning_rate)
@@ -134,8 +135,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
                 torch.nn.utils.clip_grad_norm_(self.actor_param, self.max_grad_norm)
             self.actor_optimizer.step()
         
-            soft_update(self.target_actor,self.actor,self.target_network_tau)
-            soft_update(self.target_critic,self.critic,self.target_network_tau)
+            soft_update(self.target_param,self.main_param,self.target_network_tau)
             
             if self.summary and steps % self.log_interval == 0:
                 self.summary.add_scalar("loss/actor_loss", actor_loss, steps)
