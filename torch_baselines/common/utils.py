@@ -25,11 +25,11 @@ def convert_states(obs, device : torch.device):
                 if len(o.shape) == 4 else torch.tensor(o,dtype=torch.float32,device=device) for o in obs]
 
 @torch.jit.script
-def hard_update(target : torch.Module, source : torch.Module):
+def hard_update(target, source):
     for target_param, param in zip(target.parameters(), source.parameters()):
         target_param.data.copy_(param.data)
 
 @torch.jit.script
-def soft_update(target : torch.Module, source : torch.Module, tau : float):
+def soft_update(target, source, tau : float):
     for target_param, param in zip(target.parameters(), source.parameters()):
         target_param.data.copy_(target_param.data * tau  + param.data * (1.0 - tau))
