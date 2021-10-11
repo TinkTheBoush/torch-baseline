@@ -57,9 +57,9 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
         self.target_actor.to(self.device)
         self.target_critic.train()
         self.target_critic.to(self.device)
-        self.actor_param = self.actor.parameters()
-        self.main_param = self.actor.parameters() + self.critic.parameters()
-        self.target_param = self.actor.parameters() + self.critic.parameters()
+        self.actor_param = list(self.actor.parameters())
+        self.main_param = list(self.actor.parameters()) + list(self.critic.parameters())
+        self.target_param = list(self.target_actor.parameters()) + list(self.target_critic.parameters())
         hard_update(self.target_param,self.main_param)
         
         #self.actor_optimizer = torch.optim.RMSprop(self.actor.parameters(),lr=self.learning_rate)
