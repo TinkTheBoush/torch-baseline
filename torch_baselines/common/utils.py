@@ -6,7 +6,6 @@ import random
 import numpy as np
 import jax.numpy as jnp
 from typing import Optional, List
-import numpy.typing as npt
 from torch import Tensor
 
 def get_flatten_size(function,size):
