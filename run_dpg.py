@@ -29,7 +29,7 @@ if __name__ == "__main__":
     parser.add_argument('--verbose', type=int, default=0, help='verbose')
     parser.add_argument('--logdir',type=str, default='log/',help='log file dir')
     parser.add_argument('--seed', type=int, default=1234567, help='random seed')
-    parser.add_argument('--max_grad', type=float,default=10.0, help='grad clip max size')
+    parser.add_argument('--max_grad', type=float,default=-1.0, help='grad clip max size')
     parser.add_argument('--risk_avoidance', type=str,default='0.0', help='risk_avoidance for TD4')
     parser.add_argument('--n_support', type=int,default=64, help='n_support for TD4')
     parser.add_argument('--node', type=int,default=256, help='network node number')
