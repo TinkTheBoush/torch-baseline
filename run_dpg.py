@@ -33,6 +33,7 @@ if __name__ == "__main__":
     parser.add_argument('--risk_avoidance', type=str,default='0.0', help='risk_avoidance for TD4')
     parser.add_argument('--n_support', type=int,default=64, help='n_support for TD4')
     parser.add_argument('--node', type=int,default=256, help='network node number')
+    parser.add_argument('--hidden_n', type=int,default=2, help='hidden layer number')
     parser.add_argument('--action_noise', type=float,default=0.1, help='action noise std')
     args = parser.parse_args() 
     env_name = args.env
@@ -51,7 +52,8 @@ if __name__ == "__main__":
     else:
         env = gym.make(env_name,seed=args.seed)
         env_type = "gym"
-    policy_kwargs = {'node': args.node}
+    policy_kwargs = {'node': args.node,
+                     'hidden_n': args.hidden_n}
     
     if args.algo == "DDPG":
         agent = DDPG(env,batch_size = args.batch, learning_rate=args.lr, gamma = args.gamma, train_freq=args.train_freq, 

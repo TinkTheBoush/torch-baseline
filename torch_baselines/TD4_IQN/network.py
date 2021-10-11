@@ -36,14 +36,17 @@ class Actor(nn.Module):
                         ))
         
         self.linear = nn.Sequential(
+            *([
             lin(flatten_size,node),
-            nn.ReLU(),
-            lin(node,node),
-            nn.ReLU(),
-            lin(node,node),
-            nn.ReLU(),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*hidden_n)
+            ] + 
+            [
             lin(node, action_size[0]),
             nn.Tanh()
+            ]
+            )
         )
 
     def forward(self, xs):
@@ -103,19 +106,29 @@ class Critic(nn.Module):
         )
         
         self.q1 = nn.Sequential(
+            *([
             lin(self.embedding_size,node),
-            nn.ReLU(),
-            lin(node,node),
-            nn.ReLU(),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*hidden_n)
+            ] + 
+            [
             lin(node, 1)
+            ]
+            )
         )
         
         self.q2 = nn.Sequential(
+            *([
             lin(self.embedding_size,node),
-            nn.ReLU(),
-            lin(node,node),
-            nn.ReLU(),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*hidden_n)
+            ] + 
+            [
             lin(node, 1)
+            ]
+            )
         )
 
     def forward(self, xs,action,quantile):
