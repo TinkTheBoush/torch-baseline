@@ -10,7 +10,7 @@ setup(
         'box2d',
         'box2d-py',
         'torch',
-        'numpy',
+        'numpy >= 1.21.1',
         'cpprb',
         'importlib; python_version >= "3.5"',
     ],
