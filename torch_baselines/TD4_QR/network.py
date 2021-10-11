@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Actor(nn.Module):
-    def __init__(self,state_size,action_size,node=256,noisy=False,ModelOptions=None):
+    def __init__(self,state_size,action_size,node=256,hidden_n=1,noisy=False,ModelOptions=None):
         super(Actor, self).__init__()
         self.noisy = noisy
         if noisy:
@@ -60,7 +60,7 @@ class Actor(nn.Module):
                 m.sample_noise()
                 
 class Critic(nn.Module):
-    def __init__(self,state_size,action_size,node=256,noisy=False,ModelOptions=None,n_support = 200):
+    def __init__(self,state_size,action_size,node=256,hidden_n=1,noisy=False,ModelOptions=None,n_support = 200):
         super(Critic, self).__init__()
         self.noisy = noisy
         if noisy:
