@@ -16,6 +16,7 @@ if __name__ == "__main__":
     parser.add_argument('--env', type=str, default="BipedalWalker-v3", help='environment')
     parser.add_argument('--lr', type=float, default=5e-4, help='learning rate')
     parser.add_argument('--algo', type=str, default="DDPG", help='algo ID')
+    parser.add_argument('--worker_id', type=int, default=0, help='verbose')
     parser.add_argument('--gamma', type=float, default=0.995, help='gamma')
     parser.add_argument('--train_freq', type=int, default=1, help='train freq')
     parser.add_argument('--grad_step', type=int, default=1, help='grad step')
@@ -45,7 +46,7 @@ if __name__ == "__main__":
         channel = EnvironmentParametersChannel()
         engine_configuration_channel.set_configuration_parameters(time_scale=8.0)
         
-        env = UnityEnvironment(file_name=env_name,seed=args.seed,no_graphics=True, 
+        env = UnityEnvironment(file_name=env_name,seed=args.seed,no_graphics=True, worker_id=args.worker_id,
                                side_channels=[engine_configuration_channel,channel],timeout_wait=100)
         env_name = env_name.split('/')[-1].split('.')[0]
         env_type = "unity"
