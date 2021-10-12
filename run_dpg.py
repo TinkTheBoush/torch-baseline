@@ -16,7 +16,7 @@ if __name__ == "__main__":
     parser.add_argument('--env', type=str, default="BipedalWalker-v3", help='environment')
     parser.add_argument('--lr', type=float, default=5e-4, help='learning rate')
     parser.add_argument('--algo', type=str, default="DDPG", help='algo ID')
-    parser.add_argument('--gamma', type=float, default=0.99, help='gamma')
+    parser.add_argument('--gamma', type=float, default=0.995, help='gamma')
     parser.add_argument('--train_freq', type=int, default=1, help='train freq')
     parser.add_argument('--grad_step', type=int, default=1, help='grad step')
     parser.add_argument('--target_update_tau', type=float, default=0.98, help='target update intervals')
