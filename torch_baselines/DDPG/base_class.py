@@ -123,7 +123,7 @@ class Deterministic_Policy_Gradient_Family(object):
         old_term_id = []
         for steps in pbar:
             len_dec = len(dec)
-            old_term_id += term.agent_id
+            old_term_id += list(term.agent_id)
             if len_dec:
                 actions = self.actions(dec.obs,befor_train)
                 action_tuple = ActionTuple(continuous=actions)
