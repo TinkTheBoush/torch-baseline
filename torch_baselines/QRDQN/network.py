@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=256,noisy=False,dualing=False,ModelOptions=None,n_support = 200):
+    def __init__(self,state_size,action_size,node=256,hidden_n=2,noisy=False,dualing=False,ModelOptions=None,n_support = 200):
         super(Model, self).__init__()
         self.dualing = dualing
         self.noisy = noisy
@@ -39,27 +39,42 @@ class Model(nn.Module):
         
         if not self.dualing:
             self.q_linear = nn.Sequential(
-                lin(flatten_size,node),
-                nn.ReLU(),
-                lin(node,node),
-                nn.ReLU(),
-                lin(node, action_size[0]*n_support)
+            *([
+            lin(flatten_size,node),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
+            lin(node, action_size[0]*self.n_support)
+            ]
+            )
             )
         else:
             self.advatage_linear = nn.Sequential(
-                lin(flatten_size,node),
-                nn.ReLU(),
-                lin(node,node),
-                nn.ReLU(),
-                lin(node, action_size[0]*n_support)
+            *([
+            lin(flatten_size,node),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
+            lin(node, action_size[0]*self.n_support)
+            ]
+            )
             )
             
             self.value_linear = nn.Sequential(
-                lin(flatten_size,node),
-                nn.ReLU(),
-                lin(node,node),
-                nn.ReLU(),
-                lin(node, n_support)
+            *([
+            lin(flatten_size,node),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
+            lin(node, action_size[0]*self.n_support)
+            ]
+            )
             )
         
 

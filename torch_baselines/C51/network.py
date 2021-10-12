@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=128,noisy=False,dualing=False,ModelOptions=None,categorial_bar=None,categorial_bar_n=51):
+    def __init__(self,state_size,action_size,node=128,hidden_n=2,noisy=False,dualing=False,ModelOptions=None,categorial_bar=None,categorial_bar_n=51):
         super(Model, self).__init__()
         self.dualing = dualing
         self.noisy = noisy
@@ -42,27 +42,42 @@ class Model(nn.Module):
         
         if not self.dualing:
             self.q_linear = nn.Sequential(
-                lin(flatten_size,node),
-                nn.ReLU(),
-                lin(node,node),
-                nn.ReLU(),
-                lin(node, action_size[0]*self.categorial_bar_n)
+            *([
+            lin(flatten_size,node),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
+            lin(node, action_size[0]*self.categorial_bar_n)
+            ]
+            )
             )
         else:
             self.advatage_linear = nn.Sequential(
-                lin(flatten_size,node),
-                nn.ReLU(),
-                lin(node,node),
-                nn.ReLU(),
-                lin(node, action_size[0]*self.categorial_bar_n)
+            *([
+            lin(flatten_size,node),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
+            lin(node, action_size[0]*self.categorial_bar_n)
+            ]
+            )
             )
             
             self.value_linear = nn.Sequential(
-                lin(flatten_size,node),
-                nn.ReLU(),
-                lin(node,node),
-                nn.ReLU(),
-                lin(node, self.categorial_bar_n)
+            *([
+            lin(flatten_size,node),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
+            lin(node, action_size[0]*self.categorial_bar_n)
+            ]
+            )
             )
             
         self.softmax = nn.Softmax(dim=2)

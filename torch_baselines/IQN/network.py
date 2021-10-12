@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=256,noisy=False,dualing=False,ModelOptions=None):
+    def __init__(self,state_size,action_size,node=256,hidden_n=2,noisy=False,dualing=False,ModelOptions=None):
         super(Model, self).__init__()
         self.dualing = dualing
         self.noisy = noisy
@@ -55,27 +55,42 @@ class Model(nn.Module):
         
         if not self.dualing:
             self.q_linear = nn.Sequential(
-                lin(self.embedding_size,node),
-                nn.ReLU(),
-                lin(self.node,node),
-                nn.ReLU(),
-                lin(node, action_size[0])
+            *([
+            lin(self.embedding_size,node),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
+            lin(node, action_size[0])
+            ]
+            )
             )
         else:
             self.advatage_linear = nn.Sequential(
-                lin(self.embedding_size,node),
-                nn.ReLU(),
-                lin(self.node,node),
-                nn.ReLU(),
-                lin(node, action_size[0])
+            *([
+            lin(self.embedding_size,node),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
+            lin(node, action_size[0])
+            ]
+            )
             )
             
             self.value_linear = nn.Sequential(
-                lin(self.embedding_size,node),
-                nn.ReLU(),
-                lin(self.node,node),
-                nn.ReLU(),
-                lin(node, 1)
+            *([
+            lin(self.embedding_size,node),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
+            lin(node, action_size[0])
+            ]
+            )
             )
         
 
