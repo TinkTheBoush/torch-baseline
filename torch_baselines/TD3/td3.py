@@ -107,7 +107,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
             critic_loss1 = self.critic_loss(vals1,targets).mean(-1)
             critic_loss2 = self.critic_loss(vals2,targets).mean(-1)
         critic_loss = critic_loss1 + critic_loss2
-         
+        self.lossque.append(critic_loss.detach().cpu().clone().numpy())
         self.critic_optimizer.zero_grad(set_to_none=True)
         critic_loss.backward()
         self.critic_optimizer.step()
@@ -130,8 +130,6 @@ class TD3(Deterministic_Policy_Gradient_Family):
         if self.summary and steps % self.log_interval == 0:
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
-
-        self.lossque.append(critic_loss.detach().cpu().clone().numpy())
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="TD3",
               reset_num_timesteps=True, replay_wrapper=None):

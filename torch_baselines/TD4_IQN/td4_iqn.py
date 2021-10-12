@@ -119,7 +119,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
             critic_loss1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,quantile_main.view(self.batch_size,1,self.n_support)).mean(-1)
             critic_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,quantile_main.view(self.batch_size,1,self.n_support)).mean(-1)
         critic_loss = critic_loss1 + critic_loss2
-         
+        self.lossque.append(critic_loss.detach().cpu().clone().numpy())
         self.critic_optimizer.zero_grad(set_to_none=True)
         critic_loss.backward()
         self.critic_optimizer.step()
@@ -143,8 +143,6 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
         if self.summary and steps % self.log_interval == 0:
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
-
-        self.lossque.append(critic_loss.detach().cpu().clone().numpy())
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="TD4_IQN",
               reset_num_timesteps=True, replay_wrapper=None):
