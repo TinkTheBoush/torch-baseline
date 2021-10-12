@@ -147,7 +147,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 self.scores[id] = 0
             for id in dec.agent_id:
                 if id in old_term_id or id in term.agent_id:
-                    continue #if in old_term_id -> start dec but not in old_dec_id -> second dec, if in term.agent_id -> start dec
+                    continue #if in old_term_id -> start dec, if in term.agent_id -> start dec
                 obs = old_dec[id].obs
                 nxtobs = dec[id].obs
                 reward = dec[id].reward
