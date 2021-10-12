@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Actor(nn.Module):
-    def __init__(self,state_size,action_size,node=256,noisy=False,ModelOptions=None):
+    def __init__(self,state_size,action_size,node=256,hidden_n=1,noisy=False,ModelOptions=None):
         super(Actor, self).__init__()
         self.noisy = noisy
         if noisy:
@@ -36,12 +36,17 @@ class Actor(nn.Module):
                         ))
         
         self.linear = nn.Sequential(
+            *([
             lin(flatten_size,node),
-            nn.ReLU(),
-            lin(node,node),
-            nn.ReLU(),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
             lin(node, action_size[0]),
             nn.Tanh()
+            ]
+            )
         )
 
     def forward(self, xs):
@@ -58,7 +63,7 @@ class Actor(nn.Module):
                 m.sample_noise()
                 
 class Critic(nn.Module):
-    def __init__(self,state_size,action_size,node=256,noisy=False,ModelOptions=None):
+    def __init__(self,state_size,action_size,node=256,hidden_n=1,noisy=False,ModelOptions=None):
         super(Critic, self).__init__()
         self.noisy = noisy
         if noisy:
@@ -85,12 +90,17 @@ class Critic(nn.Module):
                         ]
                         )) + action_size[0]
         
-        self.q = nn.Sequential(
+        self.linear = nn.Sequential(
+            *([
             lin(flatten_size,node),
-            nn.ReLU(),
-            lin(node,node),
-            nn.ReLU(),
-            lin(node, 1)
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
+            lin(node,1)
+            ]
+            )
         )
 
     def forward(self, xs,action):

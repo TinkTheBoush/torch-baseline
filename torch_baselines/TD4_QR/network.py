@@ -40,7 +40,7 @@ class Actor(nn.Module):
             lin(flatten_size,node),
             nn.ReLU()] + 
             [
-            nn.ReLU() if i%2 else lin(node,node) for i in range(2*hidden_n)
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
             ] + 
             [
             lin(node, action_size[0]),
@@ -95,7 +95,7 @@ class Critic(nn.Module):
             lin(flatten_size,node),
             nn.ReLU()] + 
             [
-            nn.ReLU() if i%2 else lin(node,node) for i in range(2*hidden_n)
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
             ] + 
             [
             lin(node, n_support)
@@ -109,7 +109,7 @@ class Critic(nn.Module):
             lin(flatten_size,node),
             nn.ReLU()] + 
             [
-            nn.ReLU() if i%2 else lin(node,node) for i in range(2*hidden_n)
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
             ] + 
             [
             lin(node, n_support)
