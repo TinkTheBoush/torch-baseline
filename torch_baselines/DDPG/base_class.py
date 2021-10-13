@@ -133,6 +133,8 @@ class Deterministic_Policy_Gradient_Family(object):
             self.env.step()
             dec, term = self.env.get_steps(self.group_name)
             for id in term.agent_id:
+                if id in old_term_id:
+                    continue
                 obs = old_dec[id].obs
                 nxtobs = term[id].obs
                 reward = term[id].reward
