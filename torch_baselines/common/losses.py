@@ -80,7 +80,7 @@ class QRHuberLosses(_Loss):
         huber = F.smooth_l1_loss(theta_loss_tile, logit_valid_tile, reduction='none', beta=self.beta)
         with torch.no_grad():
             bellman_errors = logit_valid_tile - theta_loss_tile
-        return (huber*(quantile - (bellman_errors.detach() < 0).float()).abs()).sum(2).mean(1)
+        return (huber*(quantile - (bellman_errors.detach() < 0).float()).abs()).mean(1).sum(1)
         #bellman_errors = logit_valid_tile - theta_loss_tile
         #return torch.maximum(quantile * bellman_errors, (quantile - 1.0) * bellman_errors).sum(2).mean(1)
     
