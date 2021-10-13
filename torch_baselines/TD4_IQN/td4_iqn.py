@@ -129,7 +129,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
         if step % self.policy_delay == 0:
             q1,_ = self.critic(obses,self.actor(obses),quantile_target)
             grad_mul = 1.0 - self.risk_avoidance*(2.0*quantile_target - 1.0)
-            actor_loss = -(q1*grad_mul).mean(-1).mean(-1)
+            actor_loss = -(q1*grad_mul.detach()).mean(-1).mean(-1)
             
             self.actor_optimizer.zero_grad(set_to_none=True)
             actor_loss.backward()
