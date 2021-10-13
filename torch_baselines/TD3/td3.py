@@ -99,8 +99,8 @@ class TD3(Deterministic_Policy_Gradient_Family):
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
-            new_priorities = np.abs((targets - vals1).squeeze().detach().cpu().clone().numpy()) + \
-                            np.abs((targets - vals2).squeeze().detach().cpu().clone().numpy()) + self.prioritized_replay_eps
+            new_priorities = np.abs((targets - vals1).squeeze().cpu().clone().numpy()) + \
+                            np.abs((targets - vals2).squeeze().cpu().clone().numpy()) + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
             critic_loss1 = (weights*self.critic_loss(vals1,targets)).mean(-1)
             critic_loss2 = (weights*self.critic_loss(vals2,targets)).mean(-1)
@@ -108,7 +108,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
             critic_loss1 = self.critic_loss(vals1,targets).mean(-1)
             critic_loss2 = self.critic_loss(vals2,targets).mean(-1)
         critic_loss = critic_loss1 + critic_loss2
-        self.lossque.append(critic_loss.detach().cpu().clone().numpy())
+        self.lossque.append(critic_loss.cpu().clone().numpy())
         self.critic_optimizer.zero_grad(set_to_none=True)
         critic_loss.backward()
         self.critic_optimizer.step()

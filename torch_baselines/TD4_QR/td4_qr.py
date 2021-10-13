@@ -118,8 +118,8 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             indexs = data[6]
             critic_losses1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,self.quantile)
             critic_losses2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,self.quantile)
-            new_priorities = critic_losses1.detach().cpu().clone().numpy() + \
-                            critic_losses2.detach().cpu().clone().numpy() + self.prioritized_replay_eps
+            new_priorities = critic_losses1.cpu().clone().numpy() + \
+                            critic_losses2.cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
             critic_loss1 = (weights*critic_losses1).mean(-1)
             critic_loss2 = (weights*critic_losses2).mean(-1)
@@ -127,7 +127,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             critic_loss1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,self._quantile).mean(-1)
             critic_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,self._quantile).mean(-1)
         critic_loss = critic_loss1 + critic_loss2
-        self.lossque.append(critic_loss.detach().cpu().clone().numpy())
+        self.lossque.append(critic_loss.cpu().clone().numpy())
         self.critic_optimizer.zero_grad(set_to_none=True)
         critic_loss.backward()
         self.critic_optimizer.step()
