@@ -150,7 +150,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             if self.summary and steps % self.log_interval == 0:
                 self.summary.add_scalar("loss/risk_avoidance", self.risk_avoidance, steps)
                 self.summary.add_scalar("loss/actor_loss", actor_loss, steps)
-                self.summary.add_scalar("loss/quantile", {'first':q1[:,0].mean(),
+                self.summary.add_scalars("loss/quantile", {'first':q1[:,0].mean(),
                                     'last':q1[:,-1].mean()}, steps) 
         
         if self.summary and steps % self.log_interval == 0:
