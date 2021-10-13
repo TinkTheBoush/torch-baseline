@@ -78,10 +78,8 @@ class QRHuberLosses(_Loss):
 
     def forward(self, theta_loss_tile: Tensor, logit_valid_tile: Tensor, quantile: Tensor) -> Tensor:
         huber = F.smooth_l1_loss(theta_loss_tile, logit_valid_tile, reduction='none', beta=self.beta)
-        with torch.no_grad():
-            bellman_errors = logit_valid_tile - theta_loss_tile
-            mul = torch.abs(quantile - (bellman_errors < 0).float())
-        return (mul*huber).sum(1).mean(1)
+        bellman_errors = logit_valid_tile - theta_loss_tile
+        return (huber*(quantile - (bellman_errors.detach() < 0).float()).abs()).sum(2).mean(1)
     
 class QuantileFunctionLoss(_Loss):
     __constants__ = ['reduction']
