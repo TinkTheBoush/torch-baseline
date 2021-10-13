@@ -71,7 +71,7 @@ class QRHuberLosses(_Loss):
     
 class QRHuberLosses(_Loss):
     __constants__ = ['reduction']
-    def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', beta: float = 1.0, support_size = 64) -> None:
+    def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', beta: float = 0.001, support_size = 64) -> None:
         super(QRHuberLosses, self).__init__(size_average, reduce, reduction)
         self.beta = beta
         self.support_size = support_size
