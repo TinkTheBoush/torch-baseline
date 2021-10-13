@@ -80,7 +80,6 @@ class QuantileFunctionLoss(_Loss):
         super(QuantileFunctionLoss, self).__init__(size_average, reduce, reduction)
         self.support_size = support_size
 
-    @torch.jit.script
     def forward(self, tua_vals: Tensor, vals: Tensor, quantile: Tensor) -> Tensor:
         #Qunatile function loss
         values_1 = tua_vals - vals[:,:-1]
