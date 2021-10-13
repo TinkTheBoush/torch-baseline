@@ -33,7 +33,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
     def actions(self,obs,befor_train):
         if not befor_train:
             with torch.no_grad():
-                actions = np.clip(self.actor(convert_states(obs,self.device,torch.half)).detach().cpu().clone().numpy() + 
+                actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + 
                                 np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0]))
                                 ,-1,1)
         else:
