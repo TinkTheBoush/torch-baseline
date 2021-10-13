@@ -67,7 +67,7 @@ class QRHuberLosses(_Loss):
         with torch.no_grad():
             bellman_errors = logit_valid_tile - theta_loss_tile
             mul = torch.abs(quantile - (bellman_errors < 0).float())
-        return (huber*mul).sum(1).mean(1)
+        return (huber*mul).mean(1).sum(1)
     
 
 class QuantileFunctionLoss(_Loss):
