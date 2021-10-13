@@ -69,6 +69,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
         self.critic_loss = QRHuberLosses()
         self.quantile = torch.arange(0.5 / self.n_support,1, 1 / self.n_support,device=self.device,requires_grad=False).unsqueeze(0)
         self._quantile = self.quantile.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
+        print(self._quantile)
         if self.risk_avoidance == 'auto':
             pass
         elif self.risk_avoidance == 'normal':
