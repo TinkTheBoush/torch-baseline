@@ -43,7 +43,6 @@ class CategorialDistributionLoss(_Loss):
         offset = offset.unsqueeze(dim=1) 
         self.offset = offset.expand(self.batch_size, categorial_bar_n) # I believe this is to(device)
 
-    @torch.jit.script
     def forward(self, input_distribution: Tensor, next_distribution: Tensor, next_categorial_bar: Tensor) -> Tensor:
         input_distribution = input_distribution.clamp(1e-3,1)
         with torch.no_grad():
