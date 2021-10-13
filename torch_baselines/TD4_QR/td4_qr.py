@@ -76,8 +76,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             self.sample_risk_avoidance = True
         else:
             self.risk_avoidance = float(self.risk_avoidance)
-            self.grad_mul = (self.quantile < 0.1).float()
-            #1.0 - self.risk_avoidance*(2.0*self.quantile.view(1,self.n_support) - 1.0)
+            self.grad_mul = 1.0 - self.risk_avoidance*(2.0*self.quantile.view(1,self.n_support) - 1.0)
         
         print("----------------------model----------------------")
         print(self.actor)
@@ -136,7 +135,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             q1,_ = self.critic(obses,self.actor(obses))
             if self.sample_risk_avoidance:
                 self.risk_avoidance = np.clip(np.random.normal(),-1,1)
-                self.grad_mul = (self.quantile < 0.1).float()
+                self.grad_mul = 1.0 - self.risk_avoidance*(2.0*self.quantile.view(1,self.n_support) - 1.0)
             actor_loss = -(q1*self.grad_mul).mean(-1).mean(-1)
             
             self.actor_optimizer.zero_grad(set_to_none=True)
