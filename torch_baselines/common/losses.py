@@ -26,7 +26,7 @@ class HuberLosses(_Loss):
 
     @torch.jit.script
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
-        return F.smooth_l1_loss(input, target, reduction='none', beta=self.beta).squeeze() #.mean(-1)
+        return F.smooth_l1_loss(input, target, reduction='none', beta=1.0).squeeze() #.mean(-1)
     
 
 class CategorialDistributionLoss(_Loss):
@@ -61,14 +61,14 @@ class CategorialDistributionLoss(_Loss):
 
 class QRHuberLosses(_Loss):
     __constants__ = ['reduction']
-    def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', beta: float = 1.0, support_size = 64) -> None:
+    def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', beta: float = 0.01, support_size = 64) -> None:
         super(QRHuberLosses, self).__init__(size_average, reduce, reduction)
         self.beta = beta
         self.support_size = support_size
 
     @torch.jit.script
     def forward(self, theta_loss_tile: Tensor, logit_valid_tile: Tensor, quantile: Tensor) -> Tensor:
-        huber = F.smooth_l1_loss(theta_loss_tile, logit_valid_tile, reduction='none', beta=self.beta)
+        huber = F.smooth_l1_loss(theta_loss_tile, logit_valid_tile, reduction='none', beta=0.01)
         with torch.no_grad():
             bellman_errors = logit_valid_tile - theta_loss_tile
             mul = torch.abs(quantile - (bellman_errors < 0).float())
