@@ -136,7 +136,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 obs = old_dec[id].obs
                 nxtobs = term[id].obs
                 reward = term[id].reward
-                done = not term[id].interrupted
+                done = True #not term[id].interrupted
                 terminal = True
                 act = actions[id]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
