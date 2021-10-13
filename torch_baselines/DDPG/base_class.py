@@ -167,7 +167,7 @@ class Deterministic_Policy_Gradient_Family(object):
             if steps > self.learning_starts and steps % self.train_freq == 0:
                 befor_train = False
                 for i in np.arange(self.gradient_steps):
-                    self._train_step(steps+i)
+                    self._train_step(steps,i)
                 
         
     def learn_gym(self, pbar, callback=None, log_interval=100):
@@ -195,7 +195,7 @@ class Deterministic_Policy_Gradient_Family(object):
             if steps > self.learning_starts and steps % self.train_freq == 0:
                 befor_train = False
                 for i in np.arange(self.gradient_steps):
-                    self._train_step(steps)
+                    self._train_step(steps,i)
             
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, loss : {:.3f} |".format(
