@@ -83,7 +83,10 @@ class QRHuberLosses(_Loss):
         return (huber*(quantile - (bellman_errors.detach() < 0).float()).abs()).sum(2).mean(1)
         '''
         bellman_errors = logit_valid_tile - theta_loss_tile
-        return torch.maximum(quantile * bellman_errors, (quantile - 1.0) * bellman_errors).sum(2).mean(1)
+        print('bellman_errors shape : ', bellman_errors.shape)
+        out = torch.maximum(quantile * bellman_errors, (quantile - 1.0) * bellman_errors)
+        print('out shape : ', out.shape)
+        return out.sum(2).mean(1)
     
 class QuantileFunctionLoss(_Loss):
     __constants__ = ['reduction']
