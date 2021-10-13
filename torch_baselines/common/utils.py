@@ -17,9 +17,9 @@ def set_random_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
 
-def convert_states(obs : List, device : torch.device):
-    return [torch.as_tensor(o,dtype=torch.float32,device=device).permute(0,3,1,2) 
-                if len(o.shape) == 4 else torch.as_tensor(o,dtype=torch.float32,device=device) for o in obs]
+def convert_states(obs : List, device : torch.device, dtype=torch.float):
+    return [torch.as_tensor(o,dtype=dtype,device=device).permute(0,3,1,2) 
+                if len(o.shape) == 4 else torch.as_tensor(o,dtype=dtype,device=device) for o in obs]
     #return [torch.tensor(o,dtype=torch.float32,device=device).permute(0,3,1,2) 
     #            if len(o.shape) == 4 else torch.tensor(o,dtype=torch.float32,device=device) for o in obs]
 
