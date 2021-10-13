@@ -66,7 +66,7 @@ class QRHuberLosses(_Loss):
         self.support_size = support_size
 
     @torch.jit.script
-    def forward(self, theta_loss_tile: Tensor, logit_valid_tile: Tensor, quantile: Tensor) -> Tensor:
+    def forward(theta_loss_tile: Tensor, logit_valid_tile: Tensor, quantile: Tensor) -> Tensor:
         huber = F.smooth_l1_loss(theta_loss_tile, logit_valid_tile, reduction='none', beta=0.01)
         with torch.no_grad():
             bellman_errors = logit_valid_tile - theta_loss_tile
