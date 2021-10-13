@@ -124,10 +124,10 @@ class TD3(Deterministic_Policy_Gradient_Family):
         
             soft_update(self.target_param,self.main_param,self.target_network_tau)
             
-            if self.summary and steps % self.log_interval == 0:
+            if self.summary:
                 self.summary.add_scalar("loss/actor_loss", actor_loss, steps)
         
-        if self.summary and steps % self.log_interval == 0:
+        if self.summary:
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
     
