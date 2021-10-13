@@ -123,8 +123,8 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             critic_loss1 = (weights*critic_losses1).mean(-1)
             critic_loss2 = (weights*critic_losses2).mean(-1)
         else:
-            critic_loss1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,self.quantile).mean(-1)
-            critic_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,self.quantile).mean(-1)
+            critic_loss1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,self._quantile).mean(-1)
+            critic_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,self._quantile).mean(-1)
         critic_loss = critic_loss1 + critic_loss2
         self.lossque.append(critic_loss.detach().cpu().clone().numpy())
         self.critic_optimizer.zero_grad(set_to_none=True)
@@ -135,7 +135,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             q1,_ = self.critic(obses,self.actor(obses))
             if self.sample_risk_avoidance:
                 self.risk_avoidance = np.clip(np.random.normal(),-1,1)
-                self.grad_mul = (self.quantile.view(1,self.n_support) < 0.1).float()
+                self.grad_mul = (self.quantile < 0.1).float()
             actor_loss = -(q1*self.grad_mul).mean(-1).mean(-1)
             
             self.actor_optimizer.zero_grad(set_to_none=True)
