@@ -132,6 +132,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
         if self.summary and step % self.log_interval == 0:
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
+            self.summary.add_scalar("loss/targetmin", targets.min(), steps)
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="TD3",
               reset_num_timesteps=True, replay_wrapper=None):
