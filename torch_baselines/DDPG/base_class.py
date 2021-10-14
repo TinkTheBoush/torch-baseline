@@ -145,6 +145,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 self.scoreque.append(score)
                 if self.summary:
                     self.summary.add_scalar("episode_reward", score, steps)
+                    self.summary.add_scalar("done",float(done),steps)
                 self.scores[id] = 0
             for id in dec.agent_id:
                 if id in old_term_id or id in term.agent_id:
@@ -189,6 +190,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 self.scoreque.append(self.scores[0])
                 if self.summary:
                     self.summary.add_scalar("episode_reward", self.scores[0], steps)
+                    self.summary.add_scalar("done",float(done),steps)
                 self.scores[0] = 0
                 state = self.env.reset()
                 
