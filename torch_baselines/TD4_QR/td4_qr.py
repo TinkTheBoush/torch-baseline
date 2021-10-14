@@ -109,7 +109,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             targets = (self._gamma * next_vals) + rewards
         
         vals1, vals2 = self.critic(obses,actions)
-        logit_valid_tile = targets.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
+        logit_valid_tile = targets.unsqueeze(2).repeat_interleave(self.n_support, dim=2).detach()
         theta1_loss_tile = vals1.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
         theta2_loss_tile = vals2.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
         

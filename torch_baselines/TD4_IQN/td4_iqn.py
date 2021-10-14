@@ -102,7 +102,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
             targets = (self._gamma * next_vals) + rewards
         quantile_main = self.quantile(self.batch_size)
         vals1, vals2 = self.critic(obses,actions,quantile_main)
-        logit_valid_tile = targets.view(-1,self.n_support,1).repeat_interleave(self.n_support, dim=2)
+        logit_valid_tile = targets.view(-1,self.n_support,1).repeat_interleave(self.n_support, dim=2).detach()
         theta1_loss_tile = vals1.view(-1,1,self.n_support).repeat_interleave(self.n_support, dim=1)
         theta2_loss_tile = vals2.view(-1,1,self.n_support).repeat_interleave(self.n_support, dim=1)
         
