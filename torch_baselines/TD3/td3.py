@@ -111,7 +111,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
             critic_loss2 = self.critic_loss(vals2,targets.detach()).mean()
         critic_loss = critic_loss1 + critic_loss2
         self.lossque.append(critic_loss.detach().cpu().clone().numpy())
-        self.critic_optimizer.zero_grad(set_to_none=True)
+        self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
         
@@ -120,7 +120,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
             q1,_ = self.critic(obses,self.actor(obses))
             actor_loss = -q1.squeeze().mean(-1)
             
-            self.actor_optimizer.zero_grad(set_to_none=True)
+            self.actor_optimizer.zero_grad()
             actor_loss.backward()
             if self.max_grad_norm > 0:
                 torch.nn.utils.clip_grad_norm_(self.actor_param, self.max_grad_norm)

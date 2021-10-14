@@ -122,7 +122,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
             critic_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,quantile_main.view(self.batch_size,1,self.n_support)).mean(-1)
         critic_loss = critic_loss1 + critic_loss2
         self.lossque.append(critic_loss.detach().cpu().clone().numpy())
-        self.critic_optimizer.zero_grad(set_to_none=True)
+        self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
         
@@ -132,7 +132,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
             grad_mul = 1.0 - self.risk_avoidance*(2.0*quantile_target - 1.0)
             actor_loss = -(q1*grad_mul.detach()).mean(-1).mean(-1)
             
-            self.actor_optimizer.zero_grad(set_to_none=True)
+            self.actor_optimizer.zero_grad()
             actor_loss.backward()
             if self.max_grad_norm > 0:
                 torch.nn.utils.clip_grad_norm_(self.actor_param, self.max_grad_norm)

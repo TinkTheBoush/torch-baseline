@@ -129,7 +129,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             critic_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,self._quantile).mean()
         critic_loss = critic_loss1 + critic_loss2
         self.lossque.append(critic_loss.detach().cpu().clone().numpy())
-        self.critic_optimizer.zero_grad(set_to_none=True)
+        self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
         
@@ -142,7 +142,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             actor_loss = -(q1*self.grad_mul.detach()).mean(-1).mean(-1)
             #actor_loss = 
             
-            self.actor_optimizer.zero_grad(set_to_none=True)
+            self.actor_optimizer.zero_grad()
             actor_loss.backward()
             if self.max_grad_norm > 0:
                 torch.nn.utils.clip_grad_norm_(self.actor_param, self.max_grad_norm)
