@@ -102,8 +102,8 @@ class TD3(Deterministic_Policy_Gradient_Family):
             new_priorities = np.abs((targets.detach() - vals1).squeeze().cpu().clone().numpy()) + \
                             np.abs((targets.detach() - vals2).squeeze().cpu().clone().numpy()) + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
-            critic_loss1 = (weights*self.critic_loss(vals1,targets)).mean()
-            critic_loss2 = (weights*self.critic_loss(vals2,targets)).mean()
+            critic_loss1 = (weights*self.critic_loss(vals1,targets.detach())).mean()
+            critic_loss2 = (weights*self.critic_loss(vals2,targets.detach())).mean()
         else:
             critic_loss1 = self.critic_loss(vals1,targets.detach()).mean()
             critic_loss2 = self.critic_loss(vals2,targets.detach()).mean()
