@@ -118,7 +118,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
             q1,_ = self.critic(obses,self.actor(obses))
             q1max = q1.max().detach()
             q1min = q1.min().detach()
-            weight = 2.0(1 - (q1 - q1min)/(q1max - q1min))
+            weight = 2.0*(1 - (q1 - q1min)/(q1max - q1min))
             actor_loss = -(weight*q1).squeeze().mean(-1)
             #((q1max - q1)**2).squeeze().mean(-1)
             #actor_loss = q1.squeeze().mean(-1)
