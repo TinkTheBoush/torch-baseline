@@ -23,7 +23,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
         self.action_noise = action_noise
         target_action_noise_mul = target_action_noise_mul
         self.target_action_noise = action_noise * target_action_noise_mul       #0.2
-        self.action_noise_clamp = self.target_action_noise*1.5 #0.5
+        self.action_noise_clamp = 0.5 #self.target_action_noise*1.5
         self.policy_delay = policy_delay
         
         if _init_setup_model:
