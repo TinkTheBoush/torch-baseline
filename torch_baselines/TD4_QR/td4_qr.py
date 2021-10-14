@@ -121,11 +121,11 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             new_priorities = critic_losses1.cpu().clone().numpy() + \
                             critic_losses2.cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
-            critic_loss1 = (weights*critic_losses1).mean(-1)
-            critic_loss2 = (weights*critic_losses2).mean(-1)
+            critic_loss1 = (weights*critic_losses1).mean()
+            critic_loss2 = (weights*critic_losses2).mean()
         else:
-            critic_loss1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,self._quantile).mean(-1)
-            critic_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,self._quantile).mean(-1)
+            critic_loss1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,self._quantile).mean()
+            critic_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,self._quantile).mean()
         critic_loss = critic_loss1 + critic_loss2
         self.lossque.append(critic_loss.detach().cpu().clone().numpy())
         self.critic_optimizer.zero_grad(set_to_none=True)
@@ -159,6 +159,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
             self.summary.add_scalar("loss/targetmin", targets.mean(-1).min(), steps)
+            self.summary.add_scalar("loss/val1min", vals1.mean(-1).min(), steps)
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="TD4_QR",
               reset_num_timesteps=True, replay_wrapper=None):
