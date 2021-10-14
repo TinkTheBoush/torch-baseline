@@ -7,7 +7,8 @@ from torch_baselines.common.losses import MSELosses, HuberLosses
 from torch_baselines.common.utils import convert_states, hard_update, soft_update
 
 class TD3(Deterministic_Policy_Gradient_Family):
-    def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, action_noise = 0.1, train_freq=1, gradient_steps=1,
+    def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, target_action_noise_mul = 1.5, 
+                 action_noise = 0.1, train_freq=1, gradient_steps=1,
                  batch_size=32, policy_delay = 2, n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False, 
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
                  param_noise=False, max_grad_norm = 1.0, log_interval=200, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
@@ -20,8 +21,8 @@ class TD3(Deterministic_Policy_Gradient_Family):
                  full_tensorboard_log, seed)
         
         self.action_noise = action_noise
-        mul = 1.2
-        self.target_action_noise = action_noise * mul       #0.2
+        target_action_noise_mul = target_action_noise_mul
+        self.target_action_noise = action_noise * target_action_noise_mul       #0.2
         self.action_noise_clamp = self.target_action_noise*1.5 #0.5
         self.policy_delay = policy_delay
         
