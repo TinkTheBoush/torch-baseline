@@ -118,7 +118,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
         step = (steps + grad_step)
         if step % self.policy_delay == 0:
             q1,_ = self.critic(obses,self.actor(obses))
-            actor_loss = q1.squeeze().mean(-1)
+            actor_loss = -q1.squeeze().mean(-1)
             
             self.actor_optimizer.zero_grad(set_to_none=True)
             actor_loss.backward()
