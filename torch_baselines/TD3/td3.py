@@ -94,7 +94,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
             next_vals = invdones * torch.minimum(next_vals1, next_vals2)
             targets = (self._gamma * next_vals) + rewards
         
-        vals1, vals2 = self.critic(obses,actions)
+        vals1, vals2 = self.critic(obses,actions.detach())
         
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
