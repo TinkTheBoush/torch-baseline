@@ -20,7 +20,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
                  full_tensorboard_log, seed)
         
         self.action_noise = action_noise
-        self.target_action_noise = action_noise*2       #0.2
+        self.target_action_noise = action_noise * 2.0       #0.2
         self.action_noise_clamp = self.target_action_noise*1.5 #0.5
         self.policy_delay = policy_delay
         
@@ -83,7 +83,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
             actions = torch.as_tensor(data[1],dtype=torch.float32,device=self.device)
             rewards = torch.as_tensor(data[2],dtype=torch.float32,device=self.device).view(-1,1)
             nxtobses = convert_states(data[3],self.device)
-            dones = (~torch.as_tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1)
+            invdones = (~torch.as_tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1)
             next_actions = self.target_actor(nxtobses)
             next_actions = torch.clamp(next_actions + 
                                        torch.clamp(
@@ -91,8 +91,8 @@ class TD3(Deterministic_Policy_Gradient_Family):
                                             -self.action_noise_clamp,self.action_noise_clamp),
                                        -1,1)
             next_vals1, next_vals2 = self.target_critic(nxtobses,next_actions)
-            next_vals = dones * torch.minimum(next_vals1, next_vals2)
-            targets = (next_vals * self._gamma) + rewards
+            next_vals = invdones * torch.minimum(next_vals1, next_vals2)
+            targets = (self._gamma * next_vals) + rewards
         
         vals1, vals2 = self.critic(obses,actions)
         
