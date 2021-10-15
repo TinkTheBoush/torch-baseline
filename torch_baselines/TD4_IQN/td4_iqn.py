@@ -65,7 +65,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
         hard_update(self.target_param,self.main_param)
         
         #self.actor_optimizer = torch.optim.RMSprop(self.actor.parameters(),lr=self.learning_rate)
-        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),lr=self.learning_rate/2)
+        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),lr=self.learning_rate)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),lr=self.learning_rate)
         self.critic_loss = QRHuberLosses()
         self.quantile = Qunatile_Maker(self.n_support)
@@ -115,11 +115,11 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
             new_priorities = critic_losses1.cpu().clone().numpy() + \
                             critic_losses2.cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
-            critic_loss1 = (weights*critic_losses1).mean(-1)
-            critic_loss2 = (weights*critic_losses2).mean(-1)
+            critic_loss1 = (weights*critic_losses1).mean()
+            critic_loss2 = (weights*critic_losses2).mean()
         else:
-            critic_loss1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,quantile_main.view(self.batch_size,1,self.n_support)).mean(-1)
-            critic_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,quantile_main.view(self.batch_size,1,self.n_support)).mean(-1)
+            critic_loss1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,quantile_main.view(self.batch_size,1,self.n_support)).mean()
+            critic_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,quantile_main.view(self.batch_size,1,self.n_support)).mean()
         critic_loss = critic_loss1 + critic_loss2
         self.lossque.append(critic_loss.detach().cpu().clone().numpy())
         self.critic_optimizer.zero_grad()
@@ -130,7 +130,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
         if step % self.policy_delay == 0:
             q1,_ = self.critic(obses,self.actor(obses),quantile_target)
             grad_mul = 1.0 - self.risk_avoidance*(2.0*quantile_target - 1.0)
-            actor_loss = -(q1*grad_mul.detach()).mean(-1).mean(-1)
+            actor_loss = -(q1*grad_mul.detach()).mean()
             
             self.actor_optimizer.zero_grad()
             actor_loss.backward()

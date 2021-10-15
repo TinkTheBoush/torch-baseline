@@ -36,7 +36,7 @@ if __name__ == "__main__":
     parser.add_argument('--node', type=int,default=256, help='network node number')
     parser.add_argument('--hidden_n', type=int,default=2, help='hidden layer number')
     parser.add_argument('--action_noise', type=float,default=0.1, help='action noise std')
-    parser.add_argument('--target_noise_mul', type=float,default=1.5, help='target noise mul')
+    parser.add_argument('--target_noise_mul', type=float,default=2.0, help='target noise mul')
     args = parser.parse_args() 
     env_name = args.env
     env_type = ""

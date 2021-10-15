@@ -63,7 +63,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
         hard_update(self.target_param,self.main_param)
         
         #self.actor_optimizer = torch.optim.RMSprop(self.actor.parameters(),lr=self.learning_rate)
-        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),lr=self.learning_rate/2)
+        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),lr=self.learning_rate)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),lr=self.learning_rate)
         self.critic_loss = MSELosses()
         
@@ -118,7 +118,7 @@ class TD3(Deterministic_Policy_Gradient_Family):
         step = (steps + grad_step)
         if step % self.policy_delay == 0:
             q1,_ = self.critic(obses,self.actor(obses))
-            actor_loss = -q1.squeeze().mean(-1)
+            actor_loss = -q1.squeeze().mean()
             
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
