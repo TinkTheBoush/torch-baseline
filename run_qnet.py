@@ -47,18 +47,19 @@ if __name__ == "__main__":
     if os.path.exists(env_name):
         engine_configuration_channel = EngineConfigurationChannel()
         channel = EnvironmentParametersChannel()
-        
+        engine_configuration_channel.set_configuration_parameters(time_scale=12.0,capture_frame_rate=50)
         env = UnityEnvironment(file_name=env_name,no_graphics=False, side_channels=[engine_configuration_channel,channel],timeout_wait=10000)
-        engine_configuration_channel.set_configuration_parameters(time_scale=20.0)
         env_name = env_name.split('/')[-1].split('.')[0]
-        
+        env_type = "unity"
     else:
         isminatar, env_name_ = is_minatar(env_name)
         if isminatar:
             env = minatar.Environment(env_name_)
             cnn_mode = 'minimum'
+            env_type = "minatar"
         else:
             env = gym.make(env_name_)
+            env_type = "gym"
     
     policy_kwargs = {'node': args.node,
                      'hidden_n': args.hidden_n,
@@ -68,28 +69,28 @@ if __name__ == "__main__":
         agent = DQN(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
-                    tensorboard_log=args.logdir+env_name)
+                    tensorboard_log=args.logdir + env_type + "/" +env_name)
     elif args.algo == "C51":
         agent = C51(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
                     categorial_max = args.max, categorial_min = args.min,
-                    tensorboard_log=args.logdir+env_name)
+                    tensorboard_log=args.logdir + env_type + "/" +env_name)
     elif args.algo == "QRDQN":
         agent = QRDQN(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
-                    tensorboard_log=args.logdir+env_name)
+                    tensorboard_log=args.logdir + env_type + "/" +env_name)
     elif args.algo == "IQN":
         agent = IQN(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen, 
                     CVaR=args.CVaR,
-                    tensorboard_log=args.logdir+env_name)
+                    tensorboard_log=args.logdir + env_type + "/" +env_name)
     elif args.algo == "FQF":
         agent = FQF(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
-                    tensorboard_log=args.logdir+env_name)
+                    tensorboard_log=args.logdir + env_type + "/" +env_name)
 
     agent.learn(int(args.steps))
