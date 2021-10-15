@@ -58,7 +58,7 @@ class CategorialDistributionLoss(_Loss):
 
 class QRHuberLosses(_Loss):
     __constants__ = ['reduction']
-    def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', beta: float = 0.01) -> None:
+    def __init__(self, size_average=None, reduce=None, reduction: str = 'mean', beta: float = 0.001) -> None:
         super(QRHuberLosses, self).__init__(size_average, reduce, reduction)
         self.beta = beta
 
