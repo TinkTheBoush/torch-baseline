@@ -11,6 +11,28 @@ from torch import Tensor
 def get_flatten_size(function,size):
     return function(torch.rand(*([1]+size))).data.shape[-1]
 
+def visual_embedding(st,mode="normal"):
+    if mode == "normal":
+        return  nn.Sequential(
+                nn.Conv2d(st[0],32,kernel_size=8, stride=4),
+                nn.ReLU(),
+                nn.Conv2d(32,64,kernel_size=4,stride=2),
+                nn.ReLU(),
+                nn.Conv2d(64,64,kernel_size=3,stride=1),
+                nn.ReLU(),
+                nn.Flatten()
+            )
+    elif mode == "minimum":
+        return  nn.Sequential(
+                nn.Conv2d(st[0],16,kernel_size=4, stride=2),
+                nn.ReLU(),
+                nn.Conv2d(16,32,kernel_size=3,stride=1),
+                nn.ReLU(),
+                nn.Flatten()
+            )
+    elif mode == "none":
+        return  nn.Flatten()
+
 def set_random_seed(seed):
     #torch.use_deterministic_algorithms(True)
     torch.manual_seed(seed)

@@ -1,13 +1,13 @@
 import numpy as np
 import jax.numpy as jnp
-from torch_baselines.common.utils import get_flatten_size
+from torch_baselines.common.utils import get_flatten_size, visual_embedding
 from torch_baselines.common.layer import NoisyLinear
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 class Model(nn.Module):
-    def __init__(self,state_size,action_size,node=256,hidden_n=2,noisy=False,dualing=False,ModelOptions=None):
+    def __init__(self,state_size,action_size,node=256,hidden_n=2,noisy=False,dualing=False,cnn_mode="normal"):
         super(Model, self).__init__()
         self.dualing = dualing
         self.noisy = noisy
@@ -19,15 +19,7 @@ class Model(nn.Module):
         else:
             lin = nn.Linear
         self.preprocess = nn.ModuleList([
-            nn.Sequential(
-                nn.Conv2d(st[0],32,kernel_size=8, stride=4),
-                nn.ReLU(),
-                nn.Conv2d(32,64,kernel_size=4,stride=2),
-                nn.ReLU(),
-                nn.Conv2d(64,64,kernel_size=3,stride=1),
-                nn.ReLU(),
-                nn.Flatten()
-            )
+            visual_embedding(st,cnn_mode)
             if len(st) == 3 else nn.Identity()
             for st in state_size 
         ])
