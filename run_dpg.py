@@ -45,10 +45,10 @@ if __name__ == "__main__":
     if os.path.exists(env_name):
         engine_configuration_channel = EngineConfigurationChannel()
         channel = EnvironmentParametersChannel()
-        engine_configuration_channel.set_configuration_parameters(time_scale=20.0)
+        engine_configuration_channel.set_configuration_parameters(width=1080,height=1080,time_scale=12.0,target_frame_rate=20)
         
         env = UnityEnvironment(file_name=env_name,seed=args.seed,no_graphics=False, worker_id=args.worker_id,
-                               side_channels=[engine_configuration_channel,channel],timeout_wait=1000)
+                               side_channels=[engine_configuration_channel,channel],timeout_wait=1000,)
         env_name = env_name.split('/')[-1].split('.')[0]
         env_type = "unity"
     else:
