@@ -130,6 +130,9 @@ class Deterministic_Policy_Gradient_Family(object):
                 self.env.set_actions(self.group_name, action_tuple)
                 old_dec = dec
                 old_term_id = []
+            else:
+                action_tuple = ActionTuple()
+                self.env.set_actions(self.group_name, action_tuple)
             self.env.step()
             dec, term = self.env.get_steps(self.group_name)
             for id in term.agent_id:
