@@ -39,9 +39,11 @@ if __name__ == "__main__":
     parser.add_argument('--max', type=float, default=250, help='c51 max')
     parser.add_argument('--min', type=float, default=-250, help='c51 min')
     parser.add_argument('--CVaR', type=float, default=1.0, help='IQN risk avoiding factor')
+    parser.add_argument('--node', type=int,default=256, help='network node number')
+    parser.add_argument('--hidden_n', type=int,default=2, help='hidden layer number')
     args = parser.parse_args() 
     env_name = args.env
-    
+    cnn_mode = "normal"
     if os.path.exists(env_name):
         engine_configuration_channel = EngineConfigurationChannel()
         channel = EnvironmentParametersChannel()
@@ -54,8 +56,13 @@ if __name__ == "__main__":
         isminatar, env_name_ = is_minatar(env_name)
         if isminatar:
             env = minatar.Environment(env_name_)
+            cnn_mode = 'minimum'
         else:
             env = gym.make(env_name_)
+    
+    policy_kwargs = {'node': args.node,
+                     'hidden_n': args.hidden_n,
+                     'cnn_mode': cnn_mode}
         
     if args.algo == "DQN":
         agent = DQN(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
