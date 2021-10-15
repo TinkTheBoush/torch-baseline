@@ -131,7 +131,7 @@ class Deterministic_Policy_Gradient_Family(object):
                 old_dec = dec
                 old_term_id = []
             else:
-                action_tuple = ActionTuple()
+                action_tuple = ActionTuple(continuous=np.zeros([0,self.action_size[0]]))
                 self.env.set_actions(self.group_name, action_tuple)
             self.env.step()
             dec, term = self.env.get_steps(self.group_name)
