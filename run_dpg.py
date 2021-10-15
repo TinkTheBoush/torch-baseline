@@ -45,7 +45,7 @@ if __name__ == "__main__":
     if os.path.exists(env_name):
         engine_configuration_channel = EngineConfigurationChannel()
         channel = EnvironmentParametersChannel()
-        engine_configuration_channel.set_configuration_parameters(time_scale=12.0,capture_frame_rate=60)
+        engine_configuration_channel.set_configuration_parameters(time_scale=12.0,capture_frame_rate=50)
         
         env = UnityEnvironment(file_name=env_name,seed=args.seed,no_graphics=False, worker_id=args.worker_id,
                                side_channels=[engine_configuration_channel,channel],timeout_wait=1000,)
