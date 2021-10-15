@@ -65,7 +65,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
         hard_update(self.target_param,self.main_param)
         
         #self.actor_optimizer = torch.optim.RMSprop(self.actor.parameters(),lr=self.learning_rate)
-        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),lr=self.learning_rate)
+        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),lr=self.learning_rate/2)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),lr=self.learning_rate)
         self.critic_loss = QRHuberLosses()
         self.quantile = Qunatile_Maker(self.n_support)
