@@ -29,16 +29,6 @@ class TD3(Deterministic_Policy_Gradient_Family):
         if _init_setup_model:
             self.setup_model()
             
-    def actions(self,obs,befor_train):
-        if not befor_train:
-            with torch.no_grad():
-                actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + 
-                                np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0]))
-                                ,-1,1)
-        else:
-            actions = np.random.uniform(-1,1,size=(self.worker_size,self.action_size[0]))
-        return actions
-            
     def setup_model(self):
         self.policy_kwargs = {} if self.policy_kwargs is None else self.policy_kwargs
         self.actor = Actor(self.observation_space,self.action_size,
@@ -136,6 +126,24 @@ class TD3(Deterministic_Policy_Gradient_Family):
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
             #self.summary.add_scalar("loss/targetmin", targets.min(), steps)
             #self.summary.add_scalar("loss/val1min", vals1.min(), steps)
+    
+    '''
+    def actions(self,obs,befor_train):
+        if not befor_train:
+            with torch.no_grad():
+                actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + 
+                                np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0]))
+                                ,-1,1)
+        else:
+            actions = np.random.uniform(-1,1,size=(self.worker_size,self.action_size[0]))
+        return actions
+    '''
+    def actions(self,obs,befor_train):
+        with torch.no_grad():
+            actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + 
+                            np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0]))
+                            ,-1,1)
+        return actions
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="TD3",
               reset_num_timesteps=True, replay_wrapper=None):
