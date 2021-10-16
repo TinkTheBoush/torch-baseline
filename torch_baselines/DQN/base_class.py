@@ -208,7 +208,8 @@ class Q_Network_Family(object):
             done = np.full((self.worker_size),False)
             terminal = np.full((self.worker_size),False)
             reward = dec.reward
-            if term_ids.shape[0]:
+            term_on = term_ids.shape[0] > 0
+            if term_on:
                 print(term_ids.shape)
                 print(nxtobs[0].shape)
                 print(term_obses[0].shape)
@@ -219,7 +220,7 @@ class Q_Network_Family(object):
                 reward[term_ids] = term_rewards
             self.scores += reward
             self.replay_buffer.add(old_obses, actions, reward, nxtobs, done, 0, terminal)
-            if term_ids.shape[0]:
+            if term_on:
                 if self.summary:
                     for tid in term_ids:
                         self.summary.add_scalar("env/episode_reward", self.scores[tid], steps)
