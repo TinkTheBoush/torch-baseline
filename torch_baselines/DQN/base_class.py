@@ -290,7 +290,7 @@ class Q_Network_Family(object):
                 self.scoreque.append(self.scores[0])
                 if self.summary:
                     self.summary.add_scalar("env/episode_reward", self.scores[0], steps)
-                    self.summary.add_scalar("env/time over",float(not done),steps)
+                    self.summary.add_scalar("env/time over",0,steps)
                 self.scores[0] = 0
                 self.env.reset()
                 state = np.expand_dims(self.env.state(), axis=0)
