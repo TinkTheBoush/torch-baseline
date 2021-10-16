@@ -10,7 +10,7 @@ from torch_baselines.common.base_classes import TensorboardWriter
 #from torch_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer, EpisodicReplayBuffer, PrioritizedEpisodicReplayBuffer
 from torch_baselines.common.cpprb_buffers import ReplayBuffer, PrioritizedReplayBuffer
 from torch_baselines.common.schedules import LinearSchedule
-from torch_baselines.common.utils import convert_states
+from torch_baselines.common.utils import convert_tensor, convert_states
 
 from mlagents_envs.environment import UnityEnvironment, ActionTuple
 import minatar
@@ -108,11 +108,11 @@ class Q_Network_Family(object):
         print("-------------------------------------------------")
         
     def get_memory_setup(self):
-        buffer_obs = [[sp[1], sp[2], sp[0]] if len(sp) == 3 else sp for sp in self.observation_space]
+        #buffer_obs = [[sp[1], sp[2], sp[0]] if len(sp) == 3 else sp for sp in self.observation_space]
         if not self.prioritized_replay:
-            self.replay_buffer = ReplayBuffer(self.buffer_size,buffer_obs,self.n_step,self.gamma)
+            self.replay_buffer = ReplayBuffer(self.buffer_size,self.observation_space,self.n_step,self.gamma)
         else:
-            self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,buffer_obs,self.prioritized_replay_alpha,self.n_step,self.gamma)
+            self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,self.observation_space,self.prioritized_replay_alpha,self.n_step,self.gamma)
         '''
         if self.prioritized_replay:
             if self.n_step_method:
@@ -136,7 +136,7 @@ class Q_Network_Family(object):
     def actions(self,obs,epsilon,befor_train):
         if (epsilon <= np.random.uniform(0,1) or self.param_noise) and not befor_train:
             self.model.sample_noise()
-            actions = self.model.get_action(convert_states(obs,self.device)).numpy()
+            actions = self.model.get_action(convert_tensor(obs,self.device)).numpy()
         else:
             actions = np.random.choice(self.action_size[0], [self.worker_size,1])
         return actions
@@ -178,23 +178,26 @@ class Q_Network_Family(object):
         self.lossque = deque(maxlen=10)
         befor_train = True
         old_term_id = []
+        obses = convert_states(dec.obs)
         for steps in pbar:
             len_dec = len(dec)
             old_term_id += list(term.agent_id)
             if len_dec:
                 update_eps = self.exploration.value(steps)
-                actions = self.actions(dec.obs,update_eps,befor_train)
+                actions = self.actions(obses,update_eps,befor_train)
                 action_tuple = ActionTuple(discrete=actions)
-                old_dec = dec
+                old_obses = obses
                 old_term_id = []
             else:
                 action_tuple = ActionTuple(discrete=np.zeros([0,1]))
             self.env.set_actions(self.group_name, action_tuple)
             self.env.step()
             dec, term = self.env.get_steps(self.group_name)
-            for id in term.agent_id:
-                obs = old_dec[id].obs
-                nxtobs = term[id].obs
+            obses = convert_states(dec.obs)
+            term_obses = convert_states(term.obs)
+            for idx,id in enumerate(term.agent_id):
+                obs = old_obses[id]
+                nxtobs = term_obses[idx]
                 reward = term[id].reward
                 done = not term[id].interrupted
                 terminal = True
@@ -210,8 +213,8 @@ class Q_Network_Family(object):
             for id in dec.agent_id:
                 if id in old_term_id or id in term.agent_id:
                     continue #if in old_term_id -> start dec, if in term.agent_id -> start dec
-                obs = old_dec[id].obs
-                nxtobs = dec[id].obs
+                obs = old_obses[id]
+                nxtobs = obses[id]
                 reward = dec[id].reward
                 done = False
                 terminal = False
@@ -233,7 +236,7 @@ class Q_Network_Family(object):
                 
         
     def learn_gym(self, pbar, callback=None, log_interval=100):
-        state = self.env.reset()
+        state = convert_states(self.env.reset())
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
