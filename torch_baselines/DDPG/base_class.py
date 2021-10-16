@@ -141,9 +141,9 @@ class Deterministic_Policy_Gradient_Family(object):
                 if len(term.agent_id) > 0:
                     term_ids += list(term.agent_id)
                     new_obs = convert_states(term.obs)
-                    print([n.shape for n in new_obs])
-                    print([n.shape for n in term_obses])
-                    term_obses = [np.stack(to,o) for to,o in zip(term_obses,new_obs)]
+                    #print([n.shape for n in new_obs])
+                    #print([n.shape for n in term_obses])
+                    term_obses = [np.stack((to,o)) for to,o in zip(term_obses,new_obs)]
                     term_rewards += list(term.reward)
                     term_done += list(term.interrupted)
             obses = convert_states(dec.obs)
