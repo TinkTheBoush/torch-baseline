@@ -191,7 +191,6 @@ class Q_Network_Family(object):
                 action_tuple = ActionTuple(discrete=np.zeros([0,1]))
             self.env.set_actions(self.group_name, action_tuple)
             self.env.step()
-            old_term_id = term.agent_id
             dec, term = self.env.get_steps(self.group_name)
             for id in term.agent_id:
                 obs = old_dec[id].obs
