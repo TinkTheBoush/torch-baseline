@@ -225,19 +225,20 @@ class Q_Network_Family(object):
                     self.lossque.append(loss)
         
     def learn_gym(self, pbar, callback=None, log_interval=100):
-        state = convert_states(self.env.reset())
+        state = convert_states([self.env.reset()])
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
         befor_train = True
         for steps in pbar:
             update_eps = self.exploration.value(steps)
-            actions = self.actions([state],update_eps,befor_train)
+            actions = self.actions(state,update_eps,befor_train)
             next_state, reward, terminal, info = self.env.step(actions[0][0])
+            next_state = convert_states([next_state])
             done = terminal
             if "TimeLimit.truncated" in info:
                 done = not info["TimeLimit.truncated"]
-            self.replay_buffer.add([state], actions[0], reward, [next_state], done, 0, terminal)
+            self.replay_buffer.add(state, actions[0], reward, next_state, done, 0, terminal)
             self.scores[0] += reward
             state = next_state
             if terminal:
@@ -262,16 +263,16 @@ class Q_Network_Family(object):
                 
     def learn_minatar(self, pbar, callback=None, log_interval=100):
         self.env.reset()
-        state = np.expand_dims(self.env.state(), axis=0)
+        state = convert_states([np.expand_dims(self.env.state(), axis=0)])
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
         befor_train = True
         for steps in pbar:
             update_eps = self.exploration.value(steps)
-            actions = self.actions([state],update_eps,befor_train)
+            actions = self.actions(state,update_eps,befor_train)
             reward, terminal = self.env.act(actions[0][0])
-            next_state = np.expand_dims(self.env.state(), axis=0)
+            next_state = convert_states([np.expand_dims(self.env.state(), axis=0)])
             if self.n_step_method:
                 self.replay_buffer.add(state, actions[0], reward, next_state, terminal, 0, terminal)
             else:
