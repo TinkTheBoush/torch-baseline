@@ -4,7 +4,7 @@ import numpy as np
 from torch_baselines.DQN.base_class import Q_Network_Family
 from torch_baselines.FQF.network import Model, QuantileFunction
 from torch_baselines.common.losses import QRHuberLosses, QuantileFunctionLoss
-from torch_baselines.common.utils import convert_states, hard_update
+from torch_baselines.common.utils import convert_tensor, hard_update
 
 class FQF(Q_Network_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, exploration_fraction=0.3, n_support = 64,
@@ -74,10 +74,10 @@ class FQF(Q_Network_Family):
             data = self.replay_buffer.sample(self.batch_size,self.prioritized_replay_beta0)
         else:
             data = self.replay_buffer.sample(self.batch_size)
-        obses = convert_states(data[0],self.device)
+        obses = convert_tensor(data[0],self.device)
         actions = torch.tensor(data[1],dtype=torch.int64,device=self.device).view(-1,1)
         rewards = torch.tensor(data[2],dtype=torch.float32,device=self.device).view(-1,1)
-        nxtobses = convert_states(data[3],self.device)
+        nxtobses = convert_tensor(data[3],self.device)
         dones = (~torch.tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1,1)
         quantile, quantile_hat, entropies = self.quantile(obses)
         quantile_next, _, _ = self.quantile(nxtobses)
