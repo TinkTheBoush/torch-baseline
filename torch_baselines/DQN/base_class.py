@@ -177,53 +177,52 @@ class Q_Network_Family(object):
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
         befor_train = True
-        old_term_id = []
         obses = convert_states(dec.obs)
         for steps in pbar:
-            len_dec = len(dec)
-            old_term_id += list(term.agent_id)
-            if len_dec:
-                update_eps = self.exploration.value(steps)
-                actions = self.actions(obses,update_eps,befor_train)
-                action_tuple = ActionTuple(discrete=actions)
-                old_obses = obses
-                old_term_id = []
-            else:
-                action_tuple = ActionTuple(discrete=np.zeros([0,1]))
+            
+            update_eps = self.exploration.value(steps)
+            actions = self.actions(obses,update_eps,befor_train)
+            action_tuple = ActionTuple(discrete=actions)
+            old_obses = obses
+            
             self.env.set_actions(self.group_name, action_tuple)
             self.env.step()
+            
             dec, term = self.env.get_steps(self.group_name)
-            obses = convert_states(dec.obs)
+            term_ids = list(term.agent_id)
             term_obses = convert_states(term.obs)
-            print(obses.shape)
-            print(term_obses.shape)
-            for idx,id in enumerate(term.agent_id):
-                obs = old_obses[id]
-                nxtobs = term_obses[idx]
-                reward = term[id].reward
-                done = not term[id].interrupted
-                terminal = True
-                act = actions[id]
-                self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
-                self.scores[id] += reward
-                score = self.scores[id]
-                self.scoreque.append(score)
-                if self.summary:
-                    self.summary.add_scalar("env/episode_reward", score, steps)
-                    self.summary.add_scalar("env/time over",float(not done),steps)
-                self.scores[id] = 0
-            for id in dec.agent_id:
-                if id in old_term_id or id in term.agent_id:
-                    continue #if in old_term_id -> start dec, if in term.agent_id -> start dec
-                obs = old_obses[id]
-                nxtobs = obses[id]
-                reward = dec[id].reward
-                done = False
-                terminal = False
-                act = actions[id]
-                self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
-                self.scores[id] += reward
-
+            term_rewards = list(term.reward)
+            term_done = list(term.interrupted)
+            while len(dec) == 0:
+                self.env.step()
+                dec, term = self.env.get_steps(self.group_name)
+                term_ids += list(term.agent_id)
+                term_obses = [np.stack(to,o) for to,o in zip(term_obses,convert_states(term.obs))]
+                term_rewards += list(term.reward)
+                term_done += list(term.interrupted)
+            obses = convert_states(dec.obs)
+            nxtobs = [np.copy(o) for o in obses]
+            term_ids = np.asarray(term_ids)
+            term_rewards = np.asarray(term_rewards)
+            term_done = np.asarray(term_done)
+            for n,t in zip(nxtobs,term_obses):
+                n[term_ids] = t
+            done = np.full((self.worker_size),False)
+            done[term_ids] = term_done
+            terminal = np.full((self.worker_size),False)
+            terminal[term_ids] = True
+            reward = dec.reward
+            reward[term_ids] = term_rewards
+            self.scores += reward
+            self.replay_buffer.add(old_obses, actions, reward, nxtobs, done, 0, terminal)
+            
+            if self.summary:
+                for tid in term_ids:
+                    self.summary.add_scalar("env/episode_reward", self.scores[tid], steps)
+                    self.summary.add_scalar("env/time over",float(not done[tid]),steps)
+            self.scoreque.extend(self.scores[term_ids])
+            self.scores[term_ids] = 0
+            
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
                                     np.mean(self.scoreque),update_eps,np.mean(self.lossque)
@@ -235,7 +234,6 @@ class Q_Network_Family(object):
                 for i in np.arange(self.gradient_steps):
                     loss = self._train_step(steps)
                     self.lossque.append(loss)
-                
         
     def learn_gym(self, pbar, callback=None, log_interval=100):
         state = convert_states(self.env.reset())

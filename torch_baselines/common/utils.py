@@ -41,8 +41,6 @@ def set_random_seed(seed):
 
 def convert_tensor(obs : List, device : torch.device, dtype=torch.float):
     return [torch.as_tensor(o,dtype=dtype,device=device) for o in obs]
-    #return [torch.as_tensor(o,dtype=dtype,device=device).permute(0,3,1,2) 
-    #            if len(o.shape) == 4 else torch.as_tensor(o,dtype=dtype,device=device) for o in obs]
     
 def convert_states(obs : List):
     return [np.transpose(o*0xFF, (0,3,1,2)).astype(np.ubyte) if len(o.shape) >= 4 else o for o in obs]
