@@ -185,9 +185,11 @@ class Q_Network_Family(object):
                 update_eps = self.exploration.value(steps)
                 actions = self.actions(dec.obs,update_eps,befor_train)
                 action_tuple = ActionTuple(discrete=actions)
-                self.env.set_actions(self.group_name, action_tuple)
                 old_dec = dec
                 old_term_id = []
+            else:
+                action_tuple = ActionTuple(discrete=np.zeros([0,1]))
+            self.env.set_actions(self.group_name, action_tuple)
             self.env.step()
             old_term_id = term.agent_id
             dec, term = self.env.get_steps(self.group_name)
