@@ -6,7 +6,7 @@ from collections import deque
 from torch_baselines.DDPG.base_class import Deterministic_Policy_Gradient_Family
 from torch_baselines.DDPG.network import Actor, Critic
 from torch_baselines.common.losses import MSELosses, HuberLosses
-from torch_baselines.common.utils import convert_states, hard_update, soft_update
+from torch_baselines.common.utils import convert_states, convert_tensor, hard_update, soft_update
 from torch_baselines.common.schedules import LinearSchedule
 from torch_baselines.common.noise import OUNoise
 
@@ -76,10 +76,10 @@ class DDPG(Deterministic_Policy_Gradient_Family):
             data = self.replay_buffer.sample(self.batch_size)
         
         with torch.no_grad():
-            obses = convert_states(data[0],self.device)
+            obses = convert_tensor(data[0],self.device)
             actions = torch.tensor(data[1],dtype=torch.float32,device=self.device)
             rewards = torch.tensor(data[2],dtype=torch.float32,device=self.device).view(-1,1)
-            nxtobses = convert_states(data[3],self.device)
+            nxtobses = convert_tensor(data[3],self.device)
             dones = (~torch.tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1)
             next_vals = dones * self.target_critic(nxtobses,self.target_actor(nxtobses))
             targets = (next_vals * self._gamma) + rewards
@@ -122,7 +122,7 @@ class DDPG(Deterministic_Policy_Gradient_Family):
     def actions(self,obs,epsilon,befor_train):
         if not befor_train:
             with torch.no_grad():
-                actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + self.noise()*epsilon,-1,1)
+                actions = np.clip(self.actor(convert_tensor(obs,self.device)).detach().cpu().clone().numpy() + self.noise()*epsilon,-1,1)
         else:
             actions = np.random.uniform(-1,1,size=(self.worker_size,self.action_size[0]))
         return actions
