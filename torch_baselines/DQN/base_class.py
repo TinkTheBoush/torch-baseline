@@ -210,12 +210,9 @@ class Q_Network_Family(object):
             reward = dec.reward
             term_on = term_ids.shape[0] > 0
             if term_on:
-                #print(term_ids.shape)
-                #print(nxtobs[0].shape)
-                #print(term_obses[0].shape)
                 for n,t in zip(nxtobs,term_obses):
                     n[term_ids] = t
-                done[term_ids] = term_done
+                done[term_ids] = ~term_done
                 terminal[term_ids] = True
                 reward[term_ids] = term_rewards
             self.scores += reward
