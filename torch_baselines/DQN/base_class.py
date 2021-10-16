@@ -201,9 +201,11 @@ class Q_Network_Family(object):
                 act = actions[id]
                 self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
                 self.scores[id] += reward
-                self.scoreque.append(self.scores[id])
+                score = self.scores[id]
+                self.scoreque.append(score)
                 if self.summary:
-                    self.summary.add_scalar("episode_reward", self.scores[id], steps)
+                    self.summary.add_scalar("env/episode_reward", score, steps)
+                    self.summary.add_scalar("env/time over",float(not done),steps)
                 self.scores[id] = 0
             for id in dec.agent_id:
                 if id in old_term_id or id in term.agent_id:
@@ -249,7 +251,8 @@ class Q_Network_Family(object):
             if terminal:
                 self.scoreque.append(self.scores[0])
                 if self.summary:
-                    self.summary.add_scalar("episode_reward", self.scores[0], steps)
+                    self.summary.add_scalar("env/episode_reward", self.scores[0], steps)
+                    self.summary.add_scalar("env/time over",float(not done),steps)
                 self.scores[0] = 0
                 state = self.env.reset()
                 
@@ -286,7 +289,8 @@ class Q_Network_Family(object):
             if terminal:
                 self.scoreque.append(self.scores[0])
                 if self.summary:
-                    self.summary.add_scalar("episode_reward", self.scores[0], steps)
+                    self.summary.add_scalar("env/episode_reward", self.scores[0], steps)
+                    self.summary.add_scalar("env/time over",float(not done),steps)
                 self.scores[0] = 0
                 self.env.reset()
                 state = np.expand_dims(self.env.state(), axis=0)
