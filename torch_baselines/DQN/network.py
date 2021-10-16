@@ -68,6 +68,11 @@ class Model(nn.Module):
             ]
             )
             )
+            
+        self.noisy_param = []
+        for m in self.modules():
+            if isinstance(m,NoisyLinear):
+                self.noisy_param.append(m)
 
     def forward(self, xs):
         
@@ -88,6 +93,5 @@ class Model(nn.Module):
     def sample_noise(self):
         if not self.noisy:
             return
-        for m in self.modules():
-            if isinstance(m,NoisyLinear):
-                m.sample_noise()
+        for n in self.noisy_param:
+            n.sample_noise()
