@@ -69,28 +69,28 @@ if __name__ == "__main__":
         agent = DQN(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
-                    tensorboard_log=args.logdir + env_type + "/" +env_name)
+                    tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
     elif args.algo == "C51":
         agent = C51(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
                     categorial_max = args.max, categorial_min = args.min,
-                    tensorboard_log=args.logdir + env_type + "/" +env_name)
+                    tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
     elif args.algo == "QRDQN":
         agent = QRDQN(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
-                    tensorboard_log=args.logdir + env_type + "/" +env_name)
+                    tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
     elif args.algo == "IQN":
         agent = IQN(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen, 
                     CVaR=args.CVaR,
-                    tensorboard_log=args.logdir + env_type + "/" +env_name)
+                    tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
     elif args.algo == "FQF":
         agent = FQF(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
-                    tensorboard_log=args.logdir + env_type + "/" +env_name)
+                    tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
 
     agent.learn(int(args.steps))

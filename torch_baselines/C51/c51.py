@@ -48,7 +48,9 @@ class C51(Q_Network_Family):
         self.model.to(self.device)
         self.target_model.train()
         self.target_model.to(self.device)
-        hard_update(self.target_model,self.model)
+        self.main_param = list(self.model.parameters())
+        self.target_param = list(self.target_model.parameters())
+        hard_update(self.target_param,self.main_param)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
         self.loss = CategorialDistributionLoss(batch_size=self.batch_size,categorial_bar=self.categorial_bar,
@@ -113,7 +115,7 @@ class C51(Q_Network_Family):
         self.optimizer.step()
         
         if steps % self.target_network_update_freq == 0:
-            hard_update(self.target_model,self.model)
+            hard_update(self.target_param,self.main_param)
         
         if self.summary and steps % self.log_interval == 0:
             self.summary.add_scalar("loss/qloss", loss, steps)
