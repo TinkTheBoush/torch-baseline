@@ -41,7 +41,6 @@ class DQN(Q_Network_Family):
         hard_update(self.target_param,self.main_param)
         
         self.optimizer = torch.optim.Adam(self.model.parameters(),lr=self.learning_rate)
-        #self.loss = HuberLosses()
         self.loss = MSELosses()
         
         print("----------------------model----------------------")
