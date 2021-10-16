@@ -55,15 +55,16 @@ class DQN(Q_Network_Family):
             data = self.replay_buffer.sample(self.batch_size,self.prioritized_replay_beta0)
         else:
             data = self.replay_buffer.sample(self.batch_size)
-        obses = convert_tensor(data[0],self.device)
-        actions = torch.tensor(data[1],dtype=torch.int64,device=self.device).view(-1,1)
-        rewards = torch.tensor(data[2],dtype=torch.float32,device=self.device).view(-1,1)
-        nxtobses = convert_tensor(data[3],self.device)
-        dones = (~torch.tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1)
+        
         self.model.sample_noise()
         self.target_model.sample_noise()
-        vals = self.model(obses).gather(1,actions)
+        
         with torch.no_grad():
+            obses = convert_tensor(data[0],self.device)
+            actions = torch.tensor(data[1],dtype=torch.int64,device=self.device).view(-1,1)
+            rewards = torch.tensor(data[2],dtype=torch.float32,device=self.device).view(-1,1)
+            nxtobses = convert_tensor(data[3],self.device)
+            dones = (~torch.tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1)
             next_q = self.target_model(nxtobses)
             if self.double_q:
                 next_actions = self.model(nxtobses).max(1)[1].view(-1,1)
@@ -87,7 +88,8 @@ class DQN(Q_Network_Family):
                 next_vals = dones*next_q.gather(1,next_actions)
                 
             targets = (next_vals * self._gamma) + rewards
-            
+        
+        vals = self.model(obses).gather(1,actions)
 
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
