@@ -160,10 +160,12 @@ class DDPG(Deterministic_Policy_Gradient_Family):
             while len(dec) == 0:
                 self.env.step()
                 dec, term = self.env.get_steps(self.group_name)
-                term_ids += list(term.agent_id)
-                term_obses = [np.stack(to,o) for to,o in zip(term_obses,convert_states(term.obs))]
-                term_rewards += list(term.reward)
-                term_done += list(term.interrupted)
+                if len(term.agent_id) > 0:
+                    term_ids += list(term.agent_id)
+                    newterm_obs = convert_states(term.obs)
+                    term_obses = [np.concatenate((to,o),axis=0) for to,o in zip(term_obses,newterm_obs)]
+                    term_rewards += list(term.reward)
+                    term_done += list(term.interrupted)
             obses = convert_states(dec.obs)
             nxtobs = [np.copy(o) for o in obses]
             done = np.full((self.worker_size),False)
