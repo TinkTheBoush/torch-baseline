@@ -205,26 +205,27 @@ class Q_Network_Family(object):
             term_ids = np.asarray(term_ids)
             term_rewards = np.asarray(term_rewards)
             term_done = np.asarray(term_done)
-            print(term_ids.shape)
-            print(nxtobs[0].shape)
-            print(term_obses[0].shape)
-            for n,t in zip(nxtobs,term_obses):
-                n[term_ids] = t
             done = np.full((self.worker_size),False)
-            done[term_ids] = term_done
             terminal = np.full((self.worker_size),False)
-            terminal[term_ids] = True
             reward = dec.reward
-            reward[term_ids] = term_rewards
+            if term_ids.shape[0]:
+                print(term_ids.shape)
+                print(nxtobs[0].shape)
+                print(term_obses[0].shape)
+                for n,t in zip(nxtobs,term_obses):
+                    n[term_ids] = t
+                done[term_ids] = term_done
+                terminal[term_ids] = True
+                reward[term_ids] = term_rewards
             self.scores += reward
             self.replay_buffer.add(old_obses, actions, reward, nxtobs, done, 0, terminal)
-            
-            if self.summary:
-                for tid in term_ids:
-                    self.summary.add_scalar("env/episode_reward", self.scores[tid], steps)
-                    self.summary.add_scalar("env/time over",float(not done[tid]),steps)
-            self.scoreque.extend(self.scores[term_ids])
-            self.scores[term_ids] = 0
+            if term_ids.shape[0]:
+                if self.summary:
+                    for tid in term_ids:
+                        self.summary.add_scalar("env/episode_reward", self.scores[tid], steps)
+                        self.summary.add_scalar("env/time over",float(not done[tid]),steps)
+                self.scoreque.extend(self.scores[term_ids])
+                self.scores[term_ids] = 0
             
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, epsilon : {:.3f}, loss : {:.3f} |".format(
