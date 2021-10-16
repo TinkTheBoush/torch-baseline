@@ -205,6 +205,9 @@ class Q_Network_Family(object):
             term_ids = np.asarray(term_ids)
             term_rewards = np.asarray(term_rewards)
             term_done = np.asarray(term_done)
+            print(term_ids.shape)
+            print(nxtobs[0].shape)
+            print(term_obses[0].shape)
             for n,t in zip(nxtobs,term_obses):
                 n[term_ids] = t
             done = np.full((self.worker_size),False)
