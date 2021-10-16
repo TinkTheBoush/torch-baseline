@@ -226,7 +226,7 @@ class Q_Network_Family(object):
             if steps > self.learning_starts and steps % self.train_freq == 0:
                 befor_train = False
                 for i in np.arange(self.gradient_steps):
-                    loss = self._train_step(steps)
+                    loss = self._train_step(steps, i)
                     self.lossque.append(loss)
                 
         
