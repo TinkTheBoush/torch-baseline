@@ -23,6 +23,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', type=str, default="Cartpole-v1", help='environment')
     parser.add_argument('--algo', type=str, default="DQN", help='algo ID')
+    parser.add_argument('--gamma', type=float, default=0.99, help='gamma')
     parser.add_argument('--target_update', type=int, default=2000, help='target update intervals')
     parser.add_argument('--batch', type=int, default=64, help='batch size')
     parser.add_argument('--buffer_size', type=float, default=50000, help='buffer_size')
@@ -66,29 +67,29 @@ if __name__ == "__main__":
                      'cnn_mode': cnn_mode}
         
     if args.algo == "DQN":
-        agent = DQN(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
+        agent = DQN(env, gamma=args.gamma, batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
                     tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
     elif args.algo == "C51":
-        agent = C51(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
+        agent = C51(env, gamma=args.gamma, batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
                     categorial_max = args.max, categorial_min = args.min,
                     tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
     elif args.algo == "QRDQN":
-        agent = QRDQN(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
+        agent = QRDQN(env, gamma=args.gamma, batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
                     tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
     elif args.algo == "IQN":
-        agent = IQN(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
+        agent = IQN(env, gamma=args.gamma, batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen, 
                     CVaR=args.CVaR,
                     tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
     elif args.algo == "FQF":
-        agent = FQF(env,batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
+        agent = FQF(env, gamma=args.gamma, batch_size = args.batch, buffer_size= int(args.buffer_size), target_network_update_freq = args.target_update,
                     prioritized_replay = args.per, double_q = args.double, dualing_model = args.dualing,
                     param_noise = args.noisynet, n_step = args.n_step, munchausen = args.munchausen,
                     tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
