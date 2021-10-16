@@ -113,19 +113,6 @@ class Q_Network_Family(object):
             self.replay_buffer = ReplayBuffer(self.buffer_size,self.observation_space,self.n_step,self.gamma)
         else:
             self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,self.observation_space,self.prioritized_replay_alpha,self.n_step,self.gamma)
-        '''
-        if self.prioritized_replay:
-            if self.n_step_method:
-                self.replay_buffer = PrioritizedEpisodicReplayBuffer(self.buffer_size,self.worker_size,self.n_step,
-                                                                     self.gamma, self.prioritized_replay_alpha)
-            else:
-                self.replay_buffer = PrioritizedReplayBuffer(self.buffer_size,self.prioritized_replay_alpha)
-            
-        elif self.n_step_method:
-            self.replay_buffer = EpisodicReplayBuffer(self.buffer_size,self.worker_size,self.n_step,self.gamma)
-        else:
-            self.replay_buffer = ReplayBuffer(self.buffer_size)
-        '''
     
     def setup_model(self):
         pass
@@ -184,7 +171,7 @@ class Q_Network_Family(object):
             actions = self.actions(obses,update_eps,befor_train)
             action_tuple = ActionTuple(discrete=actions)
             old_obses = obses
-            
+
             self.env.set_actions(self.group_name, action_tuple)
             self.env.step()
             
@@ -204,10 +191,10 @@ class Q_Network_Family(object):
             nxtobs = [np.copy(o) for o in obses]
             done = np.full((self.worker_size),False)
             terminal = np.full((self.worker_size),False)
+            term_ids = np.asarray(term_ids)
             reward = dec.reward
-            term_on = len(term_ids) > 0
+            term_on = term_ids.shape[0] > 0
             if term_on:
-                term_ids = np.asarray(term_ids)
                 term_rewards = np.asarray(term_rewards)
                 term_done = np.asarray(term_done)
                 for n,t in zip(nxtobs,term_obses):
