@@ -202,14 +202,14 @@ class Q_Network_Family(object):
                 term_done += list(term.interrupted)
             obses = convert_states(dec.obs)
             nxtobs = [np.copy(o) for o in obses]
-            term_ids = np.asarray(term_ids)
-            term_rewards = np.asarray(term_rewards)
-            term_done = np.asarray(term_done)
             done = np.full((self.worker_size),False)
             terminal = np.full((self.worker_size),False)
             reward = dec.reward
-            term_on = term_ids.shape[0] > 0
+            term_on = len(term_ids) > 0
             if term_on:
+                term_ids = np.asarray(term_ids)
+                term_rewards = np.asarray(term_rewards)
+                term_done = np.asarray(term_done)
                 for n,t in zip(nxtobs,term_obses):
                     n[term_ids] = t
                 done[term_ids] = ~term_done
