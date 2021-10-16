@@ -195,6 +195,8 @@ class Q_Network_Family(object):
             dec, term = self.env.get_steps(self.group_name)
             obses = convert_states(dec.obs)
             term_obses = convert_states(term.obs)
+            print(obses.shape)
+            print(term_obses.shape)
             for idx,id in enumerate(term.agent_id):
                 obs = old_obses[id]
                 nxtobs = term_obses[idx]
