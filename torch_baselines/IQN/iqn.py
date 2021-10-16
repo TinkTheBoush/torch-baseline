@@ -132,7 +132,7 @@ class IQN(Q_Network_Family):
 
         return loss.detach().cpu().clone().numpy()
     
-    def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="IQN",
+    def learn(self, total_timesteps, callback=None, log_interval=100, tb_log_name="IQN",
               reset_num_timesteps=True, replay_wrapper=None):
         if self.CVaR != 1.0:
             tb_log_name = tb_log_name + "-CVaR[{}]".format(self.CVaR)

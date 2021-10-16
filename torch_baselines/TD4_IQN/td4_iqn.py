@@ -4,7 +4,7 @@ import numpy as np
 from torch_baselines.DDPG.base_class import Deterministic_Policy_Gradient_Family
 from torch_baselines.TD4_IQN.network import Actor, Critic, Qunatile_Maker
 from torch_baselines.common.losses import QRHuberLosses
-from torch_baselines.common.utils import convert_states, hard_update, soft_update
+from torch_baselines.common.utils import convert_tensor, hard_update, soft_update
 
 class TD4_IQN(Deterministic_Policy_Gradient_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, n_support = 8, target_action_noise_mul = 1.5,
@@ -77,10 +77,10 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
             data = self.replay_buffer.sample(self.batch_size)
 
         with torch.no_grad():
-            obses = convert_states(data[0],self.device)
+            obses = convert_tensor(data[0],self.device)
             actions = torch.as_tensor(data[1],dtype=torch.float32,device=self.device)
             rewards = torch.as_tensor(data[2],dtype=torch.float32,device=self.device).view(-1,1)
-            nxtobses = convert_states(data[3],self.device)
+            nxtobses = convert_tensor(data[3],self.device)
             invdones = (~torch.as_tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1)
             next_actions = self.target_actor(nxtobses)
             next_actions = torch.clamp(next_actions + 
@@ -151,7 +151,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
     '''
     def actions(self,obs,befor_train):
         with torch.no_grad():
-            actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + 
+            actions = np.clip(self.actor(convert_tensor(obs,self.device)).detach().cpu().clone().numpy() + 
                             np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0]))
                             ,-1,1)
         return actions

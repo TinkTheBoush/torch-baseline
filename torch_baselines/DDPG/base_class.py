@@ -117,50 +117,56 @@ class Deterministic_Policy_Gradient_Family(object):
         self.env.step()
         dec, term = self.env.get_steps(self.group_name)
         self.scores = np.zeros([self.worker_size])
-        self.scoreque = deque(maxlen=self.worker_size*10)
-        self.lossque = deque(maxlen=self.worker_size*10)
+        self.scoreque = deque(maxlen=10)
+        self.lossque = deque(maxlen=10)
         befor_train = True
-        old_term_id = []
+        obses = convert_states(dec.obs)
         for steps in pbar:
-            len_dec = len(dec)
-            old_term_id += list(term.agent_id)
-            if len_dec:
-                actions = self.actions(dec.obs,befor_train)
-                action_tuple = ActionTuple(continuous=actions)
-                old_dec = dec
-                old_term_id = []
-            else:
-                action_tuple = ActionTuple(continuous=np.zeros([0,self.action_size[0]]))
+            
+            actions = self.actions(dec.obs,befor_train)
+            action_tuple = ActionTuple(continuous=actions)
+            old_obses = obses
+
             self.env.set_actions(self.group_name, action_tuple)
             self.env.step()
+            
             dec, term = self.env.get_steps(self.group_name)
-            for id in term.agent_id:
-                obs = old_dec[id].obs
-                nxtobs = term[id].obs
-                reward = term[id].reward
-                done = not term[id].interrupted
-                terminal = True
-                act = actions[id]
-                self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
-                self.scores[id] += reward
-                score = self.scores[id]
-                self.scoreque.append(score)
+            term_ids = list(term.agent_id)
+            term_obses = convert_states(term.obs)
+            term_rewards = list(term.reward)
+            term_done = list(term.interrupted)
+            while len(dec) == 0:
+                self.env.step()
+                dec, term = self.env.get_steps(self.group_name)
+                term_ids += list(term.agent_id)
+                term_obses = [np.stack(to,o) for to,o in zip(term_obses,convert_states(term.obs))]
+                term_rewards += list(term.reward)
+                term_done += list(term.interrupted)
+            obses = convert_states(dec.obs)
+            nxtobs = [np.copy(o) for o in obses]
+            done = np.full((self.worker_size),False)
+            terminal = np.full((self.worker_size),False)
+            term_ids = np.asarray(term_ids)
+            reward = dec.reward
+            term_on = term_ids.shape[0] > 0
+            if term_on:
+                term_rewards = np.asarray(term_rewards)
+                term_done = np.asarray(term_done)
+                for n,t in zip(nxtobs,term_obses):
+                    n[term_ids] = t
+                done[term_ids] = ~term_done
+                terminal[term_ids] = True
+                reward[term_ids] = term_rewards
+            self.scores += reward
+            self.replay_buffer.add(old_obses, actions, reward, nxtobs, done, 0, terminal)
+            if term_on:
                 if self.summary:
-                    self.summary.add_scalar("env/episode_reward", score, steps)
-                    self.summary.add_scalar("env/time over",float(not done),steps)
-                self.scores[id] = 0
-            for id in dec.agent_id:
-                if id in old_term_id or id in term.agent_id:
-                    continue #if in old_term_id -> start dec, if in term.agent_id -> start dec
-                obs = old_dec[id].obs
-                nxtobs = dec[id].obs
-                reward = dec[id].reward
-                done = False
-                terminal = False
-                act = actions[id]
-                self.replay_buffer.add(obs, act, reward, nxtobs, done, id, terminal)
-                self.scores[id] += reward
-
+                    for tid in term_ids:
+                        self.summary.add_scalar("env/episode_reward", self.scores[tid], steps)
+                        self.summary.add_scalar("env/time over",float(not done[tid]),steps)
+                self.scoreque.extend(self.scores[term_ids])
+                self.scores[term_ids] = 0
+            
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, loss : {:.3f} |".format(
                                     np.mean(self.scoreque),np.mean(self.lossque)
@@ -170,22 +176,22 @@ class Deterministic_Policy_Gradient_Family(object):
             if steps > self.learning_starts and steps % self.train_freq == 0:
                 befor_train = False
                 for i in np.arange(self.gradient_steps):
-                    self._train_step(steps,i)
-                
+                    loss = self._train_step(steps,i) 
         
     def learn_gym(self, pbar, callback=None, log_interval=100):
-        state = self.env.reset()
+        state = convert_states([self.env.reset()])
         self.scores = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=self.worker_size*10)
         self.lossque = deque(maxlen=self.worker_size*10)
         befor_train = True
         for steps in pbar:
-            actions = self.actions([state],befor_train)
+            actions = self.actions(state,befor_train)
             next_state, reward, terminal, info = self.env.step(actions[0])
+            next_state = convert_states([next_state])
             done = terminal
             if "TimeLimit.truncated" in info:
                 done = not info["TimeLimit.truncated"]
-            self.replay_buffer.add([state], actions, reward, [next_state], done, 0, terminal)
+            self.replay_buffer.add(state, actions, reward, next_state, done, 0, terminal)
             self.scores[0] += reward
             state = next_state
             if terminal:
