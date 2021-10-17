@@ -139,10 +139,13 @@ class TD3(Deterministic_Policy_Gradient_Family):
         return actions
     '''
     def actions(self,obs,befor_train):
-        with torch.no_grad():
-            actions = np.clip(self.actor(convert_tensor(obs,self.device)).detach().cpu().clone().numpy() + 
-                            np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0]))
-                            ,-1,1)
+        if not befor_train:
+            with torch.no_grad():
+                actions = np.clip(self.actor(convert_tensor(obs,self.device)).detach().cpu().clone().numpy() + 
+                                np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0]))
+                                ,-1,1)
+        else:
+            actions = np.random.uniform(-1,1,size=(self.worker_size,self.action_size[0]))
         return actions
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="TD3",
