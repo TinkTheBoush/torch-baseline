@@ -165,7 +165,7 @@ class Deterministic_Policy_Gradient_Family(object):
             if term_on:
                 if self.summary:
                     for tid in term_ids:
-                        self.summary.add_scalar("env/episode reward", self.scores[tid], steps)
+                        self.summary.add_scalar("env/episode_reward", self.scores[tid], steps)
                         self.summary.add_scalar("env/episode len",self.eplen[tid],steps)
                         self.summary.add_scalar("env/time over",float(not done[tid]),steps)
                 self.scoreque.extend(self.scores[term_ids])
