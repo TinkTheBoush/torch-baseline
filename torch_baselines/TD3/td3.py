@@ -124,8 +124,6 @@ class TD3(Deterministic_Policy_Gradient_Family):
         if self.summary and step % self.log_interval == 0:
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
-            #self.summary.add_scalar("loss/targetmin", targets.min(), steps)
-            #self.summary.add_scalar("loss/val1min", vals1.min(), steps)
     
     def actions(self,obs,befor_train):
         if not befor_train:

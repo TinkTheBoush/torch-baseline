@@ -117,12 +117,13 @@ class Deterministic_Policy_Gradient_Family(object):
         self.env.step()
         dec, term = self.env.get_steps(self.group_name)
         self.scores = np.zeros([self.worker_size])
+        self.eplen = np.zeros([self.worker_size])
         self.scoreque = deque(maxlen=10)
         self.lossque = deque(maxlen=10)
         befor_train = True
         obses = convert_states(dec.obs)
         for steps in pbar:
-            
+            self.eplen += 1
             actions = self.actions(dec.obs,befor_train)
             action_tuple = ActionTuple(continuous=actions)
             old_obses = obses
@@ -164,10 +165,12 @@ class Deterministic_Policy_Gradient_Family(object):
             if term_on:
                 if self.summary:
                     for tid in term_ids:
-                        self.summary.add_scalar("env/episode_reward", self.scores[tid], steps)
+                        self.summary.add_scalar("env/episode reward", self.scores[tid], steps)
+                        self.summary.add_scalar("env/episode len",self.eplen[tid],steps)
                         self.summary.add_scalar("env/time over",float(not done[tid]),steps)
                 self.scoreque.extend(self.scores[term_ids])
                 self.scores[term_ids] = 0
+                self.eplen[term_ids] = 0
             
             if steps % log_interval == 0 and len(self.scoreque) > 0 and len(self.lossque) > 0:
                 pbar.set_description("score : {:.3f}, loss : {:.3f} |".format(
