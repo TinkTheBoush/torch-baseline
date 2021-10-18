@@ -85,7 +85,7 @@ class Actor(nn.Module):
     
 
 class Critic(nn.Module):
-    def __init__(self,state_size,action_size,node=256,hidden_n=1,noisy=False,cnn_mode="normal"):
+    def __init__(self,state_size,action_size,node=256,hidden_n=1,noisy=False,cnn_mode="normal",n_support = 200):
         super(Critic, self).__init__()
         self.noisy = noisy
         if noisy:
@@ -114,7 +114,7 @@ class Critic(nn.Module):
             nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
             ] + 
             [
-            lin(node, 1)
+            lin(node, n_support)
             ]
             )
         )
@@ -127,7 +127,7 @@ class Critic(nn.Module):
             nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
             ] + 
             [
-            lin(node, 1)
+            lin(node, n_support)
             ]
             )
         )
@@ -147,7 +147,7 @@ class Critic(nn.Module):
                 m.sample_noise()
                 
 class Value(nn.Module):
-    def __init__(self,state_size,node=256,hidden_n=1,noisy=False,cnn_mode="normal"):
+    def __init__(self,state_size,node=256,hidden_n=1,noisy=False,cnn_mode="normal",n_support = 200):
         super(Value, self).__init__()
         self.noisy = noisy
         if noisy:
@@ -176,7 +176,7 @@ class Value(nn.Module):
             nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
             ] + 
             [
-            lin(node, 1)
+            lin(node, n_support)
             ]
             )
         )
