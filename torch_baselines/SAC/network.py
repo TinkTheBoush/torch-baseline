@@ -1,6 +1,6 @@
 import numpy as np
 import jax.numpy as jnp
-from torch_baselines.common.utils import get_flatten_size
+from torch_baselines.common.utils import get_flatten_size, visual_embedding
 from torch_baselines.common.layer import NoisyLinear
 import torch
 import torch.nn as nn
@@ -32,7 +32,7 @@ def clip_but_pass_gradient(input_, lower=-1., upper=1.):
     return input_ + sub
 
 class Actor(nn.Module):
-    def __init__(self,state_size,action_size,node=256,noisy=False,ModelOptions=None):
+    def __init__(self,state_size,action_size,node=256,hidden_n=1,noisy=False,cnn_mode="normal"):
         super(Actor, self).__init__()
         self.noisy = noisy
         if noisy:
@@ -40,13 +40,7 @@ class Actor(nn.Module):
         else:
             lin = nn.Linear
         self.preprocess = nn.ModuleList([
-            nn.Sequential(
-                nn.Conv2d(st[0],16,kernel_size=4, stride=2, padding=0),
-                nn.ReLU(),
-                nn.Conv2d(16,32,kernel_size=3,stride=1),
-                nn.ReLU(),
-                nn.Flatten()
-            )
+            visual_embedding(st,cnn_mode)
             if len(st) == 3 else nn.Identity()
             for st in state_size 
         ])
@@ -60,10 +54,13 @@ class Actor(nn.Module):
                         ))
         
         self.linear = nn.Sequential(
+            *([
             lin(flatten_size,node),
-            nn.ReLU(),
-            lin(node,node),
-            nn.ReLU(),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ]
+            )
         )
         self.act_mu  = lin(node, action_size[0])
         self.log_std = lin(node, action_size[0])
@@ -102,7 +99,7 @@ class Actor(nn.Module):
     
 
 class Critic(nn.Module):
-    def __init__(self,state_size,action_size,node=256,noisy=False,ModelOptions=None):
+    def __init__(self,state_size,action_size,node=256,hidden_n=1,noisy=False,cnn_mode="normal"):
         super(Critic, self).__init__()
         self.noisy = noisy
         if noisy:
@@ -110,13 +107,7 @@ class Critic(nn.Module):
         else:
             lin = nn.Linear
         self.preprocess = nn.ModuleList([
-            nn.Sequential(
-                nn.Conv2d(st[0],16,kernel_size=4, stride=2, padding=0),
-                nn.ReLU(),
-                nn.Conv2d(16,32,kernel_size=3,stride=1),
-                nn.ReLU(),
-                nn.Flatten()
-            )
+            visual_embedding(st,cnn_mode)
             if len(st) == 3 else nn.Identity()
             for st in state_size 
         ])
@@ -130,27 +121,42 @@ class Critic(nn.Module):
                         ))
         
         self.v = nn.Sequential(
+            *([
             lin(flatten_size,node),
-            nn.ReLU(),
-            lin(node,node),
-            nn.ReLU(),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
             lin(node, 1)
+            ]
+            )
         )
         
         self.q1 = nn.Sequential(
+            *([
             lin(flatten_size + action_size[0],node),
-            nn.ReLU(),
-            lin(node,node),
-            nn.ReLU(),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
             lin(node, 1)
+            ]
+            )
         )
         
         self.q2 = nn.Sequential(
+            *([
             lin(flatten_size + action_size[0],node),
-            nn.ReLU(),
-            lin(node,node),
-            nn.ReLU(),
+            nn.ReLU()] + 
+            [
+            nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
+            ] + 
+            [
             lin(node, 1)
+            ]
+            )
         )
 
     def forward(self, xs,action):
