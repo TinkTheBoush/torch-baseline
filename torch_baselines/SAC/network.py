@@ -79,7 +79,7 @@ class Actor(nn.Module):
         pi = torch.tanh(x_t)
         log_prob = normal.log_prob(x_t)
         # Enforcing Action Bound
-        log_prob -= torch.log(self.action_scale * (1 - pi.pow(2)) + EPS)
+        log_prob -= torch.log(1 - pi.pow(2) + EPS)
         log_prob = log_prob.sum(1, keepdim=True)
         mu = torch.tanh(mu)
         return pi, log_prob, mu
