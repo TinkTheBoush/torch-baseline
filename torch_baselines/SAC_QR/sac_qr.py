@@ -87,9 +87,10 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
         with torch.no_grad():
             next_vals = dones * self.target_value(nxtobses)
             targets = (self._gamma * next_vals) + rewards
+            logit_valid_tile = targets.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
         q1, q2 = self.critic(obses,actions)
         
-        logit_valid_tile = targets.unsqueeze(1).repeat_interleave(self.n_support, dim=1).detach()
+        
         theta1_loss_tile = q1.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
         theta2_loss_tile = q2.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
         
@@ -124,8 +125,8 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
         
         with torch.no_grad():
             vf_target = torch.minimum(qf1_pi,qf2_pi) - (self.ent_coef * log_prob)
+            vf_target_tile = vf_target.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
 
-        vf_target_tile = vf_target.unsqueeze(1).repeat_interleave(self.n_support, dim=1).detach()
         theta_loss_tile = vf.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
         vf_loss = self.critic_loss(theta_loss_tile, vf_target_tile, self._quantile).mean()
 
