@@ -61,7 +61,17 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
         self.critic_loss = QRHuberLosses()
         self.quantile = Qunatile_Maker(self.n_support)
         self.quantile.to(self.device)
-        #self.grad_mul = 1.0 - self.risk_avoidance*(2.0*self.quantile.view(1,self.n_support) - 1.0)
+        '''
+        if self.risk_avoidance == 'auto':
+            pass
+        elif self.risk_avoidance == 'normal':
+            self.sample_risk_avoidance = True
+        else:
+            self.risk_avoidance = float(self.risk_avoidance)
+            #self.grad_mul = (self.quantile.view(1,self.n_support) < 0.1).float()/0.1
+            self.grad_mul = 1.0 - self.risk_avoidance*(2.0*self.quantile.view(1,self.n_support) - 1.0)
+        '''
+
         
         print("----------------------model----------------------")
         print(self.actor)
@@ -152,5 +162,8 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
     
     def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="TD4_IQN",
               reset_num_timesteps=True, replay_wrapper=None):
-        tb_log_name = tb_log_name + "_{:.2f}".format(self.risk_avoidance)
+        if self.sample_risk_avoidance:
+            tb_log_name = tb_log_name + "_{}".format(self.risk_avoidance)
+        else:
+            tb_log_name = tb_log_name + "_{:.2f}".format(self.risk_avoidance)
         super().learn(total_timesteps, callback, log_interval, tb_log_name, reset_num_timesteps, replay_wrapper)
