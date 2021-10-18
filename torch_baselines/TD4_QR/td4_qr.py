@@ -100,9 +100,9 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             next_vals1, next_vals2 = self.target_critic(nxtobses,next_actions)
             next_vals = invdones * torch.minimum(next_vals1, next_vals2)
             targets = (self._gamma * next_vals) + rewards
+            logit_valid_tile = targets.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
         
-        vals1, vals2 = self.critic(obses,actions.detach())
-        logit_valid_tile = targets.unsqueeze(1).repeat_interleave(self.n_support, dim=1).detach()
+        vals1, vals2 = self.critic(obses,actions)
         theta1_loss_tile = vals1.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
         theta2_loss_tile = vals2.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
         
