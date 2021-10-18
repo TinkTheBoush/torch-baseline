@@ -162,7 +162,7 @@ class Critic(nn.Module):
                 
 class Value(nn.Module):
     def __init__(self,state_size,node=256,hidden_n=1,noisy=False,cnn_mode="normal"):
-        super(Critic, self).__init__()
+        super(Value, self).__init__()
         self.noisy = noisy
         if noisy:
             lin = NoisyLinear
