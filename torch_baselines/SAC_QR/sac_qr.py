@@ -123,6 +123,7 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
             soft_update(self.target_param,self.main_param,self.target_network_tau)
             
             if self.summary and step % self.log_interval == 0:
+                self.summary.add_scalar("loss/risk_avoidance", self.risk_avoidance, steps)
                 self.summary.add_scalar("loss/actor_loss", actor_loss, steps)
                 
         vf = self.value(obses)
