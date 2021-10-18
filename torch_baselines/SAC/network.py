@@ -93,7 +93,7 @@ class Actor(nn.Module):
         logp_pi = gaussian_likelihood(pi, mu, log_std)
         entropy = gaussian_entropy(log_std)
         deterministic_policy = torch.tanh(mu)
-        policy = F.tanh(pi)
+        policy = torch.tanh(pi)
         logp_pi -= torch.log(1-policy**2 + EPS).sum(1)
         return deterministic_policy, policy, logp_pi, entropy
     
