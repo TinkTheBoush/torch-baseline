@@ -31,12 +31,12 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
             
     def setup_model(self):
         self.policy_kwargs = {} if self.policy_kwargs is None else self.policy_kwargs
-        self.actor = Actor(self.observation_space,self.action_size,
+        self.actor = Actor(self.observation_space,self.action_size, 
                            noisy=self.param_noise, **self.policy_kwargs)
-        self.critic = Critic(self.observation_space,self.action_size,
+        self.critic = Critic(self.observation_space,self.action_size, n_support=self.n_support,
                            noisy=self.param_noise, **self.policy_kwargs)
-        self.value = Value(self.observation_space, noisy=self.param_noise, **self.policy_kwargs)
-        self.target_value = Value(self.observation_space, noisy=self.param_noise, **self.policy_kwargs)
+        self.value = Value(self.observation_space, noisy=self.param_noise, **self.policy_kwargs, n_support=self.n_support)
+        self.target_value = Value(self.observation_space, noisy=self.param_noise, **self.policy_kwargs, n_support=self.n_support)
         self.actor.train()
         self.actor.to(self.device)
         self.critic.train()
