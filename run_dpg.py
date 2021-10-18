@@ -6,6 +6,7 @@ from torch_baselines.DDPG.ddpg import DDPG
 from torch_baselines.TD3.td3 import TD3
 from torch_baselines.TD4_QR.td4_qr import TD4_QR
 from torch_baselines.TD4_IQN.td4_iqn import TD4_IQN
+from torch_baselines.SAC.sac import SAC
 from torch_baselines.common.utils import set_random_seed
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
@@ -77,6 +78,13 @@ if __name__ == "__main__":
                     tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
     elif args.algo == "TD4_IQN":
         agent = TD4_IQN(env,batch_size = args.batch, learning_rate=args.lr, gamma = args.gamma, train_freq=args.train_freq, 
+                       gradient_steps=args.grad_step, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
+                    prioritized_replay = args.per, target_action_noise_mul= args.target_noise_mul , action_noise = args.action_noise, 
+                    n_step = args.n_step, max_grad_norm = args.max_grad, 
+                    risk_avoidance = args.risk_avoidance, n_support=args.n_support,
+                    tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
+    elif args.algo == "SAC":
+        agent = SAC(env,batch_size = args.batch, learning_rate=args.lr, gamma = args.gamma, train_freq=args.train_freq, 
                        gradient_steps=args.grad_step, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
                     prioritized_replay = args.per, target_action_noise_mul= args.target_noise_mul , action_noise = args.action_noise, 
                     n_step = args.n_step, max_grad_norm = args.max_grad, 
