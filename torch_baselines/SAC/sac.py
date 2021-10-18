@@ -67,8 +67,8 @@ class SAC(Deterministic_Policy_Gradient_Family):
         nxtobses = convert_tensor(data[3],self.device)
         dones = (~torch.tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1)
         _, policy, logp_pi, entropy = self.actor.update_data(obses)
+        q1_pi, q2_pi, _ = self.critic(obses,policy)
         with torch.no_grad():
-            q1_pi, q2_pi, _ = self.critic(obses,policy)
             _, _, target_vals = self.target_critic(nxtobses,actions)
             val_target = torch.minimum(q1_pi,q2_pi) - self.ent_coef * logp_pi
             next_vals = dones * target_vals
@@ -97,8 +97,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
         
         step = (steps + grad_step)
         if step % self.policy_delay == 0:
-            q1,_,_ = self.critic(obses,policy)
-            actor_loss = (self.ent_coef * logp_pi - q1).squeeze().mean()
+            actor_loss = (self.ent_coef * logp_pi - q1_pi).squeeze().mean()
             
             self.actor_optimizer.zero_grad(set_to_none=True)
             actor_loss.backward()
