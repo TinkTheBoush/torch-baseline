@@ -111,7 +111,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
         with torch.no_grad():
             vf_target = torch.minimum(qf1_pi,qf2_pi) - (self.ent_coef * logp_pi)
 
-        vf_loss = self.critic_loss(vf, vf_target)
+        vf_loss = self.critic_loss(vf, vf_target).mean()
 
         self.value_optimizer.zero_grad()
         vf_loss.backward()

@@ -95,7 +95,7 @@ class Actor(nn.Module):
         deterministic_policy = torch.tanh(mu)
         policy = torch.tanh(pi)
         logp_pi -= torch.log(1-policy**2 + EPS).sum(1)
-        return deterministic_policy, policy, logp_pi, entropy
+        return deterministic_policy, policy, logp_pi.unsqueeze(1), entropy
     
 
 class Critic(nn.Module):
