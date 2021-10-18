@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 from torch_baselines.DDPG.base_class import Deterministic_Policy_Gradient_Family
-from torch_baselines.SAC.network import Actor, Critic
+from torch_baselines.SAC.network import Actor, Critic, Value
 from torch_baselines.common.losses import MSELosses, HuberLosses
 from torch_baselines.common.utils import convert_tensor, hard_update, soft_update
 
@@ -32,21 +32,24 @@ class SAC(Deterministic_Policy_Gradient_Family):
                            noisy=self.param_noise, **self.policy_kwargs)
         self.critic = Critic(self.observation_space,self.action_size,
                            noisy=self.param_noise, **self.policy_kwargs)
-        self.target_critic = Critic(self.observation_space,self.action_size,
-                           noisy=self.param_noise, **self.policy_kwargs)
+        self.value = Value(self.observation_space, noisy=self.param_noise, **self.policy_kwargs)
+        self.target_value = Value(self.observation_space, noisy=self.param_noise, **self.policy_kwargs)
         self.actor.train()
         self.actor.to(self.device)
         self.critic.train()
         self.critic.to(self.device)
-        self.target_critic.train()
-        self.target_critic.to(self.device)
+        self.value.train()
+        self.value.to(self.device)
+        self.target_value.train()
+        self.target_value.to(self.device)
         self.actor_param = list(self.actor.parameters())
-        self.main_param = list(self.critic.parameters())
-        self.target_param = list(self.target_critic.parameters())
+        self.main_param = list(self.value.parameters())
+        self.target_param = list(self.target_value.parameters())
         hard_update(self.target_param,self.main_param)
         
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),lr=self.learning_rate)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),lr=self.learning_rate)
+        self.value_optimizer = torch.optim.Adam(self.value.parameters(),lr=self.learning_rate)
         self.critic_loss = MSELosses()
         
         print("----------------------model----------------------")
@@ -57,6 +60,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
     
     def _train_step(self, steps, grad_step):
         # Sample a batch from the replay buffer
+        step = (steps + grad_step)
         if self.prioritized_replay:
             data = self.replay_buffer.sample(self.batch_size,self.prioritized_replay_beta0)
         else:
@@ -66,43 +70,32 @@ class SAC(Deterministic_Policy_Gradient_Family):
         rewards = torch.tensor(data[2],dtype=torch.float32,device=self.device).view(-1,1)
         nxtobses = convert_tensor(data[3],self.device)
         dones = (~torch.tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1)
-        _, policy, logp_pi, entropy = self.actor.update_data(obses)
+        
         
         with torch.no_grad():
-            q1_pi, q2_pi, _ = self.critic(obses,policy)
-            _, _, target_vals = self.target_critic(nxtobses,actions)
-            val_target = torch.minimum(q1_pi,q2_pi) - self.ent_coef * logp_pi.unsqueeze(1)
+            target_vals = self.target_value(nxtobses)
             next_vals = dones * target_vals
             targets = (self._gamma * next_vals) + rewards
-        #print("val_target : ", val_target.shape)
-        #print("logpi : ", logp_pi.shape)
-        q1, q2, vals = self.critic(obses,actions)
+        q1, q2 = self.critic(obses,actions)
         
         if self.prioritized_replay:
-            weights = torch.from_numpy(data[5]).to(self.device)
-            indexs = data[6]
-            new_priorities = np.abs((val_target - vals).squeeze().detach().cpu().clone().numpy()) + \
-                                + self.prioritized_replay_eps
-            self.replay_buffer.update_priorities(indexs,new_priorities)
-            val_loss = (weights*self.critic_loss(vals,val_target)).mean()
-            q_loss1 = (weights*self.critic_loss(q1,target_vals)).mean()
-            q_loss2 = (weights*self.critic_loss(q2,target_vals)).mean()
+            pass
         else:
-            val_loss = self.critic_loss(vals,val_target).mean()
             q_loss1 = self.critic_loss(q1,target_vals).mean()
             q_loss2 = self.critic_loss(q2,target_vals).mean()
-        critic_loss = q_loss1 + q_loss2 + val_loss
+        critic_loss = q_loss1 + q_loss2
         self.lossque.append(critic_loss.detach().cpu().clone().numpy())
-        self.critic_optimizer.zero_grad(set_to_none=True)
+        self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
         
-        step = (steps + grad_step)
+        _, policy, logp_pi, entropy = self.actor.update_data(obses)
+        qf1_pi, qf2_pi = self.critic(obses, policy)
         if step % self.policy_delay == 0:
-            q1_pi, _, _ = self.critic(obses,self.actor(obses))
-            actor_loss = (self.ent_coef * logp_pi - q1_pi).squeeze().mean()
             
-            self.actor_optimizer.zero_grad(set_to_none=True)
+            actor_loss = (self.ent_coef * logp_pi - qf1_pi).squeeze().mean()
+            
+            self.actor_optimizer.zero_grad()
             actor_loss.backward()
             if self.max_grad_norm > 0:
                 torch.nn.utils.clip_grad_norm_(self.actor_param, self.max_grad_norm)
@@ -112,10 +105,22 @@ class SAC(Deterministic_Policy_Gradient_Family):
             
             if self.summary and step % self.log_interval == 0:
                 self.summary.add_scalar("loss/actor_loss", actor_loss, steps)
+                
+        vf = self.value(obses)
+        
+        with torch.no_grad():
+            vf_target = torch.minimum(qf1_pi,qf2_pi) - (self.ent_coef * logp_pi)
+
+        vf_loss = self.critic_loss(vf, vf_target)
+
+        self.value_optimizer.zero_grad()
+        vf_loss.backward()
+        self.value_optimizer.step()
         
         if self.summary and step % self.log_interval == 0:
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
+            self.summary.add_scalar("loss/entropy", entropy, steps)
     
     def actions(self,obs,befor_train):
         if not befor_train:
