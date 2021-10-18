@@ -7,7 +7,7 @@ from torch_baselines.common.losses import MSELosses, HuberLosses
 from torch_baselines.common.utils import convert_states, hard_update, soft_update
 
 class SAC(Deterministic_Policy_Gradient_Family):
-    def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, action_noise = 0.1, train_freq=1, gradient_steps=1,
+    def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, train_freq=1, gradient_steps=1,
                  batch_size=32, policy_delay = 2, n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False, 
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
                  param_noise=False, max_grad_norm = 1.0, log_interval=200, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
@@ -19,9 +19,6 @@ class SAC(Deterministic_Policy_Gradient_Family):
                  param_noise, max_grad_norm, log_interval, tensorboard_log, _init_setup_model, policy_kwargs, 
                  full_tensorboard_log, seed)
         
-        self.action_noise = action_noise
-        self.target_action_noise = 0.2
-        self.action_noise_clamp = 0.5
         self.policy_delay = policy_delay
         
         if _init_setup_model:
@@ -30,8 +27,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
     def actions(self,obs,befor_train):
         if not befor_train:
             with torch.no_grad():
-                actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy() + 
-                                np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0])),-1,1)
+                actions = np.clip(self.actor(convert_states(obs,self.device)).detach().cpu().clone().numpy(),-1,1)
         else:
             actions = np.clip(np.random.normal(0,self.action_noise,size=(self.worker_size,self.action_size[0])),-1,1)
         return actions
@@ -50,7 +46,10 @@ class SAC(Deterministic_Policy_Gradient_Family):
         self.critic.to(self.device)
         self.target_critic.train()
         self.target_critic.to(self.device)
-        hard_update(self.target_critic,self.critic)
+        self.actor_param = list(self.actor.parameters())
+        self.main_param = list(self.critic.parameters())
+        self.target_param = list(self.target_critic.parameters())
+        hard_update(self.target_param,self.main_param)
         
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),lr=self.learning_rate)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),lr=self.learning_rate)
@@ -111,8 +110,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
             torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.max_grad_norm)
             self.actor_optimizer.step()
         
-            soft_update(self.target_actor,self.actor,self.target_network_tau)
-            soft_update(self.target_critic,self.critic,self.target_network_tau)
+            soft_update(self.target_param,self.main_param,self.target_network_tau)
             
             if self.summary and steps % self.log_interval == 0:
                 self.summary.add_scalar("loss/actor_loss", actor_loss, steps)
