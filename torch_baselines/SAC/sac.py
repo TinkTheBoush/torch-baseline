@@ -54,7 +54,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
         print(self.critic_loss)
         print("-------------------------------------------------")
     
-    def _train_step(self, steps):
+    def _train_step(self, steps, grad_step):
         # Sample a batch from the replay buffer
         if self.prioritized_replay:
             data = self.replay_buffer.sample(self.batch_size,self.prioritized_replay_beta0)
@@ -94,7 +94,8 @@ class SAC(Deterministic_Policy_Gradient_Family):
         critic_loss.backward()
         self.critic_optimizer.step()
         
-        if steps % self.policy_delay == 0:
+        step = (steps + grad_step)
+        if step % self.policy_delay == 0:
             q1,_ = self.critic(obses,self.actor(obses))
             actor_loss = -q1.squeeze().mean(-1)
             
@@ -105,10 +106,10 @@ class SAC(Deterministic_Policy_Gradient_Family):
         
             soft_update(self.target_param,self.main_param,self.target_network_tau)
             
-            if self.summary and steps % self.log_interval == 0:
+            if self.summary and step % self.log_interval == 0:
                 self.summary.add_scalar("loss/actor_loss", actor_loss, steps)
         
-        if self.summary and steps % self.log_interval == 0:
+        if self.summary and step % self.log_interval == 0:
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
 
