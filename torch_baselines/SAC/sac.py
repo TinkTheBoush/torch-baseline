@@ -120,7 +120,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
     def actions(self,obs,befor_train):
         if not befor_train:
             with torch.no_grad():
-                actions = np.clip(self.actor(convert_tensor(obs,self.device)).detach().cpu().clone().numpy(),-1,1)
+                actions = self.actor(convert_tensor(obs,self.device)).detach().cpu().clone().numpy()
         else:
             actions = np.random.uniform(-1,1,size=(self.worker_size,self.action_size[0]))
         return actions
