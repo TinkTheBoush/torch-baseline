@@ -23,6 +23,7 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
         self.risk_avoidance = risk_avoidance
         self.policy_delay = policy_delay
         self.ent_coef = ent_coef
+        self.sample_risk_avoidance = False
         
         if _init_setup_model:
             self.setup_model()
