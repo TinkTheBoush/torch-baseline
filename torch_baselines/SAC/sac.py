@@ -67,6 +67,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
         nxtobses = convert_tensor(data[3],self.device)
         dones = (~torch.tensor(data[4],dtype=torch.bool,device=self.device)).float().view(-1,1)
         _, policy, logp_pi, entropy = self.actor.update_data(obses)
+        print(logp_pi.shape)
         with torch.no_grad():
             q1_pi, q2_pi, _ = self.critic(obses,policy)
             _, _, target_vals = self.target_critic(nxtobses,actions)
