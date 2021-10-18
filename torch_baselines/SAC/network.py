@@ -73,7 +73,7 @@ class Actor(nn.Module):
         log_std = torch.clip(self.log_std(lin),LOG_STD_MIN,LOG_STD_MAX)
         std = torch.exp(log_std)
         pi = torch.normal(mu,std)
-        return F.tanh(pi)
+        return torch.tanh(pi)
         
     def sample_noise(self):
         if not self.noisy:
@@ -92,7 +92,7 @@ class Actor(nn.Module):
         pi = torch.normal(mu,std)
         logp_pi = gaussian_likelihood(pi, mu, log_std)
         entropy = gaussian_entropy(log_std)
-        deterministic_policy = F.tanh(mu)
+        deterministic_policy = torch.tanh(mu)
         policy = F.tanh(pi)
         logp_pi -= torch.log(1-policy**2 + EPS).sum(1)
         return deterministic_policy, policy, logp_pi, entropy
