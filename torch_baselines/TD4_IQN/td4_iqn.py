@@ -27,6 +27,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
         self.action_noise_clamp = 0.5 #self.target_action_noise*1.5
         self.risk_avoidance = risk_avoidance
         self.policy_delay = policy_delay
+        self.sample_risk_avoidance = False
         
         if _init_setup_model:
             self.setup_model()
@@ -62,6 +63,8 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
         self.quantile = Qunatile_Maker(self.n_support)
         self.quantile.to(self.device)
         '''
+        
+        '''
         if self.risk_avoidance == 'auto':
             pass
         elif self.risk_avoidance == 'normal':
@@ -69,9 +72,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
         else:
             self.risk_avoidance = float(self.risk_avoidance)
             #self.grad_mul = (self.quantile.view(1,self.n_support) < 0.1).float()/0.1
-            self.grad_mul = 1.0 - self.risk_avoidance*(2.0*self.quantile.view(1,self.n_support) - 1.0)
-        '''
-
+            #self.grad_mul = 1.0 - self.risk_avoidance*(2.0*self.quantile.view(1,self.n_support) - 1.0)
         
         print("----------------------model----------------------")
         print(self.actor)
