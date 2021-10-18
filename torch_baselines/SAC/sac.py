@@ -81,8 +81,8 @@ class SAC(Deterministic_Policy_Gradient_Family):
         if self.prioritized_replay:
             pass
         else:
-            q_loss1 = self.critic_loss(q1,target_vals).mean()
-            q_loss2 = self.critic_loss(q2,target_vals).mean()
+            q_loss1 = self.critic_loss(q1,targets).mean()
+            q_loss2 = self.critic_loss(q2,targets).mean()
         critic_loss = q_loss1 + q_loss2
         self.lossque.append(critic_loss.detach().cpu().clone().numpy())
         self.critic_optimizer.zero_grad()
