@@ -89,11 +89,11 @@ class SAC(Deterministic_Policy_Gradient_Family):
         critic_loss.backward()
         self.critic_optimizer.step()
         
-        _, policy, logp_pi, entropy = self.actor.update_data(obses)
+        policy, log_prob, _ = self.actor.update_data(obses)
         qf1_pi, qf2_pi = self.critic(obses, policy)
         if step % self.policy_delay == 0:
             
-            actor_loss = (self.ent_coef * logp_pi - qf1_pi).squeeze().mean()
+            actor_loss = (self.ent_coef * log_prob - qf1_pi).squeeze().mean()
             
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
@@ -109,7 +109,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
         vf = self.value(obses)
         
         with torch.no_grad():
-            vf_target = torch.minimum(qf1_pi,qf2_pi) - (self.ent_coef * logp_pi)
+            vf_target = torch.minimum(qf1_pi,qf2_pi) - (self.ent_coef * log_prob)
 
         vf_loss = self.critic_loss(vf, vf_target).mean()
 
@@ -120,12 +120,11 @@ class SAC(Deterministic_Policy_Gradient_Family):
         if self.summary and step % self.log_interval == 0:
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
-            self.summary.add_scalar("loss/entropy", entropy.mean(), steps)
     
     def actions(self,obs,befor_train):
         if not befor_train:
             with torch.no_grad():
-                actions = self.actor(convert_tensor(obs,self.device)).detach().cpu().clone().numpy()
+                actions = self.actor.action(convert_tensor(obs,self.device)).detach().cpu().clone().numpy()
         else:
             actions = np.random.uniform(-1,1,size=(self.worker_size,self.action_size[0]))
         return actions
