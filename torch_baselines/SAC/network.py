@@ -11,8 +11,8 @@ EPS = 1e-6  # Avoid NaN (prevents division by zero or log of zero)
 # CAP the standard deviation of the actor
 LOG_STD_MAX = 2
 LOG_STD_MIN = -20
-log_2pi = np.log(2.0 * np.pi)
-log_2pie_div2 = 0.5 * np.log(2.0 * np.pi * np.e)
+LOG_STD_SCALE = (LOG_STD_MAX - LOG_STD_MIN)/2.0
+LOG_STD_MEAN = (LOG_STD_MAX + LOG_STD_MIN)/2.0
 
 class Actor(nn.Module):
     def __init__(self,state_size,action_size,node=256,hidden_n=1,noisy=False,cnn_mode="normal"):
@@ -53,7 +53,7 @@ class Actor(nn.Module):
         cated = torch.cat(flats,dim=-1)
         lin = self.linear(cated)
         mu = self.act_mu(lin)
-        log_std = torch.clip(self.log_std(lin),LOG_STD_MIN,LOG_STD_MAX)
+        log_std = torch.tanh(self.log_std(lin))*LOG_STD_SCALE + LOG_STD_MEAN
         return mu, log_std
         
     def action(self, xs):
