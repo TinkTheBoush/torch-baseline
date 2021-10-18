@@ -9,7 +9,7 @@ from torch_baselines.common.utils import convert_tensor, hard_update, soft_updat
 class SAC_QR(Deterministic_Policy_Gradient_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, n_support = 64, train_freq=1, gradient_steps=1, ent_coef = 1e-3,
                  batch_size=32, policy_delay = 2, n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False, 
-                 prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
+                 prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, risk_avoidance = 0,
                  param_noise=False, max_grad_norm = 1.0, log_interval=200, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
                  full_tensorboard_log=False, seed=None):
         
@@ -20,6 +20,7 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
                  full_tensorboard_log, seed)
         
         self.n_support = n_support
+        self.risk_avoidance = risk_avoidance
         self.policy_delay = policy_delay
         self.ent_coef = ent_coef
         
@@ -55,6 +56,14 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
         self.critic_loss = QRHuberLosses()
         self.quantile = torch.arange(0.5 / self.n_support,1, 1 / self.n_support,device=self.device,requires_grad=False).unsqueeze(0)
         self._quantile = self.quantile.unsqueeze(2)
+        if self.risk_avoidance == 'auto':
+            pass
+        elif self.risk_avoidance == 'normal':
+            self.sample_risk_avoidance = True
+        else:
+            self.risk_avoidance = float(self.risk_avoidance)
+            #self.grad_mul = (self.quantile.view(1,self.n_support) < 0.1).float()/0.1
+            self.grad_mul = 1.0 - self.risk_avoidance*(2.0*self.quantile.view(1,self.n_support) - 1.0)
         
         print("----------------------model----------------------")
         print(self.actor)
@@ -136,6 +145,10 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
             actions = np.random.uniform(-1,1,size=(self.worker_size,self.action_size[0]))
         return actions
     
-    def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="SAC",
+    def learn(self, total_timesteps, callback=None, log_interval=1000, tb_log_name="SAC_QR",
               reset_num_timesteps=True, replay_wrapper=None):
+        if self.sample_risk_avoidance:
+            tb_log_name = tb_log_name + "_{}".format(self.risk_avoidance)
+        else:
+            tb_log_name = tb_log_name + "_{:.2f}".format(self.risk_avoidance)
         super().learn(total_timesteps, callback, log_interval, tb_log_name, reset_num_timesteps, replay_wrapper)
