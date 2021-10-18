@@ -38,6 +38,7 @@ if __name__ == "__main__":
     parser.add_argument('--hidden_n', type=int,default=2, help='hidden layer number')
     parser.add_argument('--action_noise', type=float,default=0.1, help='action noise std')
     parser.add_argument('--target_noise_mul', type=float,default=2.0, help='target noise mul')
+    parser.add_argument('--ent_coef', type=float,default=5e-2, help='target noise mul')
     args = parser.parse_args() 
     env_name = args.env
     env_type = ""
@@ -84,7 +85,7 @@ if __name__ == "__main__":
                     risk_avoidance = args.risk_avoidance, n_support=args.n_support,
                     tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
     elif args.algo == "SAC":
-        agent = SAC(env,batch_size = args.batch, learning_rate=args.lr, gamma = args.gamma, train_freq=args.train_freq, 
+        agent = SAC(env,batch_size = args.batch, learning_rate=args.lr, gamma = args.gamma, train_freq=args.train_freq, ent_coef = args.ent_coef,
                        gradient_steps=args.grad_step, buffer_size= int(args.buffer_size), target_network_tau= args.target_update_tau,
                     prioritized_replay = args.per, n_step = args.n_step, max_grad_norm = args.max_grad,
                     tensorboard_log=args.logdir + env_type + "/" +env_name, policy_kwargs=policy_kwargs)
