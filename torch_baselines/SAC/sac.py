@@ -99,7 +99,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
         
         step = (steps + grad_step)
         if step % self.policy_delay == 0:
-            q1_pi, _, _ = self.critic(obses,policy)
+            q1_pi, _, _ = self.critic(obses,self.actor(obses))
             actor_loss = (self.ent_coef * logp_pi - q1_pi).squeeze().mean()
             
             self.actor_optimizer.zero_grad(set_to_none=True)
