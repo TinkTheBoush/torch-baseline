@@ -94,23 +94,23 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
             targets = (self._gamma * next_vals) + rewards
         quantile_main = self.quantile(self.batch_size)
         vals1, vals2 = self.critic(obses,actions.detach(),quantile_main.detach())
-        logit_valid_tile = targets.view(-1,self.n_support,1).repeat_interleave(self.n_support, dim=2).detach()
-        theta1_loss_tile = vals1.view(-1,1,self.n_support).repeat_interleave(self.n_support, dim=1)
-        theta2_loss_tile = vals2.view(-1,1,self.n_support).repeat_interleave(self.n_support, dim=1)
+        logit_valid_tile = targets.unsqueeze(1).repeat_interleave(self.n_support, dim=1).detach()
+        theta1_loss_tile = vals1.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
+        theta2_loss_tile = vals2.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
         
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
-            critic_losses1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,quantile_main.view(self.batch_size,1,self.n_support))
-            critic_losses2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,quantile_main.view(self.batch_size,1,self.n_support))
+            critic_losses1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,quantile_main.unsqueeze(2))
+            critic_losses2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,quantile_main.unsqueeze(2))
             new_priorities = critic_losses1.cpu().clone().numpy() + \
                             critic_losses2.cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
             critic_loss1 = (weights*critic_losses1).mean()
             critic_loss2 = (weights*critic_losses2).mean()
         else:
-            critic_loss1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,quantile_main.view(self.batch_size,1,self.n_support)).mean()
-            critic_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,quantile_main.view(self.batch_size,1,self.n_support)).mean()
+            critic_loss1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,quantile_main.unsqueeze(2)).mean()
+            critic_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,quantile_main.unsqueeze(2)).mean()
         critic_loss = critic_loss1 + critic_loss2
         self.lossque.append(critic_loss.detach().cpu().clone().numpy())
         self.critic_optimizer.zero_grad()

@@ -61,7 +61,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),lr=self.learning_rate)
         self.critic_loss = QRHuberLosses()
         self.quantile = torch.arange(0.5 / self.n_support,1, 1 / self.n_support,device=self.device,requires_grad=False).unsqueeze(0)
-        self._quantile = self.quantile.unsqueeze(1)
+        self._quantile = self.quantile.unsqueeze(2)
         #print(self._quantile)
         if self.risk_avoidance == 'auto':
             pass
@@ -69,8 +69,8 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             self.sample_risk_avoidance = True
         else:
             self.risk_avoidance = float(self.risk_avoidance)
-            self.grad_mul = (self.quantile.view(1,self.n_support) < 0.1).float()/0.1
-            #self.grad_mul = 1.0 - self.risk_avoidance*(2.0*self.quantile.view(1,self.n_support) - 1.0)
+            #self.grad_mul = (self.quantile.view(1,self.n_support) < 0.1).float()/0.1
+            self.grad_mul = 1.0 - self.risk_avoidance*(2.0*self.quantile.view(1,self.n_support) - 1.0)
         
         print("----------------------model----------------------")
         print(self.actor)
@@ -102,9 +102,9 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             targets = (self._gamma * next_vals) + rewards
         
         vals1, vals2 = self.critic(obses,actions.detach())
-        logit_valid_tile = targets.unsqueeze(2).repeat_interleave(self.n_support, dim=2).detach()
-        theta1_loss_tile = vals1.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
-        theta2_loss_tile = vals2.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
+        logit_valid_tile = targets.unsqueeze(1).repeat_interleave(self.n_support, dim=1).detach()
+        theta1_loss_tile = vals1.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
+        theta2_loss_tile = vals2.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
         
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
