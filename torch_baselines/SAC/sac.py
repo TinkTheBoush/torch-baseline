@@ -82,13 +82,13 @@ class SAC(Deterministic_Policy_Gradient_Family):
             new_priorities = np.abs((val_target - vals).squeeze().detach().cpu().clone().numpy()) + \
                                 + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
-            val_loss = (weights*self.critic_loss(vals,val_target)).mean(-1)
-            q_loss1 = (weights*self.critic_loss(q1,target_vals)).mean(-1)
-            q_loss2 = (weights*self.critic_loss(q2,target_vals)).mean(-1)
+            val_loss = (weights*self.critic_loss(vals,val_target)).mean()
+            q_loss1 = (weights*self.critic_loss(q1,target_vals)).mean()
+            q_loss2 = (weights*self.critic_loss(q2,target_vals)).mean()
         else:
-            val_loss = self.critic_loss(vals,val_target).mean(-1)
-            q_loss1 = self.critic_loss(q1,target_vals).mean(-1)
-            q_loss2 = self.critic_loss(q2,target_vals).mean(-1)
+            val_loss = self.critic_loss(vals,val_target).mean()
+            q_loss1 = self.critic_loss(q1,target_vals).mean()
+            q_loss2 = self.critic_loss(q2,target_vals).mean()
         critic_loss = q_loss1 + q_loss2 + val_loss
         self.lossque.append(critic_loss.detach().cpu().clone().numpy())
         self.critic_optimizer.zero_grad(set_to_none=True)
