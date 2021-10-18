@@ -73,8 +73,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
         
         
         with torch.no_grad():
-            target_vals = self.target_value(nxtobses)
-            next_vals = dones * target_vals
+            next_vals = dones * self.target_value(nxtobses)
             targets = (self._gamma * next_vals) + rewards
         q1, q2 = self.critic(obses,actions)
         
