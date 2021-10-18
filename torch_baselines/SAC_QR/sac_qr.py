@@ -2,7 +2,7 @@ import torch
 import numpy as np
 
 from torch_baselines.DDPG.base_class import Deterministic_Policy_Gradient_Family
-from torch_baselines.SAC.network import Actor, Critic, Value
+from torch_baselines.SAC_QR.network import Actor, Critic, Value
 from torch_baselines.common.losses import QRHuberLosses
 from torch_baselines.common.utils import convert_tensor, hard_update, soft_update
 
