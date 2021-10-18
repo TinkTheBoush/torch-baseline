@@ -105,7 +105,7 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
         critic_loss.backward()
         self.critic_optimizer.step()
         
-        policy, log_prob, mu, log_std = self.actor.update_data(obses)
+        policy, log_prob, mu, log_std, std = self.actor.update_data(obses)
         qf1_pi, qf2_pi = self.critic(obses, policy)
         if step % self.policy_delay == 0:
             
@@ -137,6 +137,7 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
         if self.summary and step % self.log_interval == 0:
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
+            self.summary.add_scalar("loss/policy_std", std.mean(), steps)
     
     def actions(self,obs,befor_train):
         if not befor_train:
