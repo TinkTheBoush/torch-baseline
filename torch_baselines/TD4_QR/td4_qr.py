@@ -61,7 +61,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),lr=self.learning_rate)
         self.critic_loss = QRHuberLosses()
         self.quantile = torch.arange(0.5 / self.n_support,1, 1 / self.n_support,device=self.device,requires_grad=False).unsqueeze(0)
-        self._quantile = self.quantile.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
+        self._quantile = self.quantile.unsqueeze(2)
         #print(self._quantile)
         if self.risk_avoidance == 'auto':
             pass
@@ -102,15 +102,15 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
             targets = (self._gamma * next_vals) + rewards
         
         vals1, vals2 = self.critic(obses,actions.detach())
-        logit_valid_tile = targets.unsqueeze(2).repeat_interleave(self.n_support, dim=2).detach()
-        theta1_loss_tile = vals1.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
-        theta2_loss_tile = vals2.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
+        logit_valid_tile = targets.unsqueeze(1).repeat_interleave(self.n_support, dim=1).detach()
+        theta1_loss_tile = vals1.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
+        theta2_loss_tile = vals2.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
         
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)
             indexs = data[6]
-            critic_losses1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,self.quantile)
-            critic_losses2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,self.quantile)
+            critic_losses1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,self._quantile)
+            critic_losses2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,self._quantile)
             new_priorities = critic_losses1.cpu().clone().numpy() + \
                             critic_losses2.cpu().clone().numpy() + self.prioritized_replay_eps
             self.replay_buffer.update_priorities(indexs,new_priorities)
