@@ -140,7 +140,7 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
             vf_target = minimum_quantile(qf1_pi,qf2_pi,'mean') - (self.ent_coef * log_prob)
             vf_target_tile = vf_target.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
 
-        theta_loss_tile = vf.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
+        theta_loss_tile = vf.unsqueeze(2).repeat_interleave(vf_target_tile.shape[1], dim=2)
         vf_loss = self.critic_loss(theta_loss_tile, vf_target_tile, self._quantile).mean()
 
         self.value_optimizer.zero_grad()
