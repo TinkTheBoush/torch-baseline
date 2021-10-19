@@ -53,7 +53,7 @@ def minimum_quantile(one : Tensor, two : Tensor, mode : str = 'mean'):
         two_mean = two.mean(1,keepdim=True)
         return torch.where((one_mean < two_mean),one,two)
     elif mode == 'sort_split':
-        return torch.cat((one,two),dim=1).sort(1).chunk(2,dim=1)[0]
+        return torch.cat((one,two),dim=1).sort(1)[0].chunk(2,dim=1)[0]
     elif mode == 'stack':
         return torch.cat((one,two),dim=1)
 
