@@ -28,7 +28,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
         self.risk_avoidance = risk_avoidance
         self.sample_risk_avoidance = False
         self.policy_delay = policy_delay
-        self.quantile_minimum_mode = 'mean'
+        self.quantile_minimum_mode = 'sort_split'
         
         if _init_setup_model:
             self.setup_model()

@@ -28,6 +28,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
         self.risk_avoidance = risk_avoidance
         self.policy_delay = policy_delay
         self.sample_risk_avoidance = False
+        self.quantile_minimum_mode = 'sort_split'
         
         if _init_setup_model:
             self.setup_model()
