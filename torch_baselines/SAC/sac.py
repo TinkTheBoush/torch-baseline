@@ -78,7 +78,13 @@ class SAC(Deterministic_Policy_Gradient_Family):
         q1, q2 = self.critic(obses,actions)
         
         if self.prioritized_replay:
-            pass
+            weights = torch.from_numpy(data[5]).to(self.device)
+            indexs = data[6]
+            new_priorities = np.abs((targets.detach() - q1).squeeze().cpu().clone().numpy()) + \
+                            np.abs((targets.detach() - q2).squeeze().cpu().clone().numpy()) + self.prioritized_replay_eps
+            self.replay_buffer.update_priorities(indexs,new_priorities)
+            q_loss1 = (weights*self.critic_loss(q1,targets)).mean()
+            q_loss2 = (weights*self.critic_loss(q2,targets)).mean()
         else:
             q_loss1 = self.critic_loss(q1,targets).mean()
             q_loss2 = self.critic_loss(q2,targets).mean()
@@ -92,8 +98,8 @@ class SAC(Deterministic_Policy_Gradient_Family):
         qf1_pi, qf2_pi = self.critic(obses, policy)
         if step % self.policy_delay == 0:
             
-            actor_loss = (self.ent_coef * log_prob - qf1_pi).squeeze().mean() \
-                            + 0.0001 * (mu.pow(2).mean() + log_std.pow(2).mean())
+            actor_loss = (self.ent_coef * log_prob - qf1_pi).squeeze().mean()# \
+                            #+ 0.0001 * (mu.pow(2).mean() + log_std.pow(2).mean())
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
             if self.max_grad_norm > 0:

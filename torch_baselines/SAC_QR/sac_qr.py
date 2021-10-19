@@ -96,7 +96,15 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
         theta2_loss_tile = q2.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
         
         if self.prioritized_replay:
-            pass
+            weights = torch.from_numpy(data[5]).to(self.device)
+            indexs = data[6]
+            q_losses1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,self._quantile)
+            q_losses2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,self._quantile)
+            new_priorities = q_losses1.cpu().clone().numpy() + \
+                            q_losses2.cpu().clone().numpy() + self.prioritized_replay_eps
+            self.replay_buffer.update_priorities(indexs,new_priorities)
+            q_loss1 = (weights*q_losses1).mean()
+            q_loss2 = (weights*q_losses2).mean()
         else:
             q_loss1 = self.critic_loss(theta1_loss_tile,logit_valid_tile,self._quantile).mean()
             q_loss2 = self.critic_loss(theta2_loss_tile,logit_valid_tile,self._quantile).mean()
@@ -112,8 +120,8 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
             if self.sample_risk_avoidance:
                 self.risk_avoidance = np.clip(np.random.normal(),-1,1)
                 self.grad_mul = 1.0 - self.risk_avoidance*(2.0*self.quantile.view(1,self.n_support) - 1.0)
-            actor_loss = (self.ent_coef * log_prob - (qf1_pi*self.grad_mul.detach()).mean(-1)).squeeze().mean() \
-                            + 0.0001 * (mu.pow(2).mean() + log_std.pow(2).mean())
+            actor_loss = (self.ent_coef * log_prob - (qf1_pi*self.grad_mul.detach()).mean(-1)).squeeze().mean()# \
+                            #+ 0.0001 * (mu.pow(2).mean() + log_std.pow(2).mean())
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
             if self.max_grad_norm > 0:
