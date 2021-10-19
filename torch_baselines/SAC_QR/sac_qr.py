@@ -4,7 +4,7 @@ import numpy as np
 from torch_baselines.DDPG.base_class import Deterministic_Policy_Gradient_Family
 from torch_baselines.SAC_QR.network import Actor, Critic, Value
 from torch_baselines.common.losses import QRHuberLosses
-from torch_baselines.common.utils import convert_tensor, hard_update, soft_update
+from torch_baselines.common.utils import convert_tensor, hard_update, soft_update, minimum_quantile
 
 class SAC_QR(Deterministic_Policy_Gradient_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, n_support = 64, train_freq=1, gradient_steps=1, ent_coef = 1e-3,
@@ -137,7 +137,7 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
         vf = self.value(obses)
         
         with torch.no_grad():
-            vf_target = torch.minimum(qf1_pi,qf2_pi) - (self.ent_coef * log_prob)
+            vf_target = minimum_quantile(qf1_pi,qf2_pi,'mean') - (self.ent_coef * log_prob)
             vf_target_tile = vf_target.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
 
         theta_loss_tile = vf.unsqueeze(2).repeat_interleave(self.n_support, dim=2)

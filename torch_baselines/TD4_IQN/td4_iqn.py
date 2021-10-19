@@ -4,7 +4,7 @@ import numpy as np
 from torch_baselines.DDPG.base_class import Deterministic_Policy_Gradient_Family
 from torch_baselines.TD4_IQN.network import Actor, Critic, Qunatile_Maker
 from torch_baselines.common.losses import QRHuberLosses
-from torch_baselines.common.utils import convert_tensor, hard_update, soft_update
+from torch_baselines.common.utils import convert_tensor, hard_update, soft_update, minimum_quantile
 
 class TD4_IQN(Deterministic_Policy_Gradient_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, n_support = 8, target_action_noise_mul = 1.5,
@@ -101,7 +101,7 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
                                        -1,1)
             quantile_target = self.quantile(self.batch_size)
             next_vals1, next_vals2 = self.target_critic(nxtobses,next_actions,quantile_target)
-            next_vals = invdones * torch.minimum(next_vals1, next_vals2)
+            next_vals = invdones * minimum_quantile(next_vals1,next_vals2,'mean')
             targets = (self._gamma * next_vals) + rewards
         quantile_main = self.quantile(self.batch_size)
         vals1, vals2 = self.critic(obses,actions.detach(),quantile_main.detach())

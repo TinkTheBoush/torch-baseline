@@ -4,7 +4,7 @@ import numpy as np
 from torch_baselines.DDPG.base_class import Deterministic_Policy_Gradient_Family
 from torch_baselines.TD4_QR.network import Actor, Critic
 from torch_baselines.common.losses import QRHuberLosses
-from torch_baselines.common.utils import convert_tensor, hard_update, soft_update
+from torch_baselines.common.utils import convert_tensor, hard_update, soft_update, minimum_quantile
 
 class TD4_QR(Deterministic_Policy_Gradient_Family):
     def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, n_support = 64, target_action_noise_mul = 1.5,
@@ -98,7 +98,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
                                             -self.action_noise_clamp,self.action_noise_clamp),
                                        -1,1)
             next_vals1, next_vals2 = self.target_critic(nxtobses,next_actions)
-            next_vals = invdones * torch.minimum(next_vals1, next_vals2)
+            next_vals = invdones * minimum_quantile(next_vals1,next_vals2,'mean')
             targets = (self._gamma * next_vals) + rewards
             logit_valid_tile = targets.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
         

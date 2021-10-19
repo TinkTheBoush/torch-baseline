@@ -45,6 +45,14 @@ def convert_tensor(obs : List, device : torch.device, dtype=torch.float):
 def convert_states(obs : List):
     return [np.transpose(o*0xFF, (0,3,1,2)).astype(np.ubyte) if len(o.shape) >= 4 else o for o in obs]
 
+def minimum_quantile(one : Tensor, two : Tensor, mode : str = 'mean'):
+    if mode == 'each':
+        return torch.minimum(one,two)
+    elif mode == 'mean':
+        one_mean = one.mean(1,keepdim=True)
+        two_mean = two.mean(1,keepdim=True)
+        torch.where((one_mean < two_mean),one,two)
+
 @torch.jit.script
 def hard_update(target : List[Tensor], source : List[Tensor]):
     for target_param, param in zip(target, source):
