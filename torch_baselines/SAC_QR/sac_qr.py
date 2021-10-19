@@ -24,7 +24,7 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
         self.policy_delay = policy_delay
         self.ent_coef = ent_coef
         self.sample_risk_avoidance = False
-        self.quantile_minimum_mode = 'sort_split'
+        self.quantile_minimum_mode = 'stack'
         
         if _init_setup_model:
             self.setup_model()
