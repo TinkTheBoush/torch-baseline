@@ -101,13 +101,14 @@ class TD4_IQN(Deterministic_Policy_Gradient_Family):
                                        -1,1)
             quantile_target = self.quantile(self.batch_size)
             next_vals1, next_vals2 = self.target_critic(nxtobses,next_actions,quantile_target)
-            next_vals = invdones * minimum_quantile(next_vals1,next_vals2,'mean')
+            next_vals = invdones * minimum_quantile(next_vals1,next_vals2,self.quantile_minimum_mode)
             targets = (self._gamma * next_vals) + rewards
+            logit_valid_tile = targets.unsqueeze(1).repeat_interleave(self.n_support, dim=1).detach()
+        
         quantile_main = self.quantile(self.batch_size)
         vals1, vals2 = self.critic(obses,actions.detach(),quantile_main.detach())
-        logit_valid_tile = targets.unsqueeze(1).repeat_interleave(self.n_support, dim=1).detach()
-        theta1_loss_tile = vals1.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
-        theta2_loss_tile = vals2.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
+        theta1_loss_tile = vals1.unsqueeze(2).repeat_interleave(targets.shape[1], dim=2)
+        theta2_loss_tile = vals2.unsqueeze(2).repeat_interleave(targets.shape[1], dim=2)
         
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)

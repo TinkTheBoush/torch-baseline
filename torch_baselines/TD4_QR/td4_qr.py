@@ -28,6 +28,7 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
         self.risk_avoidance = risk_avoidance
         self.sample_risk_avoidance = False
         self.policy_delay = policy_delay
+        self.quantile_minimum_mode = 'mean'
         
         if _init_setup_model:
             self.setup_model()
@@ -98,13 +99,13 @@ class TD4_QR(Deterministic_Policy_Gradient_Family):
                                             -self.action_noise_clamp,self.action_noise_clamp),
                                        -1,1)
             next_vals1, next_vals2 = self.target_critic(nxtobses,next_actions)
-            next_vals = invdones * minimum_quantile(next_vals1,next_vals2,'mean')
+            next_vals = invdones * minimum_quantile(next_vals1,next_vals2,self.quantile_minimum_mode)
             targets = (self._gamma * next_vals) + rewards
             logit_valid_tile = targets.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
         
         vals1, vals2 = self.critic(obses,actions)
-        theta1_loss_tile = vals1.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
-        theta2_loss_tile = vals2.unsqueeze(2).repeat_interleave(self.n_support, dim=2)
+        theta1_loss_tile = vals1.unsqueeze(2).repeat_interleave(targets.shape[1], dim=2)
+        theta2_loss_tile = vals2.unsqueeze(2).repeat_interleave(targets.shape[1], dim=2)
         
         if self.prioritized_replay:
             weights = torch.from_numpy(data[5]).to(self.device)

@@ -24,6 +24,7 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
         self.policy_delay = policy_delay
         self.ent_coef = ent_coef
         self.sample_risk_avoidance = False
+        self.quantile_minimum_mode = 'sort_split'
         
         if _init_setup_model:
             self.setup_model()
@@ -137,7 +138,7 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
         vf = self.value(obses)
         
         with torch.no_grad():
-            vf_target = minimum_quantile(qf1_pi,qf2_pi,'mean') - (self.ent_coef * log_prob)
+            vf_target = minimum_quantile(qf1_pi,qf2_pi,self.quantile_minimum_mode) - (self.ent_coef * log_prob)
             vf_target_tile = vf_target.unsqueeze(1).repeat_interleave(self.n_support, dim=1)
 
         theta_loss_tile = vf.unsqueeze(2).repeat_interleave(vf_target_tile.shape[1], dim=2)
