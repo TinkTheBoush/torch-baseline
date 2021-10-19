@@ -51,7 +51,7 @@ def minimum_quantile(one : Tensor, two : Tensor, mode : str = 'mean'):
     elif mode == 'mean':
         one_mean = one.mean(1,keepdim=True)
         two_mean = two.mean(1,keepdim=True)
-        torch.where((one_mean < two_mean),one,two)
+        return torch.where((one_mean < two_mean),one,two)
 
 @torch.jit.script
 def hard_update(target : List[Tensor], source : List[Tensor]):
