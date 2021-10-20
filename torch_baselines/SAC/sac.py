@@ -21,7 +21,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
         
         self.policy_delay = policy_delay
         self.ent_coef = ent_coef
-        self.target_entropy = -np.prod(self.action_size).astype(np.float32)
+        self.target_entropy = -np.prod(self.action_size).astype(np.float32)/2.0
         
         if _init_setup_model:
             self.setup_model()
