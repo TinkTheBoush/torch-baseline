@@ -57,7 +57,7 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
             if '_' in self.ent_coef:
                 init_value = float(self.ent_coef.split('_')[1])
                 assert init_value > 0., "The initial value of ent_coef must be greater than 0"
-            self.log_ent_coef = torch.nn.Parameter(torch.tensor(init_value),requires_grad=True).to(self.device)
+            self.log_ent_coef = torch.nn.Parameter(torch.tensor(init_value, requires_grad=True),requires_grad=True).to(self.device)
             self.ent_coef = self.log_ent_coef.exp().detach()
             self.entropy_optimizer = torch.optim.Adam([self.log_ent_coef],lr=self.learning_rate)
         else:
