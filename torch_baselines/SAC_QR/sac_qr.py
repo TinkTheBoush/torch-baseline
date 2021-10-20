@@ -172,6 +172,7 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)
             self.summary.add_scalar("loss/targets", targets.mean(), steps)
             self.summary.add_scalar("loss/policy_std", std.mean(), steps)
+            self.summary.add_scalar("loss/ent_coef", self.ent_coef, steps)
     
     def actions(self,obs,befor_train):
         if not befor_train:
