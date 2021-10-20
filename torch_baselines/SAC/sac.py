@@ -7,7 +7,7 @@ from torch_baselines.common.losses import MSELosses, HuberLosses
 from torch_baselines.common.utils import convert_tensor, hard_update, soft_update
 
 class SAC(Deterministic_Policy_Gradient_Family):
-    def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, train_freq=1, gradient_steps=1, ent_coef = 1e-3,
+    def __init__(self, env, gamma=0.99, learning_rate=5e-4, buffer_size=50000, train_freq=1, gradient_steps=1, ent_coef = 'auto',
                  batch_size=32, policy_delay = 2, n_step = 1, learning_starts=1000, target_network_tau=0.99, prioritized_replay=False, 
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_eps=1e-6, 
                  param_noise=False, max_grad_norm = 1.0, log_interval=200, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None, 
@@ -21,6 +21,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
         
         self.policy_delay = policy_delay
         self.ent_coef = ent_coef
+        self.target_entropy = -np.prod(self.action_size).astype(np.float32)
         
         if _init_setup_model:
             self.setup_model()
@@ -46,6 +47,19 @@ class SAC(Deterministic_Policy_Gradient_Family):
         self.main_param = list(self.value.parameters())
         self.target_param = list(self.target_value.parameters())
         hard_update(self.target_param,self.main_param)
+        
+        if isinstance(self.ent_coef, str) and self.ent_coef.startswith('auto'):
+            init_value = 1.0
+            if '_' in self.ent_coef:
+                init_value = float(self.ent_coef.split('_')[1])
+                assert init_value > 0., "The initial value of ent_coef must be greater than 0"
+
+            
+            self.log_ent_coef = torch.nn.Parameter(torch.Tensor(init_value,device=self.device))
+            self.ent_coef = self.log_ent_coef.exp().detach()
+            self.entropy_optimizer = torch.optim.Adam([self.log_ent_coef],lr=self.learning_rate)
+        else:
+            self.ent_coef = float(self.ent_coef)
         
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),lr=self.learning_rate)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),lr=self.learning_rate)
@@ -97,9 +111,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
         policy, log_prob, mu, log_std, std = self.actor.update_data(obses)
         qf1_pi, qf2_pi = self.critic(obses, policy)
         if step % self.policy_delay == 0:
-            
-            actor_loss = (self.ent_coef * log_prob - qf1_pi).squeeze().mean() \
-                            + 1e-3 * (mu.pow(2).mean() + log_std.pow(2).mean())
+            actor_loss = (self.ent_coef * log_prob - qf1_pi).squeeze().mean()
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
             if self.max_grad_norm > 0:
@@ -121,6 +133,13 @@ class SAC(Deterministic_Policy_Gradient_Family):
         self.value_optimizer.zero_grad()
         vf_loss.backward()
         self.value_optimizer.step()
+        
+        if not isinstance(self.ent_coef, float):
+            ent_coef_loss = -(self.log_ent_coef * (log_prob + self.target_entropy).detach()).mean()
+            self.entropy_optimizer.zero_grad()
+            ent_coef_loss.backward()
+            self.entropy_optimizer.step()
+            self.ent_coef = self.log_ent_coef.exp().detach()
         
         if self.summary and step % self.log_interval == 0:
             self.summary.add_scalar("loss/critic_loss", critic_loss, steps)

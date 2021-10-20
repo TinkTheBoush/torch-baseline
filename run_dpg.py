@@ -39,7 +39,7 @@ if __name__ == "__main__":
     parser.add_argument('--hidden_n', type=int,default=2, help='hidden layer number')
     parser.add_argument('--action_noise', type=float,default=0.1, help='action noise std')
     parser.add_argument('--target_noise_mul', type=float,default=2.0, help='target noise mul')
-    parser.add_argument('--ent_coef', type=float,default=5e-2, help='target noise mul')
+    parser.add_argument('--ent_coef', type=str,default='auto', help='target noise mul')
     args = parser.parse_args() 
     env_name = args.env
     env_type = ""
