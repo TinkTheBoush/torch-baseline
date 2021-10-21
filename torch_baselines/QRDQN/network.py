@@ -66,7 +66,7 @@ class Model(nn.Module):
             nn.ReLU() if i%2 else lin(node,node) for i in range(2*(hidden_n-1))
             ] + 
             [
-            lin(node, action_size[0]*self.n_support)
+            lin(node, self.n_support)
             ]
             )
             )
