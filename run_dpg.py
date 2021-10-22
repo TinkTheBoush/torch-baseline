@@ -58,7 +58,8 @@ if __name__ == "__main__":
         env = gym.make(env_name,seed=args.seed)
         env_type = "gym"
     policy_kwargs = {'node': args.node,
-                     'hidden_n': args.hidden_n}
+                     'hidden_n': args.hidden_n,
+                     'cnn_mode': 'simple'}
     
     if args.algo == "DDPG":
         agent = DDPG(env,batch_size = args.batch, learning_rate=args.lr, gamma = args.gamma, train_freq=args.train_freq, 
