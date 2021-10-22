@@ -12,22 +12,21 @@ def get_flatten_size(function,size):
     return function(torch.rand(*([1]+size))).data.shape[-1]
 
 def visual_embedding(st,mode="normal"):
-    if mode == "normal":
+    if mode == "simple":
         return  nn.Sequential(
-                nn.Conv2d(st[0],32,kernel_size=8, stride=4),
-                nn.ReLU(),
-                nn.Conv2d(32,64,kernel_size=4,stride=2),
-                nn.ReLU(),
-                nn.Conv2d(64,64,kernel_size=3,stride=1),
-                nn.ReLU(),
+                nn.Conv2d(st[0], 16, 8, 4),
+                nn.LeakyReLU(),
+                nn.Conv2d(16, 32, 4, 2),
+                nn.LeakyReLU(),
                 nn.Flatten()
+
             )
     elif mode == "minimum":
         return  nn.Sequential(
-                nn.Conv2d(st[0],16,kernel_size=4, stride=2),
-                nn.ReLU(),
-                nn.Conv2d(16,32,kernel_size=3,stride=1),
-                nn.ReLU(),
+                nn.Conv2d(st[0], 35, 3, 1),
+                nn.LeakyReLU(),
+                nn.Conv2d(35, 144, 3, 1),
+                nn.LeakyReLU(),
                 nn.Flatten()
             )
     elif mode == "none":
