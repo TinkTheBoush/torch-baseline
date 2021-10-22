@@ -29,7 +29,6 @@ def visual_embedding(st,mode="simple"):
                 nn.Conv2d(16, 32, 4, 2),
                 nn.LeakyReLU(),
                 nn.Flatten()
-
             )
     elif mode == "minimum":
         return  nn.Sequential(
