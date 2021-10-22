@@ -53,7 +53,7 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
         hard_update(self.target_param,self.main_param)
         
         if isinstance(self.ent_coef, str) and self.ent_coef.startswith('auto'):
-            init_value = np.log(0.001)
+            init_value = np.log(0.1)
             if '_' in self.ent_coef:
                 init_value = np.log(float(self.ent_coef.split('_')[1]))
                 assert init_value > 0., "The initial value of ent_coef must be greater than 0"
