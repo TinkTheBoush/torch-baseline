@@ -109,7 +109,7 @@ class SAC(Deterministic_Policy_Gradient_Family):
         policy, log_prob, mu, log_std, std = self.actor.update_data(obses)
         qf1_pi, qf2_pi = self.critic(obses, policy)
         if step % self.policy_delay == 0:
-            actor_loss = (self.ent_coef * log_prob - qf1_pi).squeeze().mean()
+            actor_loss = (self.ent_coef * log_prob - qf1_pi).mean()
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
             if self.max_grad_norm > 0:
