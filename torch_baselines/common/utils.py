@@ -11,7 +11,7 @@ from torch import Tensor
 def get_flatten_size(function,size):
     return function(torch.rand(*([1]+size))).data.shape[-1]
 
-def visual_embedding(st,mode="normal"):
+def visual_embedding(st,mode="simple"):
     if mode == "simple":
         return  nn.Sequential(
                 nn.Conv2d(st[0], 16, 8, 4),
