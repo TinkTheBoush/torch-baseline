@@ -124,7 +124,7 @@ class Deterministic_Policy_Gradient_Family(object):
         obses = convert_states(dec.obs)
         for steps in pbar:
             self.eplen += 1
-            actions = self.actions(dec.obs,befor_train)
+            actions = self.actions(obses,befor_train)
             action_tuple = ActionTuple(continuous=actions)
             old_obses = obses
 
