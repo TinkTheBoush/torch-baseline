@@ -134,7 +134,8 @@ class SAC_QR(Deterministic_Policy_Gradient_Family):
                 self.risk_avoidance = np.clip(np.random.normal(),-1,1)
                 self.grad_mul = 1.0 - self.risk_avoidance*(2.0*self.quantile.view(1,self.n_support) - 1.0)
             actor_loss = (self.ent_coef * log_prob - \
-                          (qf1_pi*self.grad_mul.detach()).mean(1)
+                          (qf1_pi*self.grad_mul.detach()).mean(1) + \
+                          1e-2 * qf1_pi.std(dim=1,unbiased=True)
                           ).mean()
             self.actor_optimizer.zero_grad()
             actor_loss.backward()
