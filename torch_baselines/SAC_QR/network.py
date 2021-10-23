@@ -53,7 +53,8 @@ class Actor(nn.Module):
         cated = torch.cat(flats,dim=-1)
         lin = self.linear(cated)
         mu = self.act_mu(lin)
-        log_std = torch.tanh(self.log_std(lin))*LOG_STD_SCALE + LOG_STD_MEAN
+        log_std = torch.clip(self.log_std(lin),LOG_STD_MIN,LOG_STD_MAX)
+        #log_std = torch.tanh()*LOG_STD_SCALE + LOG_STD_MEAN
         return mu, log_std
         
     def action(self, xs):
