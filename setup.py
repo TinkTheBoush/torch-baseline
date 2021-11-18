@@ -14,7 +14,5 @@ setup(
         'cpprb',
         'importlib; python_version >= "3.5"',
     ],
-    #dependency_links=[
-    #    'https://github.com/kenjyoung/MinAtar#egg=package-1.0'
-    #    ]
+    dependency_links=['https://github.com/kenjyoung/MinAtar#egg=package-1.0']
 )
